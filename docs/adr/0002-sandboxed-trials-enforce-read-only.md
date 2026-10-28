@@ -1,0 +1,3 @@
+# Trials are sandboxed, and the checker enforces read-only
+
+Each trial runs headless Claude Code in a fresh git-initialised temp copy of the target. Tools are restricted to Read/Grep/Glob, Write/Edit, and Bash limited to the plugin's own scripts and `git diff`/`git log`. There are no web tools, and the model is pinned. After the trial, the checker diffs the copy, and any change outside `docs/security/` marks the trial **failed**. Targets are deliberately vulnerable and will include prompt-injection fixtures, so the agent must not be able to act on them. The diff turns the "read-only skills stay read-only" rule from a request into something every eval run tests.
