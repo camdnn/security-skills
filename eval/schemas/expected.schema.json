@@ -46,11 +46,14 @@
           "items": { "$ref": "#/$defs/location" }
         },
         "evidence": {
-          "description": "Quote of the vulnerable code; must exist inside one of `locations` (checked by `python -m eval check-truth`).",
+          "description": "Quote of the vulnerable code; must exist inside one of `locations` (checked by `python -m eval check-truth`, which runs before every eval run).",
           "type": "string",
           "minLength": 1
         },
-        "requires_context": { "type": "boolean" },
+        "requires_context": {
+          "description": "True for a business-logic flaw that needs Step 1 context to detect. Recall is reported separately for these entries (research question RQ5).",
+          "type": "boolean"
+        },
         "description": { "type": "string", "minLength": 1 },
         "source": { "type": "string", "minLength": 1 }
       }
