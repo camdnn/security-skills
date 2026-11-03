@@ -7,7 +7,7 @@ import os
 import posixpath
 import sys
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import Any
 
 import yaml
@@ -25,7 +25,15 @@ CASE_INSENSITIVE_SYSTEM = sys.platform in ("darwin", "win32")
 
 @dataclass(frozen=True)
 class Match:
-    """A finding paired with a truth entry; as a duplicate, the entry it would have matched."""
+    """A finding paired one-to-one with a truth entry."""
+
+    finding: Finding
+    entry: TruthEntry
+
+
+@dataclass(frozen=True)
+class Duplicate:
+    """A finding that would have matched ``entry``, had another finding not matched it first."""
 
     finding: Finding
     entry: TruthEntry
@@ -44,7 +52,7 @@ class MatchResult:
     """Every finding and truth entry of a trial, each classified exactly once."""
 
     matches: list[Match]
-    duplicates: list[Match]
+    duplicates: list[Duplicate]
     false_positives: list[FalsePositive]
     false_negatives: list[TruthEntry]
 
@@ -53,7 +61,8 @@ def load_tolerance(config_path: Path | str = CONFIG_PATH) -> int:
     """Return ``line_tolerance`` from the checker config, or the default if unset."""
     path = Path(config_path)
     config = yaml.safe_load(path.read_text()) if path.exists() else None
-    return (config or {}).get("line_tolerance", DEFAULT_TOLERANCE)
+    tolerance = (config or {}).get("line_tolerance")
+    return DEFAULT_TOLERANCE if tolerance is None else tolerance
 
 
 def match(
@@ -122,7 +131,7 @@ def match(
     # candidate that is still unassigned lost out to another finding: a duplicate.
     matches = [Match(findings[f], entries[e]) for f, e in sorted(assigned.items())]
     duplicates = [
-        Match(finding, entries[closest_entry[f]])
+        Duplicate(finding, entries[closest_entry[f]])
         for f, finding in enumerate(findings)
         if f in closest_entry and f not in assigned
     ]
@@ -138,6 +147,7 @@ def match(
 def _check_ground_truth_families(
     entries: list[TruthEntry], must_not_find: list[MustNotFindRule], registry: dict[str, Any]
 ) -> None:
+    """Raise ``ValueError`` if ground truth names a CWE or family outside the registry."""
     for entry in entries:
         if entry["cwe"] not in registry["cwe_to_family"]:
             raise ValueError(f"truth entry {entry['id']}: {entry['cwe']} has no CWE family")
@@ -167,13 +177,28 @@ def _line_gap(
 
 def _normalize_path(path: str, target_root: str, case_insensitive: bool) -> str:
     """Return ``path`` relative to the target root, with forward slashes."""
-    path = path.replace("\\", "/")
+    path = posixpath.normpath(path.replace("\\", "/"))
     if posixpath.isabs(path) or os.path.isabs(path):
-        # realpath: agents may report through a different alias of the temp copy
-        # than the runner holds (macOS /tmp is a symlink to /private/tmp).
-        path, root = os.path.realpath(path), os.path.realpath(target_root)
-        if case_insensitive:
-            path, root = path.lower(), root.lower()
-        path = os.path.relpath(path, root).replace(os.sep, "/")
-    path = posixpath.normpath(path)
+        path = _relative_to_root(path, target_root, case_insensitive)
     return path.lower() if case_insensitive else path
+
+
+def _relative_to_root(path: str, target_root: str, case_insensitive: bool) -> str:
+    """Strip the target root from an absolute ``path``, however the root is spelled.
+
+    Agents may report through a different alias of the temp copy than the runner
+    holds (macOS /tmp is a symlink to /private/tmp), so ancestors are compared by
+    real path. What lies below the root stays textual, like truth paths, so a symlink
+    inside the target can't change the result. A path outside the root stays absolute.
+    """
+
+    def real(candidate: PurePath | str) -> str:
+        resolved = os.path.realpath(candidate)
+        return resolved.lower() if case_insensitive else resolved
+
+    root = real(target_root)
+    absolute = PurePath(path)
+    for ancestor in reversed(absolute.parents):
+        if real(ancestor) == root:
+            return absolute.relative_to(ancestor).as_posix()
+    return path

@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from jsonschema import Draft202012Validator
 
-from eval.matcher import load_tolerance, match
+from eval.matcher import CONFIDENCE_RANK, Duplicate, load_tolerance, match
 
 DATA = Path(__file__).parent / "data"
 REPO = Path(__file__).resolve().parents[2]
@@ -35,6 +35,16 @@ def finding(file="routes/search.ts", line=40, end_line=None, cwe="CWE-89", confi
 
 def ids(entries) -> list[str]:
     return [entry["id"] for entry in entries]
+
+
+def truth_with_second_sqli_entry() -> dict:
+    """SQLI-01 at lines 40-48 and SQLI-02 at 56-58: close enough to share findings."""
+    truth = load("matcher-truth.json")
+    truth["truth"][1] = truth["truth"][0] | {
+        "id": "SQLI-02",
+        "locations": [{"file": "routes/search.ts", "start_line": 56, "end_line": 58}],
+    }
+    return truth
 
 
 def test_matcher_data_is_valid_ground_truth(truth):
@@ -157,11 +167,7 @@ def test_closer_line_beats_higher_confidence(truth):
 
 
 def test_finding_in_range_of_two_entries_takes_the_closer_one():
-    truth = load("matcher-truth.json")
-    truth["truth"][1] = truth["truth"][0] | {
-        "id": "SQLI-02",
-        "locations": [{"file": "routes/search.ts", "start_line": 56, "end_line": 58}],
-    }
+    truth = truth_with_second_sqli_entry()
 
     # Reversed input order must not let the finding match the further entry.
     result = match([finding(line=51)], {"truth": truth["truth"][::-1]}, TARGET_ROOT)
@@ -171,11 +177,7 @@ def test_finding_in_range_of_two_entries_takes_the_closer_one():
 
 
 def test_nearby_findings_each_take_their_closest_entry():
-    truth = load("matcher-truth.json")
-    truth["truth"][1] = truth["truth"][0] | {
-        "id": "SQLI-02",
-        "locations": [{"file": "routes/search.ts", "start_line": 56, "end_line": 58}],
-    }
+    truth = truth_with_second_sqli_entry()
     near_first = finding(line=51, id="SEC-0001")
     near_second = finding(line=53, id="SEC-0002")
 
@@ -306,7 +308,7 @@ def test_tolerance_is_read_from_the_config_file(tmp_path):
     assert load_tolerance(config) == 9
 
 
-@pytest.mark.parametrize("contents", [None, "", "trials: 3\n"])
+@pytest.mark.parametrize("contents", [None, "", "trials: 3\n", "line_tolerance:\n"])
 def test_tolerance_defaults_to_5_when_config_does_not_set_it(tmp_path, contents):
     config = tmp_path / "config.yaml"
     if contents is not None:
@@ -333,3 +335,33 @@ def test_must_not_find_rule_with_an_unknown_family_is_rejected(truth):
     truth["must_not_find"][0]["cwe_family"] = "injections"
     with pytest.raises(ValueError, match="injections"):
         match([], truth, TARGET_ROOT)
+
+
+def test_duplicate_is_reported_as_its_own_kind_of_result(truth):
+    result = match([finding(line=44), finding(line=45)], truth, TARGET_ROOT)
+    assert [type(d) for d in result.duplicates] == [Duplicate]
+
+
+def test_absolute_path_is_resolved_when_the_target_root_is_the_real_path(truth, tmp_path):
+    real_root = tmp_path / "real"
+    real_root.mkdir()
+    link_root = tmp_path / "link"
+    link_root.symlink_to(real_root)
+
+    found = finding(file=str(link_root / "routes/search.ts"))
+
+    assert match([found], truth, str(real_root)).matches
+
+
+def test_symlink_inside_the_target_does_not_change_an_absolute_path(truth, tmp_path):
+    (tmp_path / "lib").mkdir()
+    (tmp_path / "routes").symlink_to(tmp_path / "lib")
+
+    found = finding(file=str(tmp_path / "routes/search.ts"))
+
+    assert match([found], truth, str(tmp_path)).matches
+
+
+def test_every_schema_confidence_has_a_rank():
+    schema = json.loads((REPO / "skills/security-scan/references/finding-schema.json").read_text())
+    assert set(CONFIDENCE_RANK) == set(schema["properties"]["confidence"]["enum"])
