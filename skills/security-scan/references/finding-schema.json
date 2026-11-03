@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/camdnn/security-skills/skills/security-scan/references/finding-schema.json",
+  "title": "Finding",
+  "description": "One vulnerability reported by the plugin. Single source of truth for the finding format (TICKET-001 §3.1); never copy it. DREAD `score` must equal the mean of the five factors rounded to 1 decimal; that arithmetic is enforced by eval/validate.py, not by this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "skill",
+    "title",
+    "cwe",
+    "owasp",
+    "file",
+    "line",
+    "end_line",
+    "evidence",
+    "why",
+    "trace",
+    "context_ref",
+    "fix",
+    "dread",
+    "confidence",
+    "mode"
+  ],
+  "properties": {
+    "id": { "type": "string", "pattern": "^SEC-[0-9]{4,}$" },
+    "skill": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+    "title": { "type": "string", "minLength": 1 },
+    "cwe": { "type": "string", "pattern": "^CWE-[0-9]+$" },
+    "owasp": { "type": "string", "pattern": "^A[0-9]{2}:[0-9]{4}$" },
+    "file": { "type": "string", "minLength": 1 },
+    "line": { "$ref": "#/$defs/line" },
+    "end_line": { "$ref": "#/$defs/line" },
+    "evidence": { "type": "string", "minLength": 1 },
+    "why": { "type": "string", "minLength": 1 },
+    "trace": {
+      "description": "Data flow from source to sink. Empty for findings without data flow (e.g. a hard-coded secret).",
+      "type": "array",
+      "items": { "$ref": "#/$defs/trace_step" }
+    },
+    "context_ref": {
+      "description": "Business rule the finding cites (e.g. BR-3), or null when none applies.",
+      "type": ["string", "null"],
+      "minLength": 1
+    },
+    "fix": { "type": "string", "minLength": 1 },
+    "dread": { "$ref": "#/$defs/dread" },
+    "confidence": { "enum": ["high", "medium", "low"] },
+    "mode": { "enum": ["context", "code-only"] }
+  },
+  "$defs": {
+    "line": { "type": "integer", "minimum": 1 },
+    "dread_factor": { "type": "integer", "minimum": 1, "maximum": 5 },
+    "trace_step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["step", "file", "line", "note"],
+      "properties": {
+        "step": { "type": "string", "minLength": 1 },
+        "file": { "type": "string", "minLength": 1 },
+        "line": { "$ref": "#/$defs/line" },
+        "note": { "type": "string" }
+      }
+    },
+    "dread": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "damage",
+        "reproducibility",
+        "exploitability",
+        "affected_users",
+        "discoverability",
+        "score"
+      ],
+      "properties": {
+        "damage": { "$ref": "#/$defs/dread_factor" },
+        "reproducibility": { "$ref": "#/$defs/dread_factor" },
+        "exploitability": { "$ref": "#/$defs/dread_factor" },
+        "affected_users": { "$ref": "#/$defs/dread_factor" },
+        "discoverability": { "$ref": "#/$defs/dread_factor" },
+        "score": { "type": "number", "minimum": 1, "maximum": 5 }
+      }
+    }
+  }
+}

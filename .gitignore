@@ -1,0 +1,12 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Raw trial transcripts (only report.md + metrics.json are committed)
+eval/results/**/raw/
+
+# Cloned benchmark repositories
+eval/benchmarks/*/repo/
