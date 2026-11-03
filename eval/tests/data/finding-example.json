@@ -1,0 +1,38 @@
+{
+  "id": "SEC-0001",
+  "skill": "access-control-check",
+  "title": "Order lookup missing ownership check (IDOR)",
+  "cwe": "CWE-639",
+  "owasp": "A01:2025",
+  "file": "routes/order.ts",
+  "line": 42,
+  "end_line": 48,
+  "evidence": "const order = await Order.findById(req.params.id)",
+  "why": "Any logged-in user can read any order by changing the id.",
+  "trace": [
+    {
+      "step": "source",
+      "file": "routes/order.ts",
+      "line": 40,
+      "note": "req.params.id"
+    },
+    {
+      "step": "sink",
+      "file": "routes/order.ts",
+      "line": 42,
+      "note": "findById without user filter"
+    }
+  ],
+  "context_ref": "BR-3",
+  "fix": "Filter by req.user.id or check order.userId === req.user.id.",
+  "dread": {
+    "damage": 4,
+    "reproducibility": 5,
+    "exploitability": 5,
+    "affected_users": 4,
+    "discoverability": 4,
+    "score": 4.4
+  },
+  "confidence": "high",
+  "mode": "context"
+}

@@ -1,0 +1,18 @@
+{
+  "truth": [
+    {
+      "id": "JS-IDOR-01",
+      "cwe": "CWE-639",
+      "locations": [
+        { "file": "routes/order.ts", "start_line": 40, "end_line": 48 }
+      ],
+      "evidence": "const order = await Order.findById(req.params.id)",
+      "requires_context": true,
+      "description": "Basket/order access without ownership check",
+      "source": "Juice Shop challenge: View Basket"
+    }
+  ],
+  "must_not_find": [
+    { "file": "safe/query.ts", "cwe_family": "injection" }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/camdnn/security-skills/eval/schemas/expected.schema.json",
+  "title": "Ground truth",
+  "description": "Hand-verified truth entries and must-not-find rules for one target (TICKET-001 §3.2). Truth entries carry no category: the CWE family is always derived from `cwe` via eval/cwe_families.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["truth"],
+  "properties": {
+    "truth": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/truth_entry" }
+    },
+    "must_not_find": {
+      "description": "Rules for safe fixtures: no finding of `cwe_family` may appear in `file`.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/must_not_find_rule" }
+    }
+  },
+  "$defs": {
+    "line": { "type": "integer", "minimum": 1 },
+    "file": {
+      "description": "Path relative to the target root, forward slashes.",
+      "type": "string",
+      "minLength": 1
+    },
+    "truth_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "cwe",
+        "locations",
+        "evidence",
+        "requires_context",
+        "description",
+        "source"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "cwe": { "type": "string", "pattern": "^CWE-[0-9]+$" },
+        "locations": {
+          "description": "Every spot at which the vulnerability counts as correctly reported.",
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/location" }
+        },
+        "evidence": {
+          "description": "Quote of the vulnerable code; must exist inside one of `locations` (checked by `python -m eval check-truth`).",
+          "type": "string",
+          "minLength": 1
+        },
+        "requires_context": { "type": "boolean" },
+        "description": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "minLength": 1 }
+      }
+    },
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file", "start_line", "end_line"],
+      "properties": {
+        "file": { "$ref": "#/$defs/file" },
+        "start_line": { "$ref": "#/$defs/line" },
+        "end_line": { "$ref": "#/$defs/line" }
+      }
+    },
+    "must_not_find_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file", "cwe_family"],
+      "properties": {
+        "file": { "$ref": "#/$defs/file" },
+        "cwe_family": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" }
+      }
+    }
+  }
+}
