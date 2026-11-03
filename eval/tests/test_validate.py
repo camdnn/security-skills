@@ -7,7 +7,6 @@ import pytest
 
 from eval.validate import validate_findings
 
-
 DATA = Path(__file__).parent / "data"
 
 
