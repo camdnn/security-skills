@@ -1,0 +1,39 @@
+{
+  "cwe_to_family": {
+    "CWE-16": "misconfiguration",
+    "CWE-22": "file-handling",
+    "CWE-78": "injection",
+    "CWE-79": "xss",
+    "CWE-89": "injection",
+    "CWE-94": "injection",
+    "CWE-117": "error-logging",
+    "CWE-209": "error-logging",
+    "CWE-284": "access-control",
+    "CWE-285": "access-control",
+    "CWE-287": "auth-session",
+    "CWE-327": "crypto",
+    "CWE-330": "crypto",
+    "CWE-352": "auth-session",
+    "CWE-434": "file-handling",
+    "CWE-502": "file-handling",
+    "CWE-639": "access-control",
+    "CWE-778": "error-logging",
+    "CWE-798": "secrets",
+    "CWE-862": "access-control",
+    "CWE-863": "access-control",
+    "CWE-918": "access-control",
+    "CWE-1104": "dependency"
+  },
+  "families": {
+    "access-control": "access-control-check",
+    "auth-session": "auth-session-check",
+    "crypto": "crypto-check",
+    "dependency": "dependency-check",
+    "error-logging": "error-logging-check",
+    "file-handling": "file-handling-check",
+    "injection": "injection-check",
+    "misconfiguration": "misconfiguration-check",
+    "secrets": "secrets-check",
+    "xss": "xss-check"
+  }
+}
