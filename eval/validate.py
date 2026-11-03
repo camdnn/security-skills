@@ -9,7 +9,6 @@ from typing import Any, Literal
 
 from jsonschema import Draft202012Validator
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 FINDING_SCHEMA_PATH = REPO_ROOT / "skills/security-scan/references/finding-schema.json"
 DREAD_FACTORS = (
