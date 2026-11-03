@@ -102,75 +102,13 @@ Canonical definitions live in [`GLOSSARY.md`](../../GLOSSARY.md). Key terms: Fin
 
 These are shared contracts between the two developers. Changing them later is expensive.
 
-### 3.1 Finding (`skills/security-scan/references/finding-schema.json`, JSON Schema draft 2020-12)
+### 3.1 Finding
 
-Required fields:
+Defined by `skills/security-scan/references/finding-schema.json` (JSON Schema draft 2020-12), the single source of truth (§0 rule 3). The checker does not judge whether DREAD values are *right* (out of scope).
 
-```json
-{
-  "id": "SEC-0001",
-  "skill": "access-control-check",
-  "title": "Order lookup missing ownership check (IDOR)",
-  "cwe": "CWE-639",
-  "owasp": "A01:2025",
-  "file": "routes/order.ts",
-  "line": 42,
-  "end_line": 48,
-  "evidence": "const order = await Order.findById(req.params.id)",
-  "why": "Any logged-in user can read any order by changing the id.",
-  "trace": [
-    {
-      "step": "source",
-      "file": "routes/order.ts",
-      "line": 40,
-      "note": "req.params.id"
-    },
-    {
-      "step": "sink",
-      "file": "routes/order.ts",
-      "line": 42,
-      "note": "findById without user filter"
-    }
-  ],
-  "context_ref": "BR-3",
-  "fix": "Filter by req.user.id or check order.userId === req.user.id.",
-  "dread": {
-    "damage": 4,
-    "reproducibility": 5,
-    "exploitability": 5,
-    "affected_users": 4,
-    "discoverability": 4,
-    "score": 4.4
-  },
-  "confidence": "high",
-  "mode": "context"
-}
-```
+### 3.2 Ground truth
 
-Rules: `trace` may be `[]` for findings without data flow (e.g., a secret). `context_ref` is `null` when no business rule applies. `mode` ∈ `context | code-only`. `confidence` ∈ `high | medium | low`. `score` = mean of the five DREAD values, rounded to 1 decimal; `validate.py` rejects a finding whose `score` doesn't equal that. The checker does not judge whether DREAD values are *right* (out of scope).
-
-### 3.2 Ground truth entry (`eval/schemas/expected.schema.json`)
-
-```json
-{
-  "id": "JS-IDOR-01",
-  "cwe": "CWE-639",
-  "locations": [
-    { "file": "routes/order.ts", "start_line": 40, "end_line": 48 }
-  ],
-  "evidence": "const order = await Order.findById(req.params.id)",
-  "requires_context": true,
-  "description": "Basket/order access without ownership check",
-  "source": "Juice Shop challenge: View Basket"
-}
-```
-
-- `locations` is a list, because a vulnerability can be reported correctly at more than one spot.
-- No `category` field: the CWE family is always derived from `cwe` via `eval/cwe_families.json` (one source of truth).
-- `evidence` quotes the vulnerable code. `python -m eval check-truth` verifies the quote exists inside a listed location at the pinned commit and runs before every eval run.
-- `requires_context: true` means it is a business-logic flaw that needs Step 1 context to detect. Recall is reported separately for these (answers research question RQ5).
-
-Safe fixtures use `"must_not_find": [ { "file": "...", "cwe_family": "injection" } ]` to measure false positives.
+Defined by `eval/schemas/expected.schema.json`.
 
 Fixture authoring rule: **one vulnerability per vulnerable file** (or ≥ 11 lines apart), so the ±5-line tolerance can't blur two entries together. Each `tests/fixtures/<check>/` folder (both `vulnerable/` and `safe/`) is **one target**, scanned in a single trial with paths relative to that folder.
 

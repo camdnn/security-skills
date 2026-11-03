@@ -2,6 +2,8 @@
 
 Claude MD files to go through codebase and dynamically detect security vulnerabilities based on the codebase context.
 
+- **Spec**: `docs/tickets/TICKET-001.md`. Issues cite its `§` numbers; §0 holds the project rules for all work.
+
 ## Agent skills
 
 ### Issue tracker
