@@ -1,0 +1,2 @@
+# Checker defaults (TICKET-001 §6, §7).
+line_tolerance: 5 # Lines a finding may sit outside a truth location and still match (§7.4).
