@@ -72,3 +72,25 @@ def test_dread_score_must_equal_rounded_mean(tmp_path: Path, score: float):
     assert result.status == "schema-invalid"
     assert result.trial_status == "failed"
     assert "DREAD score" in result.errors[0]
+
+
+def test_finding_whose_end_line_precedes_its_line_is_schema_invalid(tmp_path: Path):
+    finding = json.loads((DATA / "finding-example.json").read_text())
+    finding["line"] = 50
+    finding["end_line"] = 40
+
+    result = validate_findings(write_findings(tmp_path / "findings.json", [finding]))
+
+    assert result.status == "schema-invalid"
+    assert result.trial_status == "failed"
+    assert "end_line" in result.errors[0]
+    assert "Finding 0" in result.errors[0]
+
+
+def test_single_line_finding_is_accepted(tmp_path: Path):
+    finding = json.loads((DATA / "finding-example.json").read_text())
+    finding["end_line"] = finding["line"]
+
+    result = validate_findings(write_findings(tmp_path / "findings.json", [finding]))
+
+    assert result.status == "ok"
