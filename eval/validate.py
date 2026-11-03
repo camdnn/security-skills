@@ -34,7 +34,8 @@ def validate_findings(findings_path: Path | str) -> ValidationResult:
     """Return a result for ``findings_path``; malformed output is schema-invalid.
 
     The findings schema remains the source of truth for finding structure. DREAD
-    score arithmetic is checked here because JSON Schema cannot express it.
+    score arithmetic and line order are checked here because JSON Schema cannot
+    express them.
     """
 
     try:
@@ -59,6 +60,11 @@ def validate_findings(findings_path: Path | str) -> ValidationResult:
         dread_error = validate_dread_score(finding)
         if dread_error:
             return schema_invalid(f"Finding {index}: {dread_error}")
+
+        if finding["end_line"] < finding["line"]:
+            return schema_invalid(
+                f"Finding {index}: end_line {finding['end_line']} precedes line {finding['line']}"
+            )
 
     return ValidationResult(status="ok", trial_status="ok", findings=findings, errors=[])
 
