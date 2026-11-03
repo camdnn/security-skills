@@ -12,7 +12,6 @@ from typing import Any
 import yaml
 from jsonschema import Draft202012Validator
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_SCHEMA_PATH = REPO_ROOT / "eval/schemas/expected.schema.json"
 
