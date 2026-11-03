@@ -1,0 +1,30 @@
+{
+  "truth": [
+    {
+      "id": "SQLI-01",
+      "cwe": "CWE-89",
+      "locations": [
+        { "file": "routes/search.ts", "start_line": 40, "end_line": 48 }
+      ],
+      "evidence": "db.query(`SELECT * FROM items WHERE name = '${req.query.q}'`)",
+      "requires_context": false,
+      "description": "Search term concatenated into SQL",
+      "source": "Hand-made matcher test data"
+    },
+    {
+      "id": "IDOR-01",
+      "cwe": "CWE-639",
+      "locations": [
+        { "file": "routes/order.ts", "start_line": 10, "end_line": 12 },
+        { "file": "lib/orders.ts", "start_line": 70, "end_line": 72 }
+      ],
+      "evidence": "Order.findById(id)",
+      "requires_context": true,
+      "description": "Order lookup without ownership check, reportable at the route or the helper",
+      "source": "Hand-made matcher test data"
+    }
+  ],
+  "must_not_find": [
+    { "file": "safe/query.ts", "cwe_family": "injection" }
+  ]
+}
