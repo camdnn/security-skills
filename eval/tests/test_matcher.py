@@ -1,6 +1,7 @@
 """One-to-one matching of findings to truth entries (TICKET-001 §7.4, §7.6)."""
 
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -342,17 +343,6 @@ def test_duplicate_is_reported_as_its_own_kind_of_result(truth):
     assert [type(d) for d in result.duplicates] == [Duplicate]
 
 
-def test_absolute_path_is_resolved_when_the_target_root_is_the_real_path(truth, tmp_path):
-    real_root = tmp_path / "real"
-    real_root.mkdir()
-    link_root = tmp_path / "link"
-    link_root.symlink_to(real_root)
-
-    found = finding(file=str(link_root / "routes/search.ts"))
-
-    assert match([found], truth, str(real_root)).matches
-
-
 def test_symlink_inside_the_target_does_not_change_an_absolute_path(truth, tmp_path):
     (tmp_path / "lib").mkdir()
     (tmp_path / "routes").symlink_to(tmp_path / "lib")
@@ -365,3 +355,30 @@ def test_symlink_inside_the_target_does_not_change_an_absolute_path(truth, tmp_p
 def test_every_schema_confidence_has_a_rank():
     schema = json.loads((REPO / "skills/security-scan/references/finding-schema.json").read_text())
     assert set(CONFIDENCE_RANK) == set(schema["properties"]["confidence"]["enum"])
+
+
+def test_finding_paths_never_reach_the_filesystem(truth, monkeypatch):
+    seen = []
+    real = os.path.realpath
+    monkeypatch.setattr(os.path, "realpath", lambda p, **kw: (seen.append(p), real(p, **kw))[1])
+
+    match([finding(file="/elsewhere/routes/search.ts")], truth, TARGET_ROOT)
+
+    assert "/elsewhere" not in " ".join(map(str, seen))
+
+
+@pytest.mark.parametrize(
+    "file",
+    [
+        pytest.param("/target/a\x00b/search.ts", id="null byte under the root"),
+        pytest.param("/elsewhere/a\x00b.ts", id="null byte outside the root"),
+        pytest.param("//server/share/routes/search.ts", id="UNC path"),
+        pytest.param("\\\\server\\share\\routes\\search.ts", id="UNC path with backslashes"),
+    ],
+)
+def test_hostile_finding_path_is_an_ordinary_false_positive(truth, file):
+    found = finding(file=file)
+
+    result = match([found], truth, TARGET_ROOT)
+
+    assert [fp.finding for fp in result.false_positives] == [found]

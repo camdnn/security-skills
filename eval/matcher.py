@@ -7,7 +7,7 @@ import os
 import posixpath
 import sys
 from dataclasses import dataclass
-from pathlib import Path, PurePath
+from pathlib import Path
 from typing import Any
 
 import yaml
@@ -88,8 +88,10 @@ def match(
     if tolerance is None:
         tolerance = load_tolerance()
 
+    root_prefixes = _root_prefixes(target_root, case_insensitive)
+
     def normalize(path: str) -> str:
-        return _normalize_path(path, target_root, case_insensitive)
+        return _normalize_path(path, root_prefixes, case_insensitive)
 
     files = [normalize(finding["file"]) for finding in findings]
     families = [cwe_to_family.get(finding["cwe"]) for finding in findings]
@@ -175,30 +177,30 @@ def _line_gap(
     return gap if gap is not None and gap <= tolerance else None
 
 
-def _normalize_path(path: str, target_root: str, case_insensitive: bool) -> str:
-    """Return ``path`` relative to the target root, with forward slashes."""
-    path = posixpath.normpath(path.replace("\\", "/"))
-    if posixpath.isabs(path) or os.path.isabs(path):
-        path = _relative_to_root(path, target_root, case_insensitive)
-    return path.lower() if case_insensitive else path
+def _normalize_path(path: str, root_prefixes: tuple[str, ...], case_insensitive: bool) -> str:
+    """Return ``path`` relative to the target root, with forward slashes.
 
-
-def _relative_to_root(path: str, target_root: str, case_insensitive: bool) -> str:
-    """Strip the target root from an absolute ``path``, however the root is spelled.
-
-    Agents may report through a different alias of the temp copy than the runner
-    holds (macOS /tmp is a symlink to /private/tmp), so ancestors are compared by
-    real path. What lies below the root stays textual, like truth paths, so a symlink
-    inside the target can't change the result. A path outside the root stays absolute.
+    Purely textual: finding paths are untrusted model output, so they never reach
+    the filesystem. Symlinks in them stay unresolved, like truth paths, and a path
+    outside the root stays absolute and so matches nothing.
     """
-
-    def real(candidate: PurePath | str) -> str:
-        resolved = os.path.realpath(candidate)
-        return resolved.lower() if case_insensitive else resolved
-
-    root = real(target_root)
-    absolute = PurePath(path)
-    for ancestor in reversed(absolute.parents):
-        if real(ancestor) == root:
-            return absolute.relative_to(ancestor).as_posix()
+    path = posixpath.normpath(path.replace("\\", "/"))
+    if case_insensitive:
+        path = path.lower()
+    for prefix in root_prefixes:
+        if path.startswith(prefix):
+            return path[len(prefix) :]
     return path
+
+
+def _root_prefixes(target_root: str, case_insensitive: bool) -> tuple[str, ...]:
+    """Return the spellings of the target root an absolute path may start with.
+
+    Agents may report through the real path of the temp copy rather than the one
+    the runner holds (macOS /tmp is a symlink to /private/tmp).
+    """
+    prefixes = []
+    for root in (os.path.abspath(target_root), os.path.realpath(target_root)):
+        prefix = root.replace("\\", "/").rstrip("/") + "/"
+        prefixes.append(prefix.lower() if case_insensitive else prefix)
+    return tuple(prefixes)
