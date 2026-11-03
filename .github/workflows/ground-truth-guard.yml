@@ -1,0 +1,45 @@
+# Enforces TICKET-001 §0 rule 2: never edit ground truth to make a test pass.
+# A PR that touches any expected.json fails unless a human has applied the
+# `ground-truth-change` label, confirming the ground truth itself was wrong.
+name: ground-truth-guard
+
+on:
+  pull_request:
+    # Setting `types` replaces the defaults (opened, synchronize, reopened);
+    # labeled/unlabeled re-run the check when the label changes.
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  LABEL: ground-truth-change
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail on unlabeled expected.json changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          LABELED: ${{ contains(github.event.pull_request.labels.*.name, env.LABEL) }}
+        run: |
+          # previous_filename covers renames away from expected.json.
+          changed=$(gh api --paginate "repos/$REPO/pulls/$PR/files" \
+            --jq '.[] | .filename, (.previous_filename // empty)' \
+            | grep -E '(^|/)expected\.json$' | sort -u || true)
+          if [ -z "$changed" ]; then
+            echo "No expected.json changes."
+            exit 0
+          fi
+          echo "This PR changes ground truth:"
+          echo "$changed"
+          if [ "$LABELED" = "true" ]; then
+            echo "Label $LABEL present; allowing."
+            exit 0
+          fi
+          echo "::error::expected.json changed without the $LABEL label (TICKET-001 §0 rule 2)."
+          exit 1
