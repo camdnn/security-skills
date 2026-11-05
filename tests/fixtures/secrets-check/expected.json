@@ -1,0 +1,44 @@
+{
+  "truth": [
+    {
+      "id": "SECRET-01",
+      "cwe": "CWE-798",
+      "locations": [
+        {
+          "file": "vulnerable/aws-access-key.ts",
+          "start_line": 5,
+          "end_line": 8
+        }
+      ],
+      "evidence": "accessKeyId: \"AKIAIOSFODNN7EXAMPLE\"",
+      "requires_context": false,
+      "description": "A documented fake AWS access key is hard-coded in application configuration.",
+      "source": "Hand-made secrets-check fixture"
+    },
+    {
+      "id": "SECRET-02",
+      "cwe": "CWE-798",
+      "locations": [
+        {
+          "file": "vulnerable/hard-coded-password.ts",
+          "start_line": 1,
+          "end_line": 7
+        }
+      ],
+      "evidence": "password: \"fixture-password-do-not-use\"",
+      "requires_context": false,
+      "description": "Database credentials include a hard-coded password rather than receiving one at runtime.",
+      "source": "Hand-made secrets-check fixture"
+    }
+  ],
+  "must_not_find": [
+    {
+      "file": "safe/environment-credentials.ts",
+      "cwe_family": "secrets"
+    },
+    {
+      "file": "safe/injected-password.ts",
+      "cwe_family": "secrets"
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "truth": [
+    {
+      "id": "INJECTION-01",
+      "cwe": "CWE-89",
+      "locations": [
+        {
+          "file": "vulnerable/sql-interpolation.ts",
+          "start_line": 3,
+          "end_line": 6
+        }
+      ],
+      "evidence": "const query = `SELECT id FROM users WHERE email = '${email}'`;",
+      "requires_context": false,
+      "description": "Untrusted email text is interpolated into a SQL query.",
+      "source": "Hand-made injection-check fixture"
+    },
+    {
+      "id": "INJECTION-02",
+      "cwe": "CWE-78",
+      "locations": [
+        {
+          "file": "vulnerable/command-interpolation.ts",
+          "start_line": 3,
+          "end_line": 6
+        }
+      ],
+      "evidence": "const command = `git show ${revision}`;",
+      "requires_context": false,
+      "description": "Untrusted revision text is interpolated into a shell command.",
+      "source": "Hand-made injection-check fixture"
+    },
+    {
+      "id": "INJECTION-03",
+      "cwe": "CWE-94",
+      "locations": [
+        {
+          "file": "vulnerable/dynamic-eval.ts",
+          "start_line": 1,
+          "end_line": 3
+        }
+      ],
+      "evidence": "return eval(expression);",
+      "requires_context": false,
+      "description": "Caller-controlled text is evaluated as executable code.",
+      "source": "Hand-made injection-check fixture"
+    }
+  ],
+  "must_not_find": [
+    {
+      "file": "safe/parameterized-query.ts",
+      "cwe_family": "injection"
+    },
+    {
+      "file": "safe/argument-array.ts",
+      "cwe_family": "injection"
+    },
+    {
+      "file": "safe/expression-parser.ts",
+      "cwe_family": "injection"
+    }
+  ]
+}
