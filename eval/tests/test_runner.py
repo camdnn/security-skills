@@ -9,7 +9,15 @@ from pathlib import Path
 
 import pytest
 
-from eval.runner import RunOptions, Target, execute_trial, guard_api_keys, run
+from eval.runner import (
+    RunOptions,
+    Target,
+    default_agent_command,
+    execute_trial,
+    guard_api_keys,
+    install_trial_skills,
+    run,
+)
 
 DATA = Path(__file__).parent / "data"
 
@@ -127,6 +135,35 @@ def test_api_key_guard_requires_explicit_override(monkeypatch: pytest.MonkeyPatc
     with pytest.raises(ValueError, match="--allow-api-key"):
         guard_api_keys(False)
     guard_api_keys(True)
+
+
+def test_codex_command_uses_workspace_write_sandbox(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+    commands: list[list[str]] = []
+
+    def fake_run(command: list[str], **_: object) -> subprocess.CompletedProcess[str]:
+        commands.append(command)
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    monkeypatch.setattr("eval.runner.subprocess.run", fake_run)
+    command = default_agent_command({"models": {"codex": "test", "claude": "test"}})
+
+    command(tmp_path, "codex", "scan")
+
+    assert commands == [[
+        "codex", "--model", "test", "exec", "--cd", str(tmp_path),
+        "--sandbox", "workspace-write", "scan",
+    ]]
+
+
+def test_trial_skills_are_available_under_codex_project_convention(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    source_skills = tmp_path / "source/skills/security-scan"
+    source_skills.mkdir(parents=True)
+    (source_skills / "SKILL.md").write_text("# scan\n")
+    monkeypatch.setattr("eval.runner.REPO_ROOT", tmp_path / "source")
+
+    install_trial_skills(tmp_path / "target")
+
+    assert (tmp_path / "target/.agents/skills/security-scan/SKILL.md").read_text() == "# scan\n"
 
 
 def test_usage_limit_marks_incomplete_then_resume_completes(tmp_path: Path):

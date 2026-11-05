@@ -22,11 +22,13 @@ Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/ag
 
 The evaluator uses Claude Code's non-interactive `-p`, `--output-format json`,
 `--model`, and `--allowedTools` flags. Codex trials use `codex exec` with
-`--sandbox workspace-write`, `--ask-for-approval never`, `--cd`, and a pinned
-model. These flags were checked against the official CLI references on
-2026-11-05; re-check them before changing the runner. Development verification
-used Codex CLI `0.166.0`; Claude Code was not installed in this environment, so
-its version must be captured before a live Claude trial.
+`--sandbox workspace-write`, `--cd`, and a pinned model. `codex exec` is
+non-interactive with that sandbox; `--approve-for-me` cannot be combined with it.
+These flags were checked against the installed Codex CLI `0.166.0` on
+2026-11-05. The current ChatGPT-account evaluator pin is `gpt-5.6-terra`,
+verified by a successful local inference; re-check both before changing the
+runner. Claude Code was not installed in this environment, so its version must
+be captured before a live Claude trial.
 
 ### Local Python
 
