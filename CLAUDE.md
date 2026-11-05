@@ -17,3 +17,13 @@ Default vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-
 ### Domain docs
 
 Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+### Evaluator CLI assumptions
+
+The evaluator uses Claude Code's non-interactive `-p`, `--output-format json`,
+`--model`, and `--allowedTools` flags. Codex trials use `codex exec` with
+`--sandbox workspace-write`, `--ask-for-approval never`, `--cd`, and a pinned
+model. These flags were checked against the official CLI references on
+2026-11-05; re-check them before changing the runner. Development verification
+used Codex CLI `0.166.0`; Claude Code was not installed in this environment, so
+its version must be captured before a live Claude trial.
