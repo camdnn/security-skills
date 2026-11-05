@@ -27,3 +27,9 @@ model. These flags were checked against the official CLI references on
 2026-11-05; re-check them before changing the runner. Development verification
 used Codex CLI `0.166.0`; Claude Code was not installed in this environment, so
 its version must be captured before a live Claude trial.
+
+### Local Python
+
+Use the repository's pinned Python 3.11 interpreter for local evaluation work.
+Install it with `uv python install 3.11` or `pyenv install 3.11`; both tools
+honor `.python-version` when creating or selecting an environment.
