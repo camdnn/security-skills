@@ -77,7 +77,7 @@ The single check skill responsible for a CWE family; misses in that family are a
 _Avoid_: Responsible skill
 
 **Match**:
-A one-to-one pairing of a finding with a truth entry: same file, overlapping lines within tolerance, same CWE family.
+A one-to-one pairing of a finding with a truth entry: same file, overlapping lines within tolerance, a span no wider than the location plus the tolerance on each side, same CWE family.
 
 **Duplicate**:
 A finding that would have matched a truth entry already matched by another finding. Counted separately, not as a false positive.

@@ -48,6 +48,16 @@ def truth_with_second_sqli_entry() -> dict:
     return truth
 
 
+def truth_with_small_and_large_sqli_locations() -> dict:
+    """SQLI-01 at lines 10-12 (fits findings up to 13 lines) or 20-40 (up to 31) of one file."""
+    truth = load("matcher-truth.json")
+    truth["truth"][0]["locations"] = [
+        {"file": "routes/search.ts", "start_line": 10, "end_line": 12},
+        {"file": "routes/search.ts", "start_line": 20, "end_line": 40},
+    ]
+    return truth
+
+
 def test_matcher_data_is_valid_ground_truth(truth):
     schema = json.loads((REPO / "eval/schemas/expected.schema.json").read_text())
     Draft202012Validator(schema).validate(truth)
@@ -382,3 +392,65 @@ def test_hostile_finding_path_is_an_ordinary_false_positive(truth, file):
     result = match([found], truth, TARGET_ROOT)
 
     assert [fp.finding for fp in result.false_positives] == [found]
+
+
+def test_whole_file_range_does_not_match(truth):
+    found = finding(line=1, end_line=99999)
+
+    result = match([found], truth, TARGET_ROOT)
+
+    assert result.matches == []
+    assert result.duplicates == []
+    assert [fp.finding for fp in result.false_positives] == [found]
+    assert ids(result.false_negatives) == ["SQLI-01", "IDOR-01"]
+
+
+def test_whole_file_ranges_cannot_claim_every_entry_in_a_file():
+    truth = truth_with_second_sqli_entry()
+    found = [finding(line=1, end_line=99999, id=id) for id in ("SEC-0001", "SEC-0002")]
+
+    result = match(found, truth, TARGET_ROOT)
+
+    assert result.matches == []
+    assert result.duplicates == []
+    assert [fp.finding for fp in result.false_positives] == found
+    assert ids(result.false_negatives) == ["SQLI-01", "SQLI-02"]
+
+
+@pytest.mark.parametrize(
+    "line, end_line",
+    [
+        pytest.param(38, 50, id="multi-line finding around the location"),
+        pytest.param(35, 53, id="as wide as the location plus the tolerance on each side"),
+    ],
+)
+def test_finding_no_wider_than_location_plus_tolerance_matches(truth, line, end_line):
+    result = match([finding(line=line, end_line=end_line)], truth, TARGET_ROOT)
+
+    assert ids(m.entry for m in result.matches) == ["SQLI-01"]
+
+
+def test_finding_one_line_wider_than_location_plus_tolerance_is_a_false_positive(truth):
+    found = finding(line=35, end_line=54)
+
+    result = match([found], truth, TARGET_ROOT)
+
+    assert result.matches == []
+    assert result.duplicates == []
+    assert [fp.finding for fp in result.false_positives] == [found]
+    assert ids(result.false_negatives) == ["SQLI-01", "IDOR-01"]
+
+
+@pytest.mark.parametrize(
+    "line, end_line, expected",
+    [
+        pytest.param(8, 30, ["SQLI-01"], id="too wide for the small location, fits the large one"),
+        pytest.param(5, 40, [], id="too wide for both locations"),
+    ],
+)
+def test_span_limit_is_judged_per_location(line, end_line, expected):
+    truth = truth_with_small_and_large_sqli_locations()
+
+    result = match([finding(line=line, end_line=end_line)], truth, TARGET_ROOT)
+
+    assert ids(m.entry for m in result.matches) == expected

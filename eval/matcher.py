@@ -161,20 +161,31 @@ def _check_ground_truth_families(
 def _line_gap(
     finding: Finding, file: str, locations: list[tuple[str, int, int]], tolerance: int
 ) -> int | None:
-    """Lines between the finding and its nearest location in ``file``; None if out of tolerance.
+    """Lines between the finding and its nearest location in ``file``; None if none is in reach.
 
-    Anything overlapping a location has gap 0: it is all equally on target, so
-    confidence, not position within the location, separates such findings.
+    A location is in reach if the finding is within tolerance of it and fits it
+    (see ``_fits``). Anything overlapping a location has gap 0: it is all equally
+    on target, so confidence, not position within the location, separates such findings.
     """
     first = finding["line"]
     last = finding.get("end_line") or first
     gaps = [
         max(0, start - last, first - end)
         for location_file, start, end in locations
-        if location_file == file
+        if location_file == file and _fits(first, last, start, end, tolerance)
     ]
     gap = min(gaps, default=None)
     return gap if gap is not None and gap <= tolerance else None
+
+
+
+def _fits(first: int, last: int, start: int, end: int, tolerance: int) -> bool:
+    """Whether lines ``first``-``last`` span no more than ``start``-``end`` plus the tolerance on each side.
+
+    Without this bound one finding covering a whole file would overlap, and so
+    claim, every entry in it (ADR-0006).
+    """
+    return last - first <= end - start + 2 * tolerance
 
 
 def _normalize_path(path: str, root_prefixes: tuple[str, ...], case_insensitive: bool) -> str:
