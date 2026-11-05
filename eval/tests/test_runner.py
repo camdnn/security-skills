@@ -9,7 +9,15 @@ from pathlib import Path
 
 import pytest
 
-from eval.runner import RunOptions, Target, default_agent_command, execute_trial, guard_api_keys, install_trial_skills, run
+from eval.runner import (
+    RunOptions,
+    Target,
+    default_agent_command,
+    execute_trial,
+    guard_api_keys,
+    install_trial_skills,
+    run,
+)
 
 DATA = Path(__file__).parent / "data"
 
