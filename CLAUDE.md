@@ -12,17 +12,19 @@ subcommand lists its flags.
 - **Replay first.** `run --tier fast --replay <dir>` scores recorded findings
   with no agent and no usage quota. Live trials (`run --tier fast|full`) spend
   subscription usage, so run them deliberately (TICKET-001 §8).
-- **Exit codes:** `0` ok, `1` regression or error, `2` incomplete eval run
-  (resume it with `--resume <results-dir>`).
+- **`run` exit codes:** `0` ok, `1` regression or error, `2` incomplete eval
+  run (resume it with `--resume <results-dir>`) or a bad flag.
 - **After changing any `SKILL.md`**, run the fast tier and put the metrics diff
   in your summary (§0 rule 7).
 - **Ground truth changes only when a human says the ground truth itself is
   wrong.** When a test or metric disagrees with an `expected.json`, report it
-  and ask (§0 rule 2). CI
-  fails a PR that touches `expected.json` unless a human adds the
-  `ground-truth-change` label. `python -m eval check-truth` must pass.
-- **Baseline changes only through `accept-baseline <results-dir>`**, in its own
-  commit whose message says why (§8 item 7).
+  and ask (§0 rule 2). CI fails a PR that touches `expected.json` unless a
+  human adds the `ground-truth-change` label. `python -m eval check-truth`
+  must pass.
+- **Baseline changes only through `accept-baseline <results-dir>`.** Commit
+  `eval/baseline.json` on its own, with a message that says why (§8 item 7).
+- **A sudden perfect score is suspect.** Check that nothing touched an
+  `expected.json`, a fixture, or `eval/baseline.json` (§8 item 6).
 
 ## Agent skills
 
