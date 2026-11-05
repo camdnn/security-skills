@@ -126,6 +126,7 @@ def execute_trial(
     with tempfile.TemporaryDirectory(prefix="eval-trial-") as temporary_directory:
         copy_root = Path(temporary_directory) / "target"
         shutil.copytree(target.root, copy_root, ignore=shutil.ignore_patterns(".git"))
+        install_trial_skills(copy_root)
         initialize_trial_git(copy_root)
         if mode == "context" and target.answers_path is not None:
             destination = copy_root / "docs/security/ANSWERS.input.md"
@@ -240,7 +241,7 @@ def default_agent_command(config: dict[str, Any]) -> AgentCommand:
         else:
             command = [
                 "codex", "--model", config["models"]["codex"], "exec", "--cd", str(target_root),
-                "--sandbox", "workspace-write", "--ask-for-approval", "never", prompt,
+                "--sandbox", "workspace-write", prompt,
             ]
         return subprocess.run(command, cwd=target_root, capture_output=True, text=True, check=False)
 
@@ -268,6 +269,14 @@ def initialize_trial_git(target_root: Path) -> None:
 
     for command in (["git", "init", "--quiet"], ["git", "add", "-A"], ["git", "-c", "user.name=eval", "-c", "user.email=eval@example.invalid", "commit", "--quiet", "-m", "trial baseline"]):
         subprocess.run(command, cwd=target_root, check=True, capture_output=True, text=True)
+
+
+def install_trial_skills(target_root: Path) -> None:
+    """Make the repository's portable skills available to a Codex trial."""
+
+    destination = target_root / ".agents/skills"
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(REPO_ROOT / "skills", destination)
 
 
 def changed_outside_security(target_root: Path) -> list[str]:
