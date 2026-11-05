@@ -30,6 +30,7 @@ its version must be captured before a live Claude trial.
 
 ### Local Python
 
-Use the repository's pinned Python 3.11 interpreter for local evaluation work.
-Install it with `uv python install 3.11` or `pyenv install 3.11`; both tools
-honor `.python-version` when creating or selecting an environment.
+Run `pytest`, `ruff` and `mypy` from `.venv/bin/`. If `.venv/` is missing,
+create it with the pinned Python 3.11 (`.python-version`; install it with
+`uv python install 3.11` or `pyenv install 3.11`), then run
+`.venv/bin/pip install -e '.[dev]'`.
