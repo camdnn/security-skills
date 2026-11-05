@@ -9,11 +9,12 @@ from pathlib import Path
 
 SKILLS_DIR = Path(__file__).resolve().parents[2] / "skills"
 MARKDOWN_LINK = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
+URL_OR_ANCHOR = re.compile(r"[a-z][a-z0-9+.-]*:|#")
 
 
 def relative_link_targets(markdown: Path) -> list[str]:
     targets = (m[1] for m in MARKDOWN_LINK.finditer(markdown.read_text(encoding="utf-8")))
-    return [t.split("#", 1)[0] for t in targets if not re.match(r"[a-z][a-z0-9+.-]*:|#", t)]
+    return [t.split("#", 1)[0] for t in targets if not URL_OR_ANCHOR.match(t)]
 
 
 def test_every_relative_link_in_a_skill_resolves_to_a_file():
