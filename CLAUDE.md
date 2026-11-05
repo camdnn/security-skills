@@ -4,6 +4,26 @@ Claude MD files to go through codebase and dynamically detect security vulnerabi
 
 - **Spec**: `docs/tickets/TICKET-001.md` (long). Issues cite its `§` numbers: list headings with `grep -n '^#'` and read the cited sections, plus §0, which holds the project rules for all work.
 
+## Checker
+
+`python -m eval` scores the skills against ground truth; `--help` on each
+subcommand lists its flags.
+
+- **Replay first.** `run --tier fast --replay <dir>` scores recorded findings
+  with no agent and no usage quota. Live trials (`run --tier fast|full`) spend
+  subscription usage, so run them deliberately (TICKET-001 §8).
+- **Exit codes:** `0` ok, `1` regression or error, `2` incomplete eval run
+  (resume it with `--resume <results-dir>`).
+- **After changing any `SKILL.md`**, run the fast tier and put the metrics diff
+  in your summary (§0 rule 7).
+- **Ground truth changes only when a human says the ground truth itself is
+  wrong.** When a test or metric disagrees with an `expected.json`, report it
+  and ask (§0 rule 2). CI
+  fails a PR that touches `expected.json` unless a human adds the
+  `ground-truth-change` label. `python -m eval check-truth` must pass.
+- **Baseline changes only through `accept-baseline <results-dir>`**, in its own
+  commit whose message says why (§8 item 7).
+
 ## Agent skills
 
 ### Issue tracker
