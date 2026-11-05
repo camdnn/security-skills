@@ -1,5 +1,5 @@
 # Checker defaults (TICKET-001 §6, §7).
-line_tolerance: 5 # Lines a finding may sit outside a truth location and still match (§7.4).
+line_tolerance: 5 # Lines a finding may sit outside a truth location and still match; also caps its span (§7.4, ADR-0006).
 regression_f1_threshold: 0.05 # Mean F1 may not drop by more than this amount (§7.5).
 trials_per_target: 3
 max_trials:

@@ -151,7 +151,7 @@ All open questions are resolved. ADRs are in `docs/adr/`.
 | Q2  | Tooling language                 | Python 3.11 for everything                                                                                                                                                                 |
 | Q3  | Benchmarks                       | OWASP Juice Shop (main), OWASP NodeGoat (week 4)                                                                                                                                           |
 | Q4  | Juice Shop ground-truth size     | 25–30 hand-verified entries, ≥ 5 requires-context entries                                                                                                                                 |
-| Q5  | Match rule                       | Same normalized file **and** lines overlap within ±5 (in `config.yaml`) **and** same CWE family. Fixtures: one vulnerability per file                                                     |
+| Q5  | Match rule                       | Same normalized file **and** lines overlap within ±5 (in `config.yaml`) **and** finding no wider than the location + 2×tol (ADR-0006) **and** same CWE family. Fixtures: one vulnerability per file |
 | Q6  | Trials per target                | 3 in both tiers                                                                                                                                                                            |
 | Q7  | Regression                       | Mean F1 drops > 0.05 vs baseline, **or** a fixture that passed in ≥ 2/3 baseline trials now passes in 0/3 (see *Fixture pass* in the glossary)                                            |
 | Q8  | Agents                           | Headless **Claude Code** or **Codex** (`--agent claude\|codex`). Fast tier defaults to Claude, full tier to Codex. Subscription logins only: refuse if `ANTHROPIC_API_KEY`/`OPENAI_API_KEY` set (ADR-0004) |
@@ -328,6 +328,7 @@ Exit codes: `0` ok, `1` regression, `2` incomplete eval run.
 2. For each ground-truth entry, candidates = findings where:
    - file equals one of the entry's `locations[].file`, **and**
    - `[line, end_line]` overlaps `[start_line − tol, end_line + tol]` (tol = 5; `end_line` is required and repeats `line` for a single-line finding), **and**
+   - the finding spans no more lines than the location plus the tolerance on each side: finding `end_line − line ≤` location `end_line − start_line + 2 × tol` (ADR-0006), **and**
    - `cwe_family(finding.cwe) == cwe_family(entry.cwe)`.
 3. Assign one-to-one, **closest line first** (greedy; ties → higher confidence wins).
 4. Unassigned findings that would have matched an already-matched entry → **duplicate**.
@@ -346,6 +347,7 @@ Exit codes: `0` ok, `1` regression, `2` incomplete eval run.
 ### 7.6 Unit tests required before merge (`eval/tests/`)
 
 - Exact match; off-by-3 lines (match); off-by-6 lines (no match)
+- Whole-file range (no match); multi-line finding within the location + 2×tol (match)
 - Right file, wrong CWE family (no match); same family, different CWE (match)
 - Two findings, one truth entry (1 TP + 1 duplicate)
 - Truth entry with two valid locations

@@ -1,0 +1,9 @@
+# A finding may be no wider than the location plus the tolerance
+
+A finding matches a location of a truth entry only if it spans at most the location's span plus the line tolerance on each side: finding `end_line − line ≤` location `end_line − start_line + 2 × tol`. Without a bound, a finding like `line: 1, end_line: 99999` overlaps every location in its file at distance 0, so a few such findings of the right family could claim every entry in that file and inflate recall. Scoring rules must hold up against a finding written to game them (§0 rule 8); this is also the kind of suspiciously perfect score §8 point 6 asks developers to watch for.
+
+We chose this relative limit over a fixed `max_finding_span` because it scales with the location, so a large location doesn't need a large global number and a small one isn't exposed by it. It also adds no new setting to tune: the locations in `tests/fixtures/` span 3–7 lines, and any fixed number would have been a guess. We rejected an evidence check (the finding's `evidence` must appear near its lines in the target copy) because the matcher would then have to read files at paths taken from untrusted findings, which it deliberately never does.
+
+## Consequences
+
+Findings always carry `end_line` (ADR-0005), so the span is always known. The bound limits the gain from gaming rather than removing it: several findings each just under the limit could still tile a file, but each one that hits no entry now costs a false positive. The limit is judged per location, so a truth entry with several locations matches if the finding fits any one of them. A finding too wide for every location has no candidate and counts as a false positive, not a duplicate. Changing `line_tolerance` also changes the allowed span. Any baseline accepted before this rule may have counted whole-file findings as true positives and must be re-accepted; `eval/baseline.json` was still empty when the rule landed, so none needed it.
