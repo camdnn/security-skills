@@ -1,0 +1,5 @@
+{
+  "name": "analyzer",
+  "description": "Read-only security analysis skills for Node.js and TypeScript Express applications.",
+  "version": "0.1.0"
+}
