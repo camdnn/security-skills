@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/camdnn/security-skills/skills/security-scan/references/finding-schema.json",
   "title": "Finding",
-  "description": "One vulnerability reported by the plugin. Single source of truth for the finding format (TICKET-001 §3.1); never copy it. DREAD `score` must equal the mean of the five factors rounded to 1 decimal; that arithmetic is enforced by eval/validate.py, not by this schema.",
+  "description": "One vulnerability reported by the plugin. Single source of truth for the finding format (TICKET-001 §3.1); never copy it. This is a strict object: undeclared fields are rejected. DREAD `score` must equal the mean of the five factors rounded to 1 decimal; that arithmetic is enforced by eval/validate.py, not by this schema.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -24,14 +24,14 @@
     "mode"
   ],
   "properties": {
-    "id": { "type": "string", "pattern": "^SEC-[0-9]{4,}$" },
-    "skill": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+    "id": { "description": "Stable finding identifier in SEC-NNNN (or longer) format.", "type": "string", "pattern": "^SEC-[0-9]{4,}$" },
+    "skill": { "description": "Kebab-case name of the check that reported the finding.", "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
     "title": { "type": "string", "minLength": 1 },
-    "cwe": { "type": "string", "pattern": "^CWE-[0-9]+$" },
-    "owasp": { "type": "string", "pattern": "^A[0-9]{2}:[0-9]{4}$" },
+    "cwe": { "description": "CWE identifier in CWE-N format.", "type": "string", "pattern": "^CWE-[0-9]+$" },
+    "owasp": { "description": "OWASP category identifier in ANN:YYYY format.", "type": "string", "pattern": "^A[0-9]{2}:[0-9]{4}$" },
     "file": { "type": "string", "minLength": 1 },
     "line": { "$ref": "#/$defs/line" },
-    "end_line": { "$ref": "#/$defs/line" },
+    "end_line": { "description": "Required, non-null end of the finding range; repeat `line` for a single-line finding.", "$ref": "#/$defs/line" },
     "evidence": { "type": "string", "minLength": 1 },
     "why": { "type": "string", "minLength": 1 },
     "trace": {
