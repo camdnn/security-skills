@@ -1,0 +1,25 @@
+{
+  "truth": [
+    {
+      "id": "ACCESS-01",
+      "cwe": "CWE-862",
+      "locations": [
+        {
+          "file": "vulnerable/missing-authorization.ts",
+          "start_line": 6,
+          "end_line": 9
+        }
+      ],
+      "evidence": "const account = await accounts.findById(request.params.userId);",
+      "requires_context": false,
+      "description": "A caller-controlled account identifier is read without an authenticated actor or authorization decision.",
+      "source": "Hand-made access-control-check fixture"
+    }
+  ],
+  "must_not_find": [
+    {
+      "file": "safe/ownership-check.ts",
+      "cwe_family": "access-control"
+    }
+  ]
+}
