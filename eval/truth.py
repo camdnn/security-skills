@@ -14,6 +14,7 @@ from jsonschema import Draft202012Validator
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_SCHEMA_PATH = REPO_ROOT / "eval/schemas/expected.schema.json"
+CWE_FAMILIES_PATH = REPO_ROOT / "eval/cwe_families.json"
 
 
 @dataclass(frozen=True)
@@ -40,6 +41,7 @@ def check_truth_file(expected_path: Path | str, target_root: Path | str) -> Trut
         return invalid(f"{expected_path}: schema-invalid: {schema_errors[0].message}")
 
     errors: list[str] = []
+    validate_registry_references(document, errors)
     for entry in document["truth"]:
         evidence_in_any_location(entry, target_root, errors)
 
@@ -64,6 +66,32 @@ def expected_validator() -> Draft202012Validator:
 
     schema = json.loads(EXPECTED_SCHEMA_PATH.read_text())
     return Draft202012Validator(schema)
+
+
+def validate_registry_references(document: dict[str, Any], errors: list[str]) -> None:
+    """Reject unknown CWE data and rules that make a truth entry unmatchable."""
+
+    registry = json.loads(CWE_FAMILIES_PATH.read_text())
+    cwe_to_family = registry["cwe_to_family"]
+    families = registry["families"]
+    entries_by_location: dict[tuple[str, str], list[str]] = {}
+
+    for entry in document["truth"]:
+        family = cwe_to_family.get(entry["cwe"])
+        if family is None:
+            errors.append(f"truth {entry['id']}: {entry['cwe']} is not registered")
+            continue
+        for location in entry["locations"]:
+            entries_by_location.setdefault((location["file"], family), []).append(entry["id"])
+
+    for rule in document.get("must_not_find", []):
+        family = rule["cwe_family"]
+        rule_name = f"must-not-find rule {rule['file']} ({family})"
+        if family not in families:
+            errors.append(f"{rule_name}: family is not registered")
+            continue
+        for entry_id in entries_by_location.get((rule["file"], family), []):
+            errors.append(f"truth {entry_id} contradicts {rule_name}")
 
 
 def evidence_in_any_location(entry: dict[str, Any], target_root: Path, errors: list[str]) -> bool:
