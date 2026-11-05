@@ -71,3 +71,42 @@ def test_schema_invalid_ground_truth_is_reported(tmp_path: Path):
 
     assert not result.valid
     assert "schema-invalid" in result.errors[0]
+
+
+def test_unregistered_truth_cwe_fails_with_the_entry_id(tmp_path: Path):
+    source = tmp_path / "routes" / "search.ts"
+    source.parent.mkdir()
+    source.write_text("db.query(userInput)\n")
+    document = expected_document("routes/search.ts", 1, 1)
+    document["truth"][0]["cwe"] = "CWE-999999"
+
+    result = check_truth_file(write_expected(tmp_path, document), tmp_path)
+
+    assert not result.valid
+    assert any("TEST-001" in error and "CWE-999999" in error for error in result.errors)
+
+
+def test_unknown_must_not_find_family_fails_with_the_rule_file(tmp_path: Path):
+    source = tmp_path / "routes" / "search.ts"
+    source.parent.mkdir()
+    source.write_text("db.query(userInput)\n")
+    document = expected_document("routes/search.ts", 1, 1)
+    document["must_not_find"] = [{"file": "safe/query.ts", "cwe_family": "not-a-family"}]
+
+    result = check_truth_file(write_expected(tmp_path, document), tmp_path)
+
+    assert not result.valid
+    assert any("safe/query.ts" in error and "not-a-family" in error for error in result.errors)
+
+
+def test_must_not_find_rule_cannot_contradict_truth_entry(tmp_path: Path):
+    source = tmp_path / "routes" / "search.ts"
+    source.parent.mkdir()
+    source.write_text("db.query(userInput)\n")
+    document = expected_document("routes/search.ts", 1, 1)
+    document["must_not_find"] = [{"file": "routes/search.ts", "cwe_family": "injection"}]
+
+    result = check_truth_file(write_expected(tmp_path, document), tmp_path)
+
+    assert not result.valid
+    assert any("TEST-001" in error and "must-not-find rule routes/search.ts" in error for error in result.errors)
