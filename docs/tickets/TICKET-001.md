@@ -108,7 +108,7 @@ Defined by `skills/security-scan/references/finding-schema.json` (JSON Schema dr
 
 ### 3.2 Ground truth
 
-Defined by `eval/schemas/expected.schema.json`.
+Defined by `eval/schemas/expected.schema.json`; the locked `{truth, must_not_find?}` envelope is recorded in [ADR-0005](../adr/0005-ground-truth-envelope-and-finding-ranges.md).
 
 Fixture authoring rule: **one vulnerability per vulnerable file** (or ≥ 11 lines apart), so the ±5-line tolerance can't blur two entries together. Each `tests/fixtures/<check>/` folder (both `vulnerable/` and `safe/`) is **one target**, scanned in a single trial with paths relative to that folder.
 
@@ -122,6 +122,8 @@ scan_paths: [routes/, lib/, models/, server.ts]
 answers_file: answers.md # canned answers for unattended mode
 modes: [code-only, context]
 ```
+
+The runner clones the pinned benchmark into `eval/benchmarks/<name>/repo/`; that local clone is disposable and ignored by Git.
 
 ### 3.4 Context files written into the _target_ project (size limits)
 
@@ -325,7 +327,7 @@ Exit codes: `0` ok, `1` regression, `2` incomplete eval run.
 1. Normalize paths (relative to target root, forward slashes, lowercase on case-insensitive systems).
 2. For each ground-truth entry, candidates = findings where:
    - file equals one of the entry's `locations[].file`, **and**
-   - `[line, end_line or line]` overlaps `[start_line − tol, end_line + tol]` (tol = 5), **and**
+   - `[line, end_line]` overlaps `[start_line − tol, end_line + tol]` (tol = 5; `end_line` is required and repeats `line` for a single-line finding), **and**
    - `cwe_family(finding.cwe) == cwe_family(entry.cwe)`.
 3. Assign one-to-one, **closest line first** (greedy; ties → higher confidence wins).
 4. Unassigned findings that would have matched an already-matched entry → **duplicate**.
