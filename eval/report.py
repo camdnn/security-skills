@@ -93,13 +93,16 @@ def write_results(
     *,
     baseline_path: Path | str = BASELINE_PATH,
     threshold: float | None = None,
+    check_baseline: bool = True,
 ) -> RegressionResult:
     """Write ``metrics.json`` and ``report.md``, returning the required exit code."""
 
     results_dir = Path(results_dir)
     results_dir.mkdir(parents=True, exist_ok=True)
-    baseline = load_baseline(baseline_path).get(run.tier)
+    baseline = load_baseline(baseline_path).get(run.tier) if check_baseline else None
     result = evaluate_regression(run, baseline, threshold=load_regression_threshold() if threshold is None else threshold)
+    if not check_baseline and result.exit_code != EXIT_INCOMPLETE:
+        result = RegressionResult(EXIT_OK, ["baseline check disabled"])
     metrics_document = serialize_run(run, result)
     (results_dir / "metrics.json").write_text(json.dumps(metrics_document, indent=2, sort_keys=True) + "\n")
     (results_dir / "report.md").write_text(render_report(run, result, baseline))

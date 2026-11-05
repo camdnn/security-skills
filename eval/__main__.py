@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
 from eval.report import BASELINE_PATH, accept_baseline
+from eval.runner import RunOptions, run
 from eval.truth import REPO_ROOT, check_all_truth
 
 
@@ -14,6 +16,16 @@ def main() -> int:
     commands.add_parser("check-truth", help="verify ground-truth evidence at declared locations")
     accept = commands.add_parser("accept-baseline", help="accept a complete, successful eval run as baseline")
     accept.add_argument("results_dir")
+    run_parser = commands.add_parser("run", help="run or replay checker trials")
+    run_parser.add_argument("--tier", choices=("fast", "full"), required=True)
+    run_parser.add_argument("--skill")
+    run_parser.add_argument("--mode", choices=("code-only", "context"))
+    run_parser.add_argument("--runs", type=int)
+    run_parser.add_argument("--agent", choices=("claude", "codex"))
+    run_parser.add_argument("--replay", type=Path)
+    run_parser.add_argument("--resume", type=Path)
+    run_parser.add_argument("--no-baseline-check", action="store_true")
+    run_parser.add_argument("--allow-api-key", action="store_true")
     arguments = parser.parse_args()
 
     if arguments.command == "check-truth":
@@ -29,6 +41,29 @@ def main() -> int:
             print(error)
             return 1
         return 0
+
+    if arguments.command == "run":
+        try:
+            results_dir, result = run(
+                RunOptions(
+                    tier=arguments.tier,
+                    skill=arguments.skill,
+                    mode=arguments.mode,
+                    runs=arguments.runs,
+                    agent=arguments.agent,
+                    replay_dir=arguments.replay,
+                    resume_dir=arguments.resume,
+                    baseline_check=not arguments.no_baseline_check,
+                    allow_api_key=arguments.allow_api_key,
+                )
+            )
+        except (OSError, ValueError) as error:
+            print(error)
+            return 1
+        print(results_dir)
+        for reason in result.reasons:
+            print(reason)
+        return result.exit_code
 
     return 2
 

@@ -1,3 +1,13 @@
 # Checker defaults (TICKET-001 §6, §7).
 line_tolerance: 5 # Lines a finding may sit outside a truth location and still match (§7.4).
 regression_f1_threshold: 0.05 # Mean F1 may not drop by more than this amount (§7.5).
+trials_per_target: 3
+max_trials:
+  fast: 30
+  full: 120
+default_agent:
+  fast: claude
+  full: codex
+models:
+  claude: claude-sonnet-4-20250514
+  codex: gpt-5.2-codex
