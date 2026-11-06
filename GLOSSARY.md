@@ -5,8 +5,8 @@ A Claude plugin of security skills that finds, explains, ranks and optionally fi
 ## Findings
 
 **Finding**:
-One vulnerability reported by the plugin, with location, evidence, trace and DREAD score.
-_Avoid_: Issue, alert, result
+One vulnerability reported by the plugin, with location, evidence, trace and DREAD score. A check returns findings in this form, and `security-scan` only removes duplicates and ranks them.
+_Avoid_: Issue, alert, result, proposed finding, candidate finding
 
 **Pre-finding**:
 A mismatch between the developer's stated intent and the code, noticed while building context, before any scan.
