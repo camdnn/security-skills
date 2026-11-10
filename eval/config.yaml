@@ -11,3 +11,8 @@ default_agent:
 models:
   claude: claude-sonnet-4-20250514
   codex: gpt-5.6-terra
+context_file_line_limits:
+  SECURITY-CONTEXT.md: 150
+  PLAN.md: 100
+  modules/*.md: 200
+  decisions/*.md: 40

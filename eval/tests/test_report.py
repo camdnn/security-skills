@@ -45,6 +45,7 @@ def run(
         skipped_trials=[{"id": "trial-3", "reason": "usage limit"}] if skipped else [],
         false_negatives=[{"id": "FN-1", "evidence": "missed sink"}],
         false_positives=[{"id": "FP-1", "evidence": "safe query"}],
+        warnings=[],
         tokens=42,
     )
 
