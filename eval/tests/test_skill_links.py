@@ -26,3 +26,16 @@ def test_every_relative_link_in_a_skill_resolves_to_a_file():
     ]
 
     assert broken == []
+
+
+def test_access_control_check_requires_the_full_finding_format():
+    """The access-control skill tells scanners how to satisfy the public finding contract."""
+
+    skill = (SKILLS_DIR / "access-control-check/SKILL.md").read_text(encoding="utf-8")
+
+    assert "every required field" in skill
+    assert "single source of truth" in skill
+    assert "context_ref" in skill
+    assert "confidence" in skill
+    assert "mode" in skill
+    assert "canonical rubric" in skill
