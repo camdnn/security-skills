@@ -89,6 +89,10 @@ _Avoid_: Repeat, double
 One invocation of the checker over a tier, producing one report.
 _Avoid_: Run (unqualified), job
 
+**Replay eval run**:
+An eval run that scores recorded findings instead of running an agent; it spends no usage.
+_Avoid_: Dry run, re-score
+
 **Agent**:
 The coding assistant that executes a trial: Claude Code or Codex. Each eval run records which one it used.
 _Avoid_: Backend, provider, model

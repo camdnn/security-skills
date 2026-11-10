@@ -6,6 +6,7 @@ import json
 import os
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -13,6 +14,7 @@ import pytest
 
 from eval.runner import (
     Agent,
+    ResultsDirInUse,
     RunOptions,
     Target,
     default_agent_command,
@@ -149,6 +151,41 @@ def test_run_cli_accepts_replay_mode(monkeypatch: pytest.MonkeyPatch, tmp_path: 
     assert (tmp_path / "results" / "metrics.json").exists()
 
 
+def replay_cli_args(replay: Path, *extra: str) -> list[str]:
+    return ["python -m eval", "run", "--tier", "fast", "--runs", "1", "--replay", str(replay), "--no-baseline-check", *extra]
+
+
+def test_run_cli_results_dir_receives_trial_records_and_report(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+    from eval.__main__ import main
+
+    replay = tmp_path / "replay"
+    replay.mkdir()
+    (replay / "findings.json").write_text(json.dumps([finding()]))
+    smoke = tmp_path / "smoke"
+    monkeypatch.setattr(sys, "argv", replay_cli_args(replay, "--results-dir", str(smoke)))
+
+    assert main() == 0
+    assert (smoke / "metrics.json").exists()
+    assert list((smoke / "trials").glob("*.json"))
+
+
+def test_run_cli_refuses_a_used_results_dir_without_resume(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+):
+    from eval.__main__ import main
+
+    replay = tmp_path / "replay"
+    replay.mkdir()
+    (replay / "findings.json").write_text(json.dumps([finding()]))
+    used = tmp_path / "used"
+    monkeypatch.setattr(sys, "argv", replay_cli_args(replay, "--results-dir", str(used)))
+    assert main() == 0
+    capsys.readouterr()
+
+    assert main() == 2
+    assert f"--resume {used}" in capsys.readouterr().out
+
+
 def test_live_trial_fails_when_agent_modifies_outside_security(tmp_path: Path):
     _, target = runner_repo(tmp_path)
 
@@ -267,6 +304,44 @@ def test_usage_limit_marks_incomplete_then_resume_completes(tmp_path: Path):
     )
     assert resumed.exit_code == 0
     assert all(json.loads(path.read_text())["status"] == "ok" for path in (results / "trials").glob("*.json"))
+
+
+def test_new_eval_run_refuses_a_folder_with_trial_records_and_writes_nothing(tmp_path: Path):
+    repo, _ = runner_repo(tmp_path)
+    results, _ = run(
+        RunOptions(tier="fast", runs=1, results_dir=tmp_path / "results", baseline_check=False),
+        agent_command=successful_agent,
+        repo_root=repo,
+    )
+    before = {path: path.read_bytes() for path in results.rglob("*") if path.is_file()}
+
+    with pytest.raises(ResultsDirInUse, match="--resume"):
+        run(
+            RunOptions(tier="fast", runs=2, results_dir=results, baseline_check=False),
+            agent_command=successful_agent,
+            repo_root=repo,
+        )
+
+    assert {path: path.read_bytes() for path in results.rglob("*") if path.is_file()} == before
+
+
+def test_repeated_replay_eval_runs_each_get_their_own_default_folder(tmp_path: Path):
+    repo, _ = runner_repo(tmp_path)
+    for command in (["git", "init", "--quiet"], ["git", "add", "-A"], ["git", "-c", "user.name=t", "-c", "user.email=t@example.invalid", "commit", "--quiet", "-m", "init"]):
+        subprocess.run(command, cwd=repo, check=True, capture_output=True)
+    commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=repo, check=True, capture_output=True, text=True).stdout.strip()
+    replay = tmp_path / "replay"
+    replay.mkdir()
+    (replay / "findings.json").write_text(json.dumps([finding()]))
+    options = RunOptions(tier="fast", runs=1, replay_dir=replay, baseline_check=False)
+
+    first, _ = run(options, repo_root=repo, clock=lambda: datetime(2026, 11, 10, 9, 15, 0))
+    second, outcome = run(options, repo_root=repo, clock=lambda: datetime(2026, 11, 10, 9, 15, 1))
+
+    assert first == repo / f"eval/results/2026-11-10-{commit}-replay-091500"
+    assert second == repo / f"eval/results/2026-11-10-{commit}-replay-091501"
+    assert outcome.exit_code == 0
+    assert (second / "metrics.json").exists()
 
 
 def test_fast_run_uses_context_for_a_fixture_with_answers_and_copies_them(tmp_path: Path):
