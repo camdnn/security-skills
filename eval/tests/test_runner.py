@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -100,7 +101,7 @@ def test_replay_eval_runs_over_the_same_findings_write_identical_trial_records(t
     (replay / "findings.json").write_text(json.dumps([finding()]))
     script = (
         "import sys; from pathlib import Path; from eval.runner import RunOptions, run; "
-        "run(RunOptions(tier='fast', runs=1, replay_dir=Path(sys.argv[2]), resume_dir=Path(sys.argv[3]), "
+        "run(RunOptions(tier='fast', runs=1, replay_dir=Path(sys.argv[2]), results_dir=Path(sys.argv[3]), "
         "baseline_check=False), repo_root=Path(sys.argv[1]))"
     )
 
@@ -108,7 +109,7 @@ def test_replay_eval_runs_over_the_same_findings_write_identical_trial_records(t
         results = tmp_path / f"results-{seed}"
         subprocess.run(
             [sys.executable, "-c", script, str(repo), str(replay), str(results)],
-            check=True, capture_output=True, env={"PYTHONHASHSEED": seed, "PATH": "/usr/bin:/bin"},
+            check=True, capture_output=True, env=os.environ | {"PYTHONHASHSEED": seed},
             cwd=Path(__file__).resolve().parents[2],
         )
         record = json.loads((results / "trials/injection-check-code-only-1.json").read_text())
