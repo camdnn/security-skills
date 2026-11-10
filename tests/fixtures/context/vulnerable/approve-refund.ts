@@ -1,7 +1,7 @@
 type Request = { user: { id: string; role: string }; params: { refundId: string } };
 type Response = { sendStatus(status: number): void; json(value: unknown): void };
 
-type Refund = { id: string; requestedBy: string; status: "requested" | "approved" };
+type Refund = { id: string; status: "requested" | "approved" };
 declare const refunds: {
   findById(id: string): Promise<Refund | null>;
   approve(id: string, approverId: string): Promise<Refund>;
