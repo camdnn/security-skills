@@ -34,3 +34,16 @@ code gives no hint of the business rule it breaks: every field, name and comment
 reads as ordinary code. A safe look-alike under a must-not-find rule has no
 other business-logic reason to be flagged, so only its business rule separates
 it from the vulnerable file.
+
+## Test fakes — §0 rule 1
+
+A fake agent in a runner test selects its behaviour by skill name (for example
+`"security-context" in prompt`), not by matching the prompt wording. Prompt
+wording changes from agent to agent and over time. A test that depends on one
+branch of a fake asserts that the branch ran; a test that passes because its
+fake did nothing is vacuous.
+
+## Decisions — §0 rule 12
+
+Change a decision by amending the ADR's decision text or by adding a new ADR, so
+the ADR never contradicts the code. Supersession notes cite ADRs, not issues.

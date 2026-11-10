@@ -11,6 +11,7 @@ Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all o
 - **Comment on an issue**: `gh issue comment <number> --body "..."`
 - **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`
 - **Close**: `gh issue close <number> --comment "..."`
+- **Tool versions in a ticket**: write "record the installed version when the ticket is implemented", not a specific version number. A version copied into a ticket is stale by the time someone implements it (§0 rule 10).
 
 Infer the repo from `git remote -v`; `gh` does this automatically when run inside a clone.
 
