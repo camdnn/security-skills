@@ -12,7 +12,8 @@ import yaml
 from eval.metrics import AggregateMetrics, Counts, Rates
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-BASELINE_PATH = Path(__file__).with_name("baseline.json")
+BASELINES_DIR = Path(__file__).with_name("baselines")
+BASELINE_AGENTS = ("claude", "codex")
 CONFIG_PATH = Path(__file__).with_name("config.yaml")
 EXIT_OK = 0
 EXIT_REGRESSION = 1
@@ -68,9 +69,9 @@ def evaluate_regression(
     if run.skipped_trials:
         return RegressionResult(EXIT_INCOMPLETE, ["incomplete eval run: skipped trials are not baseline-compared"])
     if baseline is None:
-        return RegressionResult(EXIT_OK, ["no baseline for this tier"])
+        return RegressionResult(EXIT_OK, ["no baseline for this tier and agent"])
     if baseline.get("agent") != run.agent:
-        return RegressionResult(EXIT_OK, ["baseline agent mismatch; regression check skipped"])
+        raise ValueError(f"baseline recorded by {baseline.get('agent')!r} cannot judge a {run.agent!r} run (ADR-0007)")
 
     reasons: list[str] = []
     baseline_f1 = baseline.get("mean_f1")
@@ -91,7 +92,7 @@ def write_results(
     run: EvaluationRun,
     results_dir: Path | str,
     *,
-    baseline_path: Path | str = BASELINE_PATH,
+    baselines_dir: Path | str = BASELINES_DIR,
     threshold: float | None = None,
     check_baseline: bool = True,
 ) -> RegressionResult:
@@ -99,18 +100,21 @@ def write_results(
 
     results_dir = Path(results_dir)
     results_dir.mkdir(parents=True, exist_ok=True)
-    baseline = load_baseline(baseline_path).get(run.tier) if check_baseline else None
+    baseline = load_baseline(_baseline_file(baselines_dir, run.agent)).get(run.tier) if check_baseline else None
     result = evaluate_regression(run, baseline, threshold=load_regression_threshold() if threshold is None else threshold)
     if not check_baseline and result.exit_code != EXIT_INCOMPLETE:
         result = RegressionResult(EXIT_OK, ["baseline check disabled"])
     metrics_document = serialize_run(run, result)
     (results_dir / "metrics.json").write_text(json.dumps(metrics_document, indent=2, sort_keys=True) + "\n")
-    (results_dir / "report.md").write_text(render_report(run, result, baseline))
+    (results_dir / "report.md").write_text(render_report(run, result, baseline, checked=check_baseline))
     return result
 
 
-def accept_baseline(results_dir: Path | str, *, baseline_path: Path | str = BASELINE_PATH) -> None:
-    """Accept a sound, complete report as the baseline for its tier.
+def accept_baseline(results_dir: Path | str, *, baselines_dir: Path | str = BASELINES_DIR) -> None:
+    """Accept a sound, complete report as the baseline for its tier and agent.
+
+    The run's own ``metrics.json`` names the agent, and so picks the file:
+    there is deliberately no way to write one agent's numbers to another's file.
 
     Reports with skipped trials are incomplete.  Failed trials are also refused:
     a baseline is an affirmative quality decision, not merely an exit status.
@@ -132,14 +136,19 @@ def accept_baseline(results_dir: Path | str, *, baseline_path: Path | str = BASE
     if not isinstance(tier, str) or not isinstance(agent, str):
         raise TypeError("metrics report is missing tier or agent")
     new_entry = {"agent": agent, "mean_f1": mean_f1, "fixture_passes": document.get("fixture_passes", {})}
-    baselines = load_baseline(baseline_path)
+    path = _baseline_file(baselines_dir, agent)
+    baselines = load_baseline(path)
     baselines[tier] = new_entry
-    path = Path(baseline_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(baselines, indent=2, sort_keys=True) + "\n")
 
 
-def load_baseline(path: Path | str = BASELINE_PATH) -> dict[str, Any]:
-    """Load tier-keyed baseline data; a missing baseline is an empty baseline."""
+def load_baseline(path: Path | str) -> dict[str, Any]:
+    """Load one agent's tier-keyed baseline file; a missing file is an empty baseline.
+
+    Every entry must record the agent the file is named after, so a copied or
+    hand-edited file can't pass one agent's numbers off as another's.
+    """
 
     path = Path(path)
     if not path.exists():
@@ -150,7 +159,17 @@ def load_baseline(path: Path | str = BASELINE_PATH) -> dict[str, Any]:
         raise ValueError(f"cannot read baseline: {error}") from error
     if not isinstance(document, dict):
         raise TypeError("baseline must be a JSON object keyed by tier")
+    for tier, entry in document.items():
+        recorded = entry.get("agent") if isinstance(entry, dict) else None
+        if recorded != path.stem:
+            raise ValueError(f"baseline {path.name} has a {tier} entry recorded by agent {recorded!r}")
     return document
+
+
+def _baseline_file(baselines_dir: Path | str, agent: str) -> Path:
+    if agent not in BASELINE_AGENTS:
+        raise ValueError(f"unknown agent {agent!r}; baselines exist only for {', '.join(BASELINE_AGENTS)}")
+    return Path(baselines_dir) / f"{agent}.json"
 
 
 def serialize_run(run: EvaluationRun, result: RegressionResult) -> dict[str, Any]:
@@ -171,7 +190,9 @@ def serialize_run(run: EvaluationRun, result: RegressionResult) -> dict[str, Any
     }
 
 
-def render_report(run: EvaluationRun, result: RegressionResult, baseline: dict[str, Any] | None) -> str:
+def render_report(
+    run: EvaluationRun, result: RegressionResult, baseline: dict[str, Any] | None, *, checked: bool = True
+) -> str:
     """Render the documented Markdown sections without requiring a template engine."""
 
     mean = run.metrics.mean
@@ -195,6 +216,8 @@ def render_report(run: EvaluationRun, result: RegressionResult, baseline: dict[s
         run.agent,
         "",
         "## Baseline comparison",
+        "",
+        _baseline_line(run, baseline, checked=checked),
         "",
         f"Mean F1: {_rate(mean.f1)} ({diff}).",
         *[f"- {reason}" for reason in result.reasons],
@@ -221,6 +244,14 @@ def render_report(run: EvaluationRun, result: RegressionResult, baseline: dict[s
         "",
     ]
     return "\n".join(lines)
+
+
+def _baseline_line(run: EvaluationRun, baseline: dict[str, Any] | None, *, checked: bool) -> str:
+    if not checked:
+        return "Baseline: check disabled."
+    if baseline is None:
+        return f"Baseline: none for {run.agent} / {run.tier}."
+    return f"Baseline: {run.agent} / {run.tier}."
 
 
 def _fixture_passes(value: Any) -> FixturePasses:

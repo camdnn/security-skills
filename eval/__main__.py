@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from eval.report import BASELINE_PATH, accept_baseline
+from eval.report import accept_baseline
 from eval.runner import RunOptions, run
 from eval.truth import REPO_ROOT, check_all_truth
 
@@ -36,7 +36,7 @@ def main() -> int:
 
     if arguments.command == "accept-baseline":
         try:
-            accept_baseline(arguments.results_dir, baseline_path=BASELINE_PATH)
+            accept_baseline(arguments.results_dir)
         except (TypeError, ValueError) as error:
             print(error)
             return 1

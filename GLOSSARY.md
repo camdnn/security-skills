@@ -119,7 +119,7 @@ A vulnerable fixture passes a trial when every truth entry is matched; a safe fi
 The share of truth entries matched in every trial of an eval run.
 
 **Baseline**:
-The last deliberately accepted metrics for a tier, recording which agent produced them. Later eval runs are compared against it only when they used the same agent.
+The last deliberately accepted metrics for one tier and one agent, such as the Codex fast-tier baseline. An eval run is compared only against the baseline for its own tier and agent; when that baseline doesn't exist yet, nothing is compared.
 _Avoid_: Reference, golden
 
 **Regression**:
