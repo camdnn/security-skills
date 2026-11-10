@@ -23,6 +23,7 @@ from eval.validate import validate_findings
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = Path(__file__).with_name("config.yaml")
+CWE_FAMILIES_PATH = Path(__file__).with_name("cwe_families.json")
 Agent = Literal["claude", "codex"]
 Mode = Literal["code-only", "context"]
 AgentCommand = Callable[[Path, Agent, str], subprocess.CompletedProcess[str]]
@@ -64,10 +65,14 @@ def run(options: RunOptions, *, agent_command: AgentCommand | None = None, repo_
     trials_dir = results_dir / "trials"
     trials_dir.mkdir(exist_ok=True)
     targets = discover_targets(repo_root, options.tier, options.skill)
-    modes: list[Mode] = [options.mode] if options.mode else ["code-only"]
     requested_runs = options.runs or int(config["trials_per_target"])
     max_trials = int(config["max_trials"][options.tier])
-    specs = [(target, mode, number) for target in targets for mode in modes for number in range(1, requested_runs + 1)]
+    specs = [
+        (target, mode, number)
+        for target in targets
+        for mode in modes_for_target(target, options.tier, options.mode)
+        for number in range(1, requested_runs + 1)
+    ]
     completed = load_trial_records(trials_dir)
     attempted = sum(record["status"] != "skipped" for record in completed.values())
     stop_reason: str | None = None
@@ -210,16 +215,48 @@ def discover_targets(repo_root: Path, tier: str, skill: str | None) -> list[Targ
     """Discover fixture targets; full tier will also include benchmark definitions when present."""
 
     fixtures = repo_root / "tests/fixtures"
+    cwe_families = load_cwe_families(repo_root / "eval/cwe_families.json") if skill else None
     targets = [
         Target(path.name, path, path / "expected.json", (path / "answers.md") if (path / "answers.md").exists() else None)
         for path in sorted(fixtures.iterdir())
-        if path.is_dir() and (path / "expected.json").exists() and (skill is None or path.name == skill)
+        if path.is_dir()
+        and (path / "expected.json").exists()
+        and (skill is None or target_is_owned_by_skill(path / "expected.json", skill, cwe_families))
     ]
     if tier == "full":
         # Benchmark support is intentionally deferred until benchmark definitions land;
         # fixtures still run in full tier as the spec requires.
         return targets
     return targets
+
+
+def modes_for_target(target: Target, tier: str, forced_mode: Mode | None) -> list[Mode]:
+    """Choose a target's default trial mode unless the caller explicitly overrides it."""
+
+    if forced_mode is not None:
+        return [forced_mode]
+    if tier == "fast" and target.answers_path is not None:
+        return ["context"]
+    if tier == "full":
+        return ["code-only", "context"]
+    return ["code-only"]
+
+
+def load_cwe_families(path: Path = CWE_FAMILIES_PATH) -> dict[str, dict[str, str]]:
+    """Load the canonical CWE-family to owning-check map."""
+
+    return json.loads(path.read_text())
+
+
+def target_is_owned_by_skill(expected_path: Path, skill: str, cwe_families: dict[str, dict[str, str]]) -> bool:
+    """Return whether any truth or must-not-find rule belongs to ``skill``."""
+
+    expected = json.loads(expected_path.read_text())
+    cwe_to_family = cwe_families["cwe_to_family"]
+    family_to_skill = cwe_families["families"]
+    truth_families = [cwe_to_family[entry["cwe"]] for entry in expected.get("truth", [])]
+    rule_families = [rule["cwe_family"] for rule in expected.get("must_not_find", [])]
+    return any(family_to_skill.get(family) == skill for family in truth_families + rule_families)
 
 
 def guard_api_keys(allow_api_key: bool) -> None:
