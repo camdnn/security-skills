@@ -10,7 +10,9 @@ from eval.runner import ResultsDirInUse, RunOptions, run
 from eval.truth import REPO_ROOT, check_all_truth
 
 
-def main() -> int:
+def build_parser() -> argparse.ArgumentParser:
+    """Define the checker's commands and flags (TICKET-001 §7.3 lists the `run` flags)."""
+
     parser = argparse.ArgumentParser(prog="python -m eval")
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("check-truth", help="verify ground-truth evidence at declared locations")
@@ -30,7 +32,11 @@ def main() -> int:
     )
     run_parser.add_argument("--no-baseline-check", action="store_true")
     run_parser.add_argument("--allow-api-key", action="store_true")
-    arguments = parser.parse_args()
+    return parser
+
+
+def main() -> int:
+    arguments = build_parser().parse_args()
 
     if arguments.command == "check-truth":
         truth_check = check_all_truth(REPO_ROOT)

@@ -72,7 +72,7 @@ Accuracy is measured, not assumed: an automated checker scores every change agai
 | `crypto-check`           | Weak algorithms, insecure randomness, disabled TLS verification               | 3.2         |
 | `error-logging-check`    | Leaked stack traces, fail-open errors, secrets in logs, missing audit logs    | 3.2         |
 
-DREAD scores are typical worst cases for each vulnerability class. Each finding is re-scored in context during a scan.
+DREAD scores are typical worst cases for each vulnerability class. Each check scores its own findings from the code and available context; the scan preserves those scores when it ranks findings.
 
 ## Threat Model
 

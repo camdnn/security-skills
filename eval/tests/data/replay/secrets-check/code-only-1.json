@@ -1,0 +1,52 @@
+[
+  {
+    "id": "SEC-0001",
+    "skill": "secrets-check",
+    "title": "Hard-coded AWS access key",
+    "cwe": "CWE-798",
+    "owasp": "A07:2025",
+    "file": "vulnerable/aws-access-key.ts",
+    "line": 5,
+    "end_line": 8,
+    "evidence": "export const awsConfig = {",
+    "why": "Anyone with the source can use the key.",
+    "trace": [],
+    "context_ref": null,
+    "fix": "Load the key from the environment.",
+    "dread": {
+      "damage": 4,
+      "reproducibility": 5,
+      "exploitability": 5,
+      "affected_users": 4,
+      "discoverability": 4,
+      "score": 4.4
+    },
+    "confidence": "high",
+    "mode": "code-only"
+  },
+  {
+    "id": "SEC-0002",
+    "skill": "secrets-check",
+    "title": "Hard-coded password",
+    "cwe": "CWE-798",
+    "owasp": "A07:2025",
+    "file": "vulnerable/hard-coded-password.ts",
+    "line": 1,
+    "end_line": 7,
+    "evidence": "export function databaseOptions() {",
+    "why": "Anyone with the source can log in.",
+    "trace": [],
+    "context_ref": null,
+    "fix": "Load the password from a secret store.",
+    "dread": {
+      "damage": 4,
+      "reproducibility": 5,
+      "exploitability": 5,
+      "affected_users": 4,
+      "discoverability": 4,
+      "score": 4.4
+    },
+    "confidence": "high",
+    "mode": "code-only"
+  }
+]

@@ -318,7 +318,7 @@ benchmark.yaml ───┤
 | `fast` | All `tests/fixtures/*`            | After every `SKILL.md` change     | `claude`      | Low (small files) |
 | `full` | Fixtures + benchmarks, both modes | Weekly + before merging to `main` | `codex`       | High (Juice Shop) |
 
-Flags: `--skill <name>` (only fixtures for that check), `--mode code-only|context`, `--runs N`, `--agent claude|codex`, `--replay <dir>`, `--resume <results-dir>`, `--results-dir <dir>` (write a new eval run there instead of the default folder: `eval/results/<date>-<commit>/` for live trials, a fresh gitignored `eval/results/<date>-<commit>-replay-<HHMMSS>/` per replay eval run; not with `--resume`), `--no-baseline-check`, `--allow-api-key`.
+Flags: `--tier fast|full` (required), `--skill <name>` (only fixtures for that check), `--mode code-only|context`, `--runs N`, `--agent claude|codex`, `--replay <dir>`, `--resume <results-dir>`, `--results-dir <dir>` (write a new eval run there instead of the default folder: `eval/results/<date>-<commit>/` for live trials, a fresh gitignored `eval/results/<date>-<commit>-replay-<HHMMSS>/` per replay eval run; not with `--resume`), `--no-baseline-check`, `--allow-api-key`.
 
 Other commands: `python -m eval check-truth`, `python -m eval accept-baseline <results-dir>`.
 

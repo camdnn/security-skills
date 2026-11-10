@@ -1,0 +1,101 @@
+{
+  "duration_seconds": 53.97602662099962,
+  "false_negatives": [
+    {
+      "cwe": "CWE-863",
+      "description": "Business rule: a manager may not approve a refund they requested themselves. The handler checks the manager role but never compares the approver with the requester, so a manager can approve their own refund.",
+      "evidence": "if (request.user.role !== \"manager\") return response.sendStatus(403);",
+      "id": "CONTEXT-01",
+      "locations": [
+        {
+          "end_line": 15,
+          "file": "vulnerable/approve-refund.ts",
+          "start_line": 11
+        }
+      ],
+      "requires_context": true,
+      "source": "Hand-made context fixture"
+    },
+    {
+      "cwe": "CWE-863",
+      "description": "Business rule: only the customer who placed an order may download its invoice, because invoices hold payment details; support agents may not. The handler also lets the support role download any invoice.",
+      "evidence": "const allowed = order.customerId === request.user.id || request.user.role === \"support\";",
+      "id": "CONTEXT-02",
+      "locations": [
+        {
+          "end_line": 14,
+          "file": "vulnerable/download-invoice.ts",
+          "start_line": 9
+        }
+      ],
+      "requires_context": true,
+      "source": "Hand-made context fixture"
+    }
+  ],
+  "false_positives": [],
+  "id": "context-code-only-1",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 2,
+          "false_positives": 0,
+          "true_positives": 0
+        }
+      },
+      "mode": {
+        "code-only": {
+          "duplicates": 0,
+          "false_negatives": 2,
+          "false_positives": 0,
+          "true_positives": 0
+        }
+      },
+      "requires_context": {
+        "true": {
+          "duplicates": 0,
+          "false_negatives": 2,
+          "false_positives": 0,
+          "true_positives": 0
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 2,
+          "false_positives": 0,
+          "true_positives": 0
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 2,
+      "false_positives": 0,
+      "true_positives": 0
+    },
+    "fixture_passed": false,
+    "matched_truth": [],
+    "rates": {
+      "f1": null,
+      "precision": null,
+      "recall": 0.0
+    },
+    "run_id": 1,
+    "truth_entries": [
+      [
+        "context",
+        "CONTEXT-01"
+      ],
+      [
+        "context",
+        "CONTEXT-02"
+      ]
+    ]
+  },
+  "mode": "code-only",
+  "run": 1,
+  "status": "ok",
+  "target": "context"
+}

@@ -479,7 +479,7 @@ def skipped_record(target: Target, mode: Mode, number: int, reason: str) -> dict
 def metrics_to_json(metrics: TrialMetrics) -> dict[str, Any]:
     return {
         "counts": metrics.counts.__dict__, "rates": metrics.rates.__dict__, "fixture_passed": metrics.fixture_passed,
-        "matched_truth": list(metrics.matched_truth), "truth_entries": list(metrics.truth_entries), "breakdowns": {dimension: {value: counts.__dict__ for value, counts in values.items()} for dimension, values in metrics.breakdowns.items()}, "run_id": metrics.run_id,
+        "matched_truth": sorted(metrics.matched_truth, key=str), "truth_entries": sorted(metrics.truth_entries, key=str), "breakdowns": {dimension: {value: counts.__dict__ for value, counts in values.items()} for dimension, values in metrics.breakdowns.items()}, "run_id": metrics.run_id,
     }
 
 
