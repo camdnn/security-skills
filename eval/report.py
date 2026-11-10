@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Final, Literal
 
 import yaml
 
@@ -15,9 +15,9 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 BASELINES_DIR = Path(__file__).with_name("baselines")
 BASELINE_AGENTS = ("claude", "codex")
 CONFIG_PATH = Path(__file__).with_name("config.yaml")
-EXIT_OK = 0
-EXIT_REGRESSION = 1
-EXIT_INCOMPLETE = 2
+EXIT_OK: Final = 0
+EXIT_REGRESSION: Final = 1
+EXIT_INCOMPLETE: Final = 2
 
 
 @dataclass(frozen=True)
