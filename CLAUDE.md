@@ -19,8 +19,8 @@ subcommand lists its flags.
 - **Ground truth changes only when a human says the ground truth itself is
   wrong.** When a test or metric disagrees with an `expected.json`, report it
   and ask (§0 rule 2). CI fails a PR that touches `expected.json` unless a
-  human adds the `ground-truth-change` label. `python -m eval check-truth`
-  must pass.
+  human adds the `ground-truth-change` label, so ground truth reaches `main`
+  only through a PR from its own branch. `python -m eval check-truth` must pass.
 - **Baseline changes only through `accept-baseline <results-dir>`.** There is
   one baseline per agent, `eval/baselines/claude.json` and
   `eval/baselines/codex.json`, each keyed by tier (ADR-0007). The run's agent
