@@ -131,7 +131,13 @@ def execute_trial(
 
     with tempfile.TemporaryDirectory(prefix="eval-trial-") as temporary_directory:
         copy_root = Path(temporary_directory) / "target"
-        shutil.copytree(target.root, copy_root, ignore=shutil.ignore_patterns(".git"))
+        def ignore_trial_metadata(directory: str, names: list[str]) -> set[str]:
+            ignored = {".git"}
+            if Path(directory) == target.root:
+                ignored.update({"expected.json", "answers.md"})
+            return ignored.intersection(names)
+
+        shutil.copytree(target.root, copy_root, ignore=ignore_trial_metadata)
         install_trial_skills(copy_root)
         initialize_trial_git(copy_root)
         if mode == "context" and target.answers_path is not None:
