@@ -156,6 +156,48 @@ def test_codex_command_uses_workspace_write_sandbox(monkeypatch: pytest.MonkeyPa
     ]]
 
 
+def agent_commands_from_trial(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, agent: str) -> list[list[str]]:
+    """Run one live code-only trial with the default command and return the agent calls it made."""
+    _, target = runner_repo(tmp_path)
+    real_run = subprocess.run
+    commands: list[list[str]] = []
+
+    def fake_run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        if command[0] == "git":
+            return real_run(command, **kwargs)  # type: ignore[call-overload,no-any-return]
+        commands.append(command)
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    monkeypatch.setattr("eval.runner.subprocess.run", fake_run)
+    config = {"models": {"claude": "claude-pinned", "codex": "codex-pinned"}}
+
+    execute_trial(target, "code-only", 1, agent, None, None, config)  # type: ignore[arg-type]
+
+    return commands
+
+
+def test_claude_trial_invokes_scan_slash_command_isolated_from_the_developer_machine(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+):
+    [command] = agent_commands_from_trial(monkeypatch, tmp_path, "claude")
+
+    assert command[:3] == ["claude", "-p", "/analyzer:security-scan"]
+    assert "--strict-mcp-config" in command
+    assert "--mcp-config" not in command
+    assert command[command.index("--setting-sources") + 1] == "project"
+    assert command[command.index("--disallowedTools") + 1] == "WebFetch,WebSearch"
+    assert command[command.index("--model") + 1] == "claude-pinned"
+
+
+def test_codex_trial_keeps_a_plain_language_prompt_naming_the_skill(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+    [command] = agent_commands_from_trial(monkeypatch, tmp_path, "codex")
+
+    assert command[:8] == ["codex", "--model", "codex-pinned", "exec", "--cd", command[5], "--sandbox", "workspace-write"]
+    prompt = command[-1]
+    assert "security-scan" in prompt
+    assert not prompt.startswith("/")
+
+
 def test_trial_skills_are_available_under_codex_project_convention(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     source_skills = tmp_path / "source/skills/security-scan"
     source_skills.mkdir(parents=True)
@@ -212,8 +254,8 @@ def test_fast_run_uses_context_for_a_fixture_with_answers_and_copies_them(tmp_pa
     assert outcome.exit_code == 0
     assert [json.loads(path.read_text())["mode"] for path in (results / "trials").glob("*.json")] == ["context"]
     assert seen_prompts == [
-        ("Run security-context unattended, using docs/security/ANSWERS.input.md when present.", "# Developer answers\n"),
-        ("Run security-scan and write findings to docs/security/findings.json.", "# Developer answers\n"),
+        ("/analyzer:security-context", "# Developer answers\n"),
+        ("/analyzer:security-scan", "# Developer answers\n"),
     ]
 
 
@@ -232,7 +274,7 @@ def test_fast_run_uses_code_only_for_a_fixture_without_answers(tmp_path: Path):
     )
 
     assert [json.loads(path.read_text())["mode"] for path in (results / "trials").glob("*.json")] == ["code-only"]
-    assert prompts == ["Run security-scan and write findings to docs/security/findings.json."]
+    assert prompts == ["/analyzer:security-scan"]
 
 
 def test_mode_override_forces_code_only_for_a_fixture_with_answers(tmp_path: Path):
@@ -251,7 +293,7 @@ def test_mode_override_forces_code_only_for_a_fixture_with_answers(tmp_path: Pat
     )
 
     assert [json.loads(path.read_text())["mode"] for path in (results / "trials").glob("*.json")] == ["code-only"]
-    assert prompts == ["Run security-scan and write findings to docs/security/findings.json."]
+    assert prompts == ["/analyzer:security-scan"]
 
 
 def test_full_run_uses_both_modes_for_a_fixture_with_answers(tmp_path: Path):
@@ -341,7 +383,7 @@ def test_context_trial_reports_an_oversized_context_file_without_failing(tmp_pat
     repo, _ = runner_repo(tmp_path)
 
     def agent(root: Path, agent_name: str, prompt: str) -> subprocess.CompletedProcess[str]:
-        if prompt.startswith("Run security-context"):
+        if "security-context" in prompt:
             context = root / "docs/security/SECURITY-CONTEXT.md"
             context.parent.mkdir(parents=True, exist_ok=True)
             context.write_text("line\n" * 151)
@@ -364,7 +406,7 @@ def test_context_trial_omits_warnings_when_context_files_fit_within_limits(tmp_p
     repo, _ = runner_repo(tmp_path)
 
     def agent(root: Path, agent_name: str, prompt: str) -> subprocess.CompletedProcess[str]:
-        if prompt.startswith("Run security-context"):
+        if "security-context" in prompt:
             plan = root / "docs/security/PLAN.md"
             plan.parent.mkdir(parents=True, exist_ok=True)
             plan.write_text("line\n" * 100)

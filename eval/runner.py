@@ -140,10 +140,7 @@ def execute_trial(
             shutil.copyfile(target.answers_path, destination)
         context_files_before = context_file_fingerprints(copy_root, config["context_file_line_limits"]) if mode == "context" else {}
         command = agent_command or default_agent_command(config)
-        prompts = ["Run security-scan and write findings to docs/security/findings.json."]
-        if mode == "context":
-            prompts.insert(0, "Run security-context unattended, using docs/security/ANSWERS.input.md when present.")
-        for prompt in prompts:
+        for prompt in trial_prompts(agent, mode):
             completed = command(copy_root, agent, prompt)
             output = f"{completed.stdout}\n{completed.stderr}".lower()
             if is_usage_limit(output):
@@ -330,6 +327,20 @@ def guard_api_keys(allow_api_key: bool) -> None:
         raise ValueError("API-key authentication is refused; pass --allow-api-key to override")
 
 
+def trial_prompts(agent: Agent, mode: Mode) -> list[str]:
+    """Claude takes the plugin's slash commands (ADR-0003); Codex finds skills by name in plain language."""
+
+    if agent == "claude":
+        prompts = ["/analyzer:security-scan"]
+        if mode == "context":
+            prompts.insert(0, "/analyzer:security-context")
+        return prompts
+    prompts = ["Run security-scan and write findings to docs/security/findings.json."]
+    if mode == "context":
+        prompts.insert(0, "Run security-context unattended, using docs/security/ANSWERS.input.md when present.")
+    return prompts
+
+
 def default_agent_command(config: dict[str, Any]) -> AgentCommand:
     """Build the verified noninteractive Claude/Codex commands for live trials."""
 
@@ -337,7 +348,11 @@ def default_agent_command(config: dict[str, Any]) -> AgentCommand:
         if agent == "claude":
             command = [
                 "claude", "-p", prompt, "--plugin-dir", str(REPO_ROOT), "--output-format", "json",
-                "--model", config["models"]["claude"], "--allowedTools", "Read,Grep,Glob,Write,Edit,Bash(git diff:*),Bash(git log:*)",
+                "--model", config["models"]["claude"],
+                # Isolation (ADR-0002): no MCP servers, no user/local settings, no web tools.
+                "--strict-mcp-config", "--setting-sources", "project",
+                "--allowedTools", "Read,Grep,Glob,Write,Edit,Bash(git diff:*),Bash(git log:*)",
+                "--disallowedTools", "WebFetch,WebSearch",
             ]
         else:
             command = [
