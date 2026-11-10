@@ -26,3 +26,11 @@ operations, and score safely even when a finding attempts to game the rules.
 
 Keep context files within the limits in `TICKET-001 §3.4`. When content exceeds
 a limit, split it into focused files instead of enlarging the limit.
+
+## Requires-context fixtures — §0 rule 2
+
+A requires-context entry must be undetectable from code alone. Its vulnerable
+code gives no hint of the business rule it breaks: every field, name and comment
+reads as ordinary code. A safe look-alike under a must-not-find rule has no
+other business-logic reason to be flagged, so only its business rule separates
+it from the vulnerable file.
