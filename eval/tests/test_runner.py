@@ -6,6 +6,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -163,9 +164,9 @@ def agent_commands_from_trial(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, a
     real_run = subprocess.run
     commands: list[list[str]] = []
 
-    def fake_run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+    def fake_run(command: list[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
         if command[0] == "git":
-            return real_run(command, **kwargs)  # type: ignore[call-overload,no-any-return]
+            return real_run(command, **kwargs)
         commands.append(command)
         return subprocess.CompletedProcess(command, 0, "", "")
 
