@@ -58,7 +58,7 @@ be captured before a live Claude trial.
 
 ### Local Python
 
-Run `pytest`, `ruff` and `mypy` from `.venv/bin/`. If `.venv/` is missing,
+Run `pytest` and `ruff` from `.venv/bin/`. If `.venv/` is missing,
 create it with the pinned Python 3.11 (`.python-version`; install it with
 `uv python install 3.11` or `pyenv install 3.11`), then run
 `.venv/bin/pip install -e '.[dev]'`.
