@@ -10,6 +10,7 @@ from pathlib import Path
 import pytest
 
 from eval.runner import (
+    Agent,
     RunOptions,
     Target,
     default_agent_command,
@@ -156,7 +157,7 @@ def test_codex_command_uses_workspace_write_sandbox(monkeypatch: pytest.MonkeyPa
     ]]
 
 
-def agent_commands_from_trial(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, agent: str) -> list[list[str]]:
+def agent_commands_from_trial(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, agent: Agent) -> list[list[str]]:
     """Run one live code-only trial with the default command and return the agent calls it made."""
     _, target = runner_repo(tmp_path)
     real_run = subprocess.run
@@ -171,7 +172,7 @@ def agent_commands_from_trial(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, a
     monkeypatch.setattr("eval.runner.subprocess.run", fake_run)
     config = {"models": {"claude": "claude-pinned", "codex": "codex-pinned"}}
 
-    execute_trial(target, "code-only", 1, agent, None, None, config)  # type: ignore[arg-type]
+    execute_trial(target, "code-only", 1, agent, None, None, config)
 
     return commands
 
@@ -192,7 +193,9 @@ def test_claude_trial_invokes_scan_slash_command_isolated_from_the_developer_mac
 def test_codex_trial_keeps_a_plain_language_prompt_naming_the_skill(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     [command] = agent_commands_from_trial(monkeypatch, tmp_path, "codex")
 
-    assert command[:8] == ["codex", "--model", "codex-pinned", "exec", "--cd", command[5], "--sandbox", "workspace-write"]
+    assert command[:5] == ["codex", "--model", "codex-pinned", "exec", "--cd"]
+    assert Path(command[5]).name == "target"  # the trial copy, never the fixture
+    assert command[6:8] == ["--sandbox", "workspace-write"]
     prompt = command[-1]
     assert "security-scan" in prompt
     assert not prompt.startswith("/")

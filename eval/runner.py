@@ -327,18 +327,22 @@ def guard_api_keys(allow_api_key: bool) -> None:
         raise ValueError("API-key authentication is refused; pass --allow-api-key to override")
 
 
-def trial_prompts(agent: Agent, mode: Mode) -> list[str]:
-    """Claude takes the plugin's slash commands (ADR-0003); Codex finds skills by name in plain language."""
+# (context step, scan step) per agent. Claude takes the plugin's slash commands (ADR-0003);
+# Codex finds skills by name, so it gets plain language (ADR-0004).
+TRIAL_PROMPTS: dict[Agent, tuple[str, str]] = {
+    "claude": ("/analyzer:security-context", "/analyzer:security-scan"),
+    "codex": (
+        "Run security-context unattended, using docs/security/ANSWERS.input.md when present.",
+        "Run security-scan and write findings to docs/security/findings.json.",
+    ),
+}
 
-    if agent == "claude":
-        prompts = ["/analyzer:security-scan"]
-        if mode == "context":
-            prompts.insert(0, "/analyzer:security-context")
-        return prompts
-    prompts = ["Run security-scan and write findings to docs/security/findings.json."]
-    if mode == "context":
-        prompts.insert(0, "Run security-context unattended, using docs/security/ANSWERS.input.md when present.")
-    return prompts
+
+def trial_prompts(agent: Agent, mode: Mode) -> list[str]:
+    """Return the prompts one trial sends, in order: context first in context mode, then the scan."""
+
+    context_prompt, scan_prompt = TRIAL_PROMPTS[agent]
+    return [context_prompt, scan_prompt] if mode == "context" else [scan_prompt]
 
 
 def default_agent_command(config: dict[str, Any]) -> AgentCommand:
