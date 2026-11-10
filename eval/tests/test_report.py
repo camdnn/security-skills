@@ -20,7 +20,9 @@ from eval.report import (
 )
 
 
-def run(*, mean_f1: float = 0.8, skipped: bool = False, fixture: FixturePasses | None = None) -> EvaluationRun:
+def run(
+    *, mean_f1: float = 0.8, skipped: bool = False, fixture: FixturePasses | None = None, agent: str = "claude"
+) -> EvaluationRun:
     rates = Rates(0.8, 0.8, mean_f1)
     metrics = AggregateMetrics(
         per_run={1: rates},
@@ -36,7 +38,7 @@ def run(*, mean_f1: float = 0.8, skipped: bool = False, fixture: FixturePasses |
     )
     return EvaluationRun(
         tier="fast",
-        agent="claude",
+        agent=agent,
         metrics=metrics,
         fixture_passes={"sql-injection": fixture or FixturePasses(3, 3)},
         failed_trials=[],
@@ -77,15 +79,13 @@ def test_exit_two_for_incomplete_run_without_baseline_comparison() -> None:
     assert "not baseline-compared" in result.reasons[0]
 
 
-def test_agent_mismatch_skips_regression_check() -> None:
-    result = evaluate_regression(run(mean_f1=0), baseline(agent="codex"))
-
-    assert result.exit_code == EXIT_OK
-    assert result.reasons == ["baseline agent mismatch; regression check skipped"]
+def test_comparing_against_another_agents_baseline_is_an_error() -> None:
+    with pytest.raises(ValueError, match="codex.*claude"):
+        evaluate_regression(run(mean_f1=0), baseline(agent="codex"))
 
 
 def test_write_results_writes_markdown_and_json(tmp_path: Path) -> None:
-    result = write_results(run(), tmp_path, baseline_path=tmp_path / "baseline.json")
+    result = write_results(run(), tmp_path, baselines_dir=tmp_path / "baselines")
 
     assert result.exit_code == EXIT_OK
     assert (tmp_path / "metrics.json").exists()
@@ -107,18 +107,85 @@ def test_accept_baseline_refuses_failed_and_incomplete_runs(
 ) -> None:
     report = run()
     report = EvaluationRun(**{**report.__dict__, "failed_trials": failed, "skipped_trials": skipped})
-    write_results(report, tmp_path, baseline_path=tmp_path / "baseline.json")
+    write_results(report, tmp_path, baselines_dir=tmp_path / "baselines")
 
     with pytest.raises(ValueError, match=message):
-        accept_baseline(tmp_path, baseline_path=tmp_path / "baseline.json")
+        accept_baseline(tmp_path, baselines_dir=tmp_path / "baselines")
 
 
-def test_accept_baseline_keys_data_by_tier_and_records_agent(tmp_path: Path) -> None:
+def test_accept_baseline_writes_the_runs_agent_file_keyed_by_tier(tmp_path: Path) -> None:
+    baselines = tmp_path / "baselines"
     report_dir = tmp_path / "results"
-    write_results(run(), report_dir, baseline_path=tmp_path / "baseline.json")
+    write_results(run(agent="codex"), report_dir, baselines_dir=baselines)
 
-    accept_baseline(report_dir, baseline_path=tmp_path / "baseline.json")
+    accept_baseline(report_dir, baselines_dir=baselines)
 
-    saved = json.loads((tmp_path / "baseline.json").read_text())
-    assert saved["fast"]["agent"] == "claude"
+    saved = json.loads((baselines / "codex.json").read_text())
+    assert saved["fast"]["agent"] == "codex"
     assert saved["fast"]["mean_f1"] == 0.8
+    assert not (baselines / "claude.json").exists()
+
+
+def write_baseline_file(baselines: Path, agent: str, entry: dict) -> None:
+    baselines.mkdir(parents=True, exist_ok=True)
+    (baselines / f"{agent}.json").write_text(json.dumps({"fast": entry}))
+
+
+def test_run_is_compared_against_its_own_agents_baseline(tmp_path: Path) -> None:
+    baselines = tmp_path / "baselines"
+    write_baseline_file(baselines, "claude", baseline(f1=0.5, agent="claude"))
+    write_baseline_file(baselines, "codex", baseline(f1=0.9, agent="codex"))
+
+    result = write_results(run(mean_f1=0.7, agent="codex"), tmp_path / "results", baselines_dir=baselines)
+
+    assert result.exit_code == EXIT_REGRESSION
+    assert "mean F1 dropped by 0.200" in result.reasons[0]
+
+
+def test_run_without_a_baseline_for_its_agent_is_not_compared(tmp_path: Path) -> None:
+    baselines = tmp_path / "baselines"
+    write_baseline_file(baselines, "claude", baseline(f1=0.9, agent="claude"))
+
+    result = write_results(run(mean_f1=0.1, agent="codex"), tmp_path / "results", baselines_dir=baselines)
+
+    assert result.exit_code == EXIT_OK
+    assert result.reasons == ["no baseline for this tier and agent"]
+
+
+def test_baseline_file_whose_entry_names_another_agent_is_refused(tmp_path: Path) -> None:
+    baselines = tmp_path / "baselines"
+    write_baseline_file(baselines, "codex", baseline(agent="claude"))
+
+    with pytest.raises(ValueError, match="codex.json.*claude"):
+        write_results(run(agent="codex"), tmp_path / "results", baselines_dir=baselines)
+
+
+def test_accept_baseline_refuses_an_unknown_agent(tmp_path: Path) -> None:
+    report_dir = tmp_path / "results"
+    write_results(run(agent="../escape"), report_dir, check_baseline=False)
+
+    with pytest.raises(ValueError, match="unknown agent"):
+        accept_baseline(report_dir, baselines_dir=tmp_path / "baselines")
+    assert not (tmp_path / "escape.json").exists()
+
+
+def test_report_names_the_baseline_it_compared_against(tmp_path: Path) -> None:
+    baselines = tmp_path / "baselines"
+    write_baseline_file(baselines, "codex", baseline(agent="codex"))
+
+    write_results(run(agent="codex"), tmp_path / "with", baselines_dir=baselines)
+    write_results(run(agent="claude"), tmp_path / "without", baselines_dir=baselines)
+
+    assert "Baseline: codex / fast." in (tmp_path / "with" / "report.md").read_text()
+    assert "Baseline: none for claude / fast." in (tmp_path / "without" / "report.md").read_text()
+
+
+def test_report_says_when_the_baseline_check_was_disabled(tmp_path: Path) -> None:
+    baselines = tmp_path / "baselines"
+    write_baseline_file(baselines, "codex", baseline(agent="codex"))
+
+    write_results(run(agent="codex"), tmp_path / "results", baselines_dir=baselines, check_baseline=False)
+
+    report = (tmp_path / "results" / "report.md").read_text()
+    assert "Baseline: check disabled." in report
+    assert "none for" not in report

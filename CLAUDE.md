@@ -21,10 +21,14 @@ subcommand lists its flags.
   and ask (§0 rule 2). CI fails a PR that touches `expected.json` unless a
   human adds the `ground-truth-change` label. `python -m eval check-truth`
   must pass.
-- **Baseline changes only through `accept-baseline <results-dir>`.** Commit
-  `eval/baseline.json` on its own, with a message that says why (§8 item 7).
+- **Baseline changes only through `accept-baseline <results-dir>`.** There is
+  one baseline per agent, `eval/baselines/claude.json` and
+  `eval/baselines/codex.json`, each keyed by tier (ADR-0007). The run's agent
+  picks the file. Commit each one on its own, with a message that names the
+  agent and says why (§8 item 7). Evaluate a `SKILL.md` change on your own
+  agent and name it in the metrics diff.
 - **A sudden perfect score is suspect.** Check that nothing touched an
-  `expected.json`, a fixture, or `eval/baseline.json` (§8 item 6).
+  `expected.json`, a fixture, or a file in `eval/baselines/` (§8 item 6).
 
 ## Agent skills
 

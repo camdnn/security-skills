@@ -4,4 +4,4 @@ The checker can run trials on either Claude Code or Codex (`--agent claude|codex
 
 ## Consequences
 
-Full-tier numbers describe the skills running under Codex, not what a Claude user gets. The production-ready targets are tracked on Codex full-tier runs, and one Claude full-tier eval run in week 6 confirms them. Each tier has one baseline that records its agent. An eval run on a different agent skips the regression check and says why, instead of reporting a false regression.
+Full-tier numbers describe the skills running under Codex, not what a Claude user gets. The production-ready targets are tracked on Codex full-tier runs, and one Claude full-tier eval run in week 6 confirms them. Each tier has one baseline that records its agent. An eval run on a different agent skips the regression check and says why, instead of reporting a false regression. _Superseded in part by ADR-0007: there is now one baseline per tier and agent._
