@@ -28,7 +28,9 @@ def build_parser() -> argparse.ArgumentParser:
     destination = run_parser.add_mutually_exclusive_group()
     destination.add_argument("--resume", type=Path, help="finish the missing trials of an earlier eval run in this folder")
     destination.add_argument(
-        "--results-dir", type=Path, help="write a new eval run to this folder (default: eval/results/<date>-<commit>/)"
+        "--results-dir",
+        type=Path,
+        help="write a new eval run to this folder (default: eval/results/<date>-<commit>/, or a fresh -replay- folder for a replay eval run)",
     )
     run_parser.add_argument("--no-baseline-check", action="store_true")
     run_parser.add_argument("--allow-api-key", action="store_true")
