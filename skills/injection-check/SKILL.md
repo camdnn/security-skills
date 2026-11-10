@@ -11,4 +11,4 @@ Trace from request data, function parameters, or other externally controlled val
 
 Do not report parameterized database APIs with values passed separately, command APIs using a fixed executable plus argument array, or expression parsers that do not execute input as code. Include source-to-sink trace steps, exact sink range, and a focused fix: parameterize SQL, pass command arguments as an array without a shell, or replace dynamic evaluation with a constrained parser.
 
-Return schema-valid proposed findings to `security-scan`, or write only `docs/security/findings.json` and `docs/security/SCAN-REPORT.md` when invoked alone.
+Return schema-valid findings with DREAD factors and score from the [canonical rubric](../security-scan/references/dread-rubric.md) to `security-scan`, or write only `docs/security/findings.json` and `docs/security/SCAN-REPORT.md` when invoked alone.

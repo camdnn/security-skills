@@ -15,4 +15,4 @@ For each state-changing or sensitive read endpoint, identify authentication, the
 
 Do not equate authentication with authorization. Do not report when a route has an applicable centralized policy or middleware; trace it before deciding. For context-dependent findings, cite the relevant `BR-n` in `context_ref`; otherwise use `null` and describe the missing evidence conservatively.
 
-Return schema-valid proposed findings to `security-scan`, or write only `docs/security/findings.json` and `docs/security/SCAN-REPORT.md` when invoked alone. Recommend a server-side authorization policy keyed to the authenticated actor, or a strict outbound destination allowlist for SSRF.
+Return schema-valid findings with DREAD factors and score from the [canonical rubric](../security-scan/references/dread-rubric.md) to `security-scan`, or write only `docs/security/findings.json` and `docs/security/SCAN-REPORT.md` when invoked alone. Recommend a server-side authorization policy keyed to the authenticated actor, or a strict outbound destination allowlist for SSRF.
