@@ -190,3 +190,147 @@ def test_usage_limit_marks_incomplete_then_resume_completes(tmp_path: Path):
     )
     assert resumed.exit_code == 0
     assert all(json.loads(path.read_text())["status"] == "ok" for path in (results / "trials").glob("*.json"))
+
+
+def test_fast_run_uses_context_for_a_fixture_with_answers_and_copies_them(tmp_path: Path):
+    repo, target = runner_repo(tmp_path)
+    answers = target.root / "answers.md"
+    answers.write_text("# Developer answers\n")
+    seen_prompts: list[tuple[str, str]] = []
+
+    def agent(root: Path, agent_name: str, prompt: str) -> subprocess.CompletedProcess[str]:
+        seen_prompts.append((prompt, (root / "docs/security/ANSWERS.input.md").read_text() if (root / "docs/security/ANSWERS.input.md").exists() else ""))
+        return successful_agent(root, agent_name, prompt)
+
+    results, outcome = run(
+        RunOptions(tier="fast", runs=1, results_dir=tmp_path / "results", baseline_check=False),
+        agent_command=agent,
+        repo_root=repo,
+    )
+
+    assert outcome.exit_code == 0
+    assert [json.loads(path.read_text())["mode"] for path in (results / "trials").glob("*.json")] == ["context"]
+    assert seen_prompts == [
+        ("Run security-context unattended, using docs/security/ANSWERS.input.md when present.", "# Developer answers\n"),
+        ("Run security-scan and write findings to docs/security/findings.json.", "# Developer answers\n"),
+    ]
+
+
+def test_fast_run_uses_code_only_for_a_fixture_without_answers(tmp_path: Path):
+    repo, _ = runner_repo(tmp_path)
+    prompts: list[str] = []
+
+    def agent(root: Path, agent_name: str, prompt: str) -> subprocess.CompletedProcess[str]:
+        prompts.append(prompt)
+        return successful_agent(root, agent_name, prompt)
+
+    results, _ = run(
+        RunOptions(tier="fast", runs=1, results_dir=tmp_path / "results", baseline_check=False),
+        agent_command=agent,
+        repo_root=repo,
+    )
+
+    assert [json.loads(path.read_text())["mode"] for path in (results / "trials").glob("*.json")] == ["code-only"]
+    assert prompts == ["Run security-scan and write findings to docs/security/findings.json."]
+
+
+def test_mode_override_forces_code_only_for_a_fixture_with_answers(tmp_path: Path):
+    repo, target = runner_repo(tmp_path)
+    (target.root / "answers.md").write_text("# Developer answers\n")
+    prompts: list[str] = []
+
+    def agent(root: Path, agent_name: str, prompt: str) -> subprocess.CompletedProcess[str]:
+        prompts.append(prompt)
+        return successful_agent(root, agent_name, prompt)
+
+    results, _ = run(
+        RunOptions(tier="fast", mode="code-only", runs=1, results_dir=tmp_path / "results", baseline_check=False),
+        agent_command=agent,
+        repo_root=repo,
+    )
+
+    assert [json.loads(path.read_text())["mode"] for path in (results / "trials").glob("*.json")] == ["code-only"]
+    assert prompts == ["Run security-scan and write findings to docs/security/findings.json."]
+
+
+def test_full_run_uses_both_modes_for_a_fixture_with_answers(tmp_path: Path):
+    repo, target = runner_repo(tmp_path)
+    (target.root / "answers.md").write_text("# Developer answers\n")
+    prompts: list[str] = []
+
+    def agent(root: Path, agent_name: str, prompt: str) -> subprocess.CompletedProcess[str]:
+        prompts.append(prompt)
+        return successful_agent(root, agent_name, prompt)
+
+    results, _ = run(
+        RunOptions(tier="full", runs=1, results_dir=tmp_path / "results", baseline_check=False),
+        agent_command=agent,
+        repo_root=repo,
+    )
+
+    assert sorted(json.loads(path.read_text())["mode"] for path in (results / "trials").glob("*.json")) == ["code-only", "context"]
+    assert prompts == [
+        "Run security-scan and write findings to docs/security/findings.json.",
+        "Run security-context unattended, using docs/security/ANSWERS.input.md when present.",
+        "Run security-scan and write findings to docs/security/findings.json.",
+    ]
+
+
+def test_skill_run_selects_fixture_by_its_ground_truth_family_not_folder_name(tmp_path: Path):
+    repo, target = runner_repo(tmp_path)
+    (repo / "eval/cwe_families.json").write_text(json.dumps({
+        "cwe_to_family": {"CWE-862": "access-control"},
+        "families": {"access-control": "access-control-check"},
+    }))
+    renamed = target.root.parent / "misleading-fixture"
+    target.root.rename(renamed)
+    (renamed / "expected.json").write_text(json.dumps({
+        "truth": [{**expected()["truth"][0], "cwe": "CWE-862"}],
+        "must_not_find": [],
+    }))
+
+    results, _ = run(
+        RunOptions(
+            tier="fast",
+            skill="access-control-check",
+            runs=1,
+            results_dir=tmp_path / "results",
+            baseline_check=False,
+        ),
+        agent_command=successful_agent,
+        repo_root=repo,
+    )
+
+    assert [json.loads(path.read_text())["target"] for path in (results / "trials").glob("*.json")] == ["misleading-fixture"]
+
+
+def test_skill_run_selects_fixture_by_must_not_find_family(tmp_path: Path):
+    repo, target = runner_repo(tmp_path)
+    (repo / "eval/cwe_families.json").write_text(json.dumps({
+        "cwe_to_family": {},
+        "families": {"access-control": "access-control-check"},
+    }))
+    (target.root / "expected.json").write_text(json.dumps({
+        "truth": [],
+        "must_not_find": [{"file": "safe/example.ts", "cwe_family": "access-control"}],
+    }))
+
+    def agent(root: Path, agent_name: str, prompt: str) -> subprocess.CompletedProcess[str]:
+        output = root / "docs/security/findings.json"
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text("[]")
+        return subprocess.CompletedProcess([agent_name], 0, "", "")
+
+    results, _ = run(
+        RunOptions(
+            tier="fast",
+            skill="access-control-check",
+            runs=1,
+            results_dir=tmp_path / "results",
+            baseline_check=False,
+        ),
+        agent_command=agent,
+        repo_root=repo,
+    )
+
+    assert [json.loads(path.read_text())["target"] for path in (results / "trials").glob("*.json")] == ["injection-check"]
