@@ -1,0 +1,27 @@
+[
+  {
+    "id": "SEC-0001",
+    "skill": "access-control-check",
+    "title": "Order lookup missing ownership check (IDOR)",
+    "cwe": "CWE-862",
+    "owasp": "A01:2025",
+    "file": "vulnerable/missing-authorization.ts",
+    "line": 6,
+    "end_line": 9,
+    "evidence": "export async function getAccount(request: Request, response: Response) {",
+    "why": "Any logged-in user can read any order by changing the id.",
+    "trace": [],
+    "context_ref": "BR-3",
+    "fix": "Filter by req.user.id or check order.userId === req.user.id.",
+    "dread": {
+      "damage": 4,
+      "reproducibility": 5,
+      "exploitability": 5,
+      "affected_users": 4,
+      "discoverability": 4,
+      "score": 4.4
+    },
+    "confidence": "high",
+    "mode": "code-only"
+  }
+]

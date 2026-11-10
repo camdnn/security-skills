@@ -1,0 +1,206 @@
+{
+  "agent": "claude",
+  "exit_code": 0,
+  "failed_trials": [],
+  "false_negatives": [
+    {
+      "cwe": "CWE-863",
+      "description": "Business rule: a manager may not approve a refund they requested themselves. The handler checks the manager role but never compares the approver with the requester, so a manager can approve their own refund.",
+      "evidence": "if (request.user.role !== \"manager\") return response.sendStatus(403);",
+      "id": "CONTEXT-01",
+      "locations": [
+        {
+          "end_line": 15,
+          "file": "vulnerable/approve-refund.ts",
+          "start_line": 11
+        }
+      ],
+      "requires_context": true,
+      "source": "Hand-made context fixture"
+    },
+    {
+      "cwe": "CWE-863",
+      "description": "Business rule: only the customer who placed an order may download its invoice, because invoices hold payment details; support agents may not. The handler also lets the support role download any invoice.",
+      "evidence": "const allowed = order.customerId === request.user.id || request.user.role === \"support\";",
+      "id": "CONTEXT-02",
+      "locations": [
+        {
+          "end_line": 14,
+          "file": "vulnerable/download-invoice.ts",
+          "start_line": 9
+        }
+      ],
+      "requires_context": true,
+      "source": "Hand-made context fixture"
+    },
+    {
+      "cwe": "CWE-94",
+      "description": "Caller-controlled text is evaluated as executable code.",
+      "evidence": "return eval(expression);",
+      "id": "INJECTION-03",
+      "locations": [
+        {
+          "end_line": 3,
+          "file": "vulnerable/dynamic-eval.ts",
+          "start_line": 1
+        }
+      ],
+      "requires_context": false,
+      "source": "Hand-made injection-check fixture"
+    }
+  ],
+  "false_positives": [
+    {
+      "confidence": "high",
+      "context_ref": "BR-3",
+      "cwe": "CWE-89",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 4,
+        "exploitability": 5,
+        "reproducibility": 5,
+        "score": 4.4
+      },
+      "end_line": 1,
+      "evidence": "declare const database: { query(sql: string, values: string[]): Promise<unknown> };",
+      "file": "safe/parameterized-query.ts",
+      "fix": "Filter by req.user.id or check order.userId === req.user.id.",
+      "id": "SEC-0003",
+      "line": 1,
+      "mode": "code-only",
+      "owasp": "A01:2025",
+      "skill": "injection-check",
+      "title": "Order lookup missing ownership check (IDOR)",
+      "trace": [],
+      "why": "Any logged-in user can read any order by changing the id."
+    }
+  ],
+  "fixture_passes": {
+    "access-control-check": {
+      "passed": 1,
+      "trials": 1
+    },
+    "context": {
+      "passed": 0,
+      "trials": 1
+    },
+    "injection-check": {
+      "passed": 0,
+      "trials": 1
+    },
+    "secrets-check": {
+      "passed": 1,
+      "trials": 1
+    }
+  },
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 2,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "injection": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 2
+        },
+        "secrets": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        }
+      },
+      "mode": {
+        "code-only": {
+          "duplicates": 0,
+          "false_negatives": 3,
+          "false_positives": 1,
+          "true_positives": 5
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 5
+        },
+        "true": {
+          "duplicates": 0,
+          "false_negatives": 2,
+          "false_positives": 0,
+          "true_positives": 0
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 2,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "injection-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 2
+        },
+        "secrets-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        }
+      }
+    },
+    "fixture_passes": 2,
+    "fixture_trials": 4,
+    "mean": {
+      "f1": 0.7142857142857143,
+      "precision": 0.8333333333333334,
+      "recall": 0.625
+    },
+    "micro_counts": {
+      "duplicates": 0,
+      "false_negatives": 3,
+      "false_positives": 1,
+      "true_positives": 5
+    },
+    "micro_rates": {
+      "f1": 0.7142857142857143,
+      "precision": 0.8333333333333334,
+      "recall": 0.625
+    },
+    "minimum": {
+      "f1": 0.7142857142857143,
+      "precision": 0.8333333333333334,
+      "recall": 0.625
+    },
+    "per_run": {
+      "1": {
+        "f1": 0.7142857142857143,
+        "precision": 0.8333333333333334,
+        "recall": 0.625
+      }
+    },
+    "stable_recall": 0.625,
+    "standard_deviation": {
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0
+    }
+  },
+  "regression_reasons": [
+    "baseline check disabled"
+  ],
+  "skipped_trials": [],
+  "tier": "fast",
+  "tokens": null,
+  "warnings": []
+}

@@ -1,0 +1,77 @@
+[
+  {
+    "id": "SEC-0001",
+    "skill": "injection-check",
+    "title": "Order lookup missing ownership check (IDOR)",
+    "cwe": "CWE-89",
+    "owasp": "A01:2025",
+    "file": "vulnerable/sql-interpolation.ts",
+    "line": 3,
+    "end_line": 6,
+    "evidence": "export function findUserByEmail(email: string) {",
+    "why": "Any logged-in user can read any order by changing the id.",
+    "trace": [],
+    "context_ref": "BR-3",
+    "fix": "Filter by req.user.id or check order.userId === req.user.id.",
+    "dread": {
+      "damage": 4,
+      "reproducibility": 5,
+      "exploitability": 5,
+      "affected_users": 4,
+      "discoverability": 4,
+      "score": 4.4
+    },
+    "confidence": "high",
+    "mode": "code-only"
+  },
+  {
+    "id": "SEC-0002",
+    "skill": "injection-check",
+    "title": "Order lookup missing ownership check (IDOR)",
+    "cwe": "CWE-78",
+    "owasp": "A01:2025",
+    "file": "vulnerable/command-interpolation.ts",
+    "line": 3,
+    "end_line": 6,
+    "evidence": "export function showRevision(revision: string) {",
+    "why": "Any logged-in user can read any order by changing the id.",
+    "trace": [],
+    "context_ref": "BR-3",
+    "fix": "Filter by req.user.id or check order.userId === req.user.id.",
+    "dread": {
+      "damage": 4,
+      "reproducibility": 5,
+      "exploitability": 5,
+      "affected_users": 4,
+      "discoverability": 4,
+      "score": 4.4
+    },
+    "confidence": "high",
+    "mode": "code-only"
+  },
+  {
+    "id": "SEC-0003",
+    "skill": "injection-check",
+    "title": "Order lookup missing ownership check (IDOR)",
+    "cwe": "CWE-89",
+    "owasp": "A01:2025",
+    "file": "safe/parameterized-query.ts",
+    "line": 1,
+    "end_line": 1,
+    "evidence": "declare const database: { query(sql: string, values: string[]): Promise<unknown> };",
+    "why": "Any logged-in user can read any order by changing the id.",
+    "trace": [],
+    "context_ref": "BR-3",
+    "fix": "Filter by req.user.id or check order.userId === req.user.id.",
+    "dread": {
+      "damage": 4,
+      "reproducibility": 5,
+      "exploitability": 5,
+      "affected_users": 4,
+      "discoverability": 4,
+      "score": 4.4
+    },
+    "confidence": "high",
+    "mode": "code-only"
+  }
+]
