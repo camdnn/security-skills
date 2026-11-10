@@ -61,6 +61,7 @@ def runner_repo(tmp_path: Path, *, max_trials: int = 30) -> tuple[Path, Target]:
     config.write_text(
         "trials_per_target: 2\nmax_trials:\n  fast: "
         f"{max_trials}\n  full: 30\ndefault_agent:\n  fast: claude\n  full: codex\nmodels:\n  claude: test\n  codex: test\n"
+        "context_file_line_limits:\n  SECURITY-CONTEXT.md: 150\n  PLAN.md: 100\n  modules/*.md: 200\n  decisions/*.md: 40\n"
     )
     return tmp_path, Target("injection-check", fixture, expected_path)
 
@@ -334,3 +335,84 @@ def test_skill_run_selects_fixture_by_must_not_find_family(tmp_path: Path):
     )
 
     assert [json.loads(path.read_text())["target"] for path in (results / "trials").glob("*.json")] == ["injection-check"]
+
+
+def test_context_trial_reports_an_oversized_context_file_without_failing(tmp_path: Path):
+    repo, _ = runner_repo(tmp_path)
+
+    def agent(root: Path, agent_name: str, prompt: str) -> subprocess.CompletedProcess[str]:
+        if prompt.startswith("Run security-context"):
+            context = root / "docs/security/SECURITY-CONTEXT.md"
+            context.parent.mkdir(parents=True, exist_ok=True)
+            context.write_text("line\n" * 151)
+        return successful_agent(root, agent_name, prompt)
+
+    results, outcome = run(
+        RunOptions(tier="fast", mode="context", runs=1, results_dir=tmp_path / "results", baseline_check=False),
+        agent_command=agent,
+        repo_root=repo,
+    )
+
+    record = json.loads(next((results / "trials").glob("*.json")).read_text())
+    assert outcome.exit_code == 0
+    assert record["status"] == "ok"
+    assert record["warnings"] == [{"file": "docs/security/SECURITY-CONTEXT.md", "limit": 150, "lines": 151}]
+    assert "docs/security/SECURITY-CONTEXT.md: 151 lines (limit 150)" in (results / "report.md").read_text()
+
+
+def test_context_trial_omits_warnings_when_context_files_fit_within_limits(tmp_path: Path):
+    repo, _ = runner_repo(tmp_path)
+
+    def agent(root: Path, agent_name: str, prompt: str) -> subprocess.CompletedProcess[str]:
+        if prompt.startswith("Run security-context"):
+            plan = root / "docs/security/PLAN.md"
+            plan.parent.mkdir(parents=True, exist_ok=True)
+            plan.write_text("line\n" * 100)
+        return successful_agent(root, agent_name, prompt)
+
+    results, _ = run(
+        RunOptions(tier="fast", mode="context", runs=1, results_dir=tmp_path / "results", baseline_check=False),
+        agent_command=agent,
+        repo_root=repo,
+    )
+
+    record = json.loads(next((results / "trials").glob("*.json")).read_text())
+    assert "warnings" not in record
+    assert "## Warnings\n\nNone." in (results / "report.md").read_text()
+
+
+def test_code_only_trial_does_not_measure_context_files(tmp_path: Path):
+    repo, _ = runner_repo(tmp_path)
+
+    def agent(root: Path, agent_name: str, prompt: str) -> subprocess.CompletedProcess[str]:
+        context = root / "docs/security/SECURITY-CONTEXT.md"
+        context.parent.mkdir(parents=True, exist_ok=True)
+        context.write_text("line\n" * 151)
+        return successful_agent(root, agent_name, prompt)
+
+    results, _ = run(
+        RunOptions(tier="fast", mode="code-only", runs=1, results_dir=tmp_path / "results", baseline_check=False),
+        agent_command=agent,
+        repo_root=repo,
+    )
+
+    record = json.loads(next((results / "trials").glob("*.json")).read_text())
+    assert "warnings" not in record
+    assert "## Warnings\n\nNone." in (results / "report.md").read_text()
+
+
+def test_context_trial_does_not_warn_for_an_oversized_preexisting_context_file(tmp_path: Path):
+    repo, target = runner_repo(tmp_path)
+    context = target.root / "docs/security/SECURITY-CONTEXT.md"
+    context.parent.mkdir(parents=True)
+    context.write_text("line\n" * 151)
+
+    results, _ = run(
+        RunOptions(tier="fast", mode="context", runs=1, results_dir=tmp_path / "results", baseline_check=False),
+        agent_command=successful_agent,
+        repo_root=repo,
+    )
+
+    record = json.loads(next((results / "trials").glob("*.json")).read_text())
+    assert "warnings" not in record
+    assert "## Warnings\n\nNone." in (results / "report.md").read_text()

@@ -40,6 +40,7 @@ class EvaluationRun:
     skipped_trials: list[dict[str, Any]]
     false_negatives: list[dict[str, Any]]
     false_positives: list[dict[str, Any]]
+    warnings: list[dict[str, Any]]
     tokens: int | None = None
 
 
@@ -184,6 +185,7 @@ def serialize_run(run: EvaluationRun, result: RegressionResult) -> dict[str, Any
         "skipped_trials": run.skipped_trials,
         "false_negatives": run.false_negatives,
         "false_positives": run.false_positives,
+        "warnings": run.warnings,
         "tokens": run.tokens,
         "exit_code": result.exit_code,
         "regression_reasons": result.reasons,
@@ -230,6 +232,10 @@ def render_report(
         "",
         *_evidence_lines(run.false_positives),
         "",
+        "## Warnings",
+        "",
+        *_warning_lines(run.warnings),
+        "",
         "## Failed trials",
         "",
         *_trial_lines(run.failed_trials),
@@ -256,6 +262,12 @@ def _baseline_line(run: EvaluationRun, baseline: dict[str, Any] | None, *, check
 
 def _fixture_passes(value: Any) -> FixturePasses:
     return FixturePasses(passed=int(value.get("passed", 0)), trials=int(value.get("trials", 0)))
+
+
+def _warning_lines(warnings: list[dict[str, Any]]) -> list[str]:
+    if not warnings:
+        return ["None."]
+    return [f"- {warning['file']}: {warning['lines']} lines (limit {warning['limit']})" for warning in warnings]
 
 
 def _json_value(value: Any) -> Any:

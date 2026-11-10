@@ -10,6 +10,7 @@ import tempfile
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date
+from hashlib import sha256
 from pathlib import Path
 from time import monotonic
 from typing import Any, Literal
@@ -137,6 +138,7 @@ def execute_trial(
             destination = copy_root / "docs/security/ANSWERS.input.md"
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(target.answers_path, destination)
+        context_files_before = context_file_fingerprints(copy_root, config["context_file_line_limits"]) if mode == "context" else {}
         command = agent_command or default_agent_command(config)
         prompts = ["Run security-scan and write findings to docs/security/findings.json."]
         if mode == "context":
@@ -145,13 +147,27 @@ def execute_trial(
             completed = command(copy_root, agent, prompt)
             output = f"{completed.stdout}\n{completed.stderr}".lower()
             if is_usage_limit(output):
-                return usage_limit_record(target, mode, number, output)
+                return record_context_warnings(
+                    usage_limit_record(target, mode, number, output), copy_root, mode, config, context_files_before
+                )
             if completed.returncode:
-                return failed_record(target, mode, number, f"agent exited {completed.returncode}: {output[-500:]}")
+                return record_context_warnings(
+                    failed_record(target, mode, number, f"agent exited {completed.returncode}: {output[-500:]}"),
+                    copy_root,
+                    mode,
+                    config,
+                    context_files_before,
+                )
         changed = changed_outside_security(copy_root)
         if changed:
-            return failed_record(target, mode, number, f"modified outside docs/security/: {', '.join(changed)}")
-        return score_findings(
+            return record_context_warnings(
+                failed_record(target, mode, number, f"modified outside docs/security/: {', '.join(changed)}"),
+                copy_root,
+                mode,
+                config,
+                context_files_before,
+            )
+        record = score_findings(
             target,
             mode,
             number,
@@ -159,6 +175,7 @@ def execute_trial(
             copy_root,
             monotonic() - started,
         )
+        return record_context_warnings(record, copy_root, mode, config, context_files_before)
 
 
 def score_findings(
@@ -206,6 +223,7 @@ def write_run_report(tier: str, agent: str, records: list[dict[str, Any]], resul
         skipped_trials=[record for record in records if record["status"] == "skipped"],
         false_negatives=[item for record in records for item in record.get("false_negatives", [])],
         false_positives=[item for record in records for item in record.get("false_positives", [])],
+        warnings=[warning for record in records for warning in record.get("warnings", [])],
         tokens=None,
     )
     return write_results(run, results_dir, check_baseline=baseline_check)
@@ -257,6 +275,52 @@ def target_is_owned_by_skill(expected_path: Path, skill: str, cwe_families: dict
     truth_families = [cwe_to_family[entry["cwe"]] for entry in expected.get("truth", [])]
     rule_families = [rule["cwe_family"] for rule in expected.get("must_not_find", [])]
     return any(family_to_skill.get(family) == skill for family in truth_families + rule_families)
+
+
+def context_file_warnings(
+    target_root: Path, limits: dict[str, int], before: dict[Path, str]
+) -> list[dict[str, int | str]]:
+    """Measure context files against the checker-wide configured line limits."""
+
+    security_root = target_root / "docs/security"
+    warnings: list[dict[str, int | str]] = []
+    for pattern, limit in limits.items():
+        for path in sorted(security_root.glob(pattern)):
+            if before.get(path) == file_fingerprint(path):
+                continue
+            lines = len(path.read_text().splitlines())
+            if lines > limit:
+                warnings.append({"file": str(path.relative_to(target_root)), "lines": lines, "limit": limit})
+    return warnings
+
+
+def context_file_fingerprints(target_root: Path, limits: dict[str, int]) -> dict[Path, str]:
+    """Capture the configured context files before the agent can write them."""
+
+    security_root = target_root / "docs/security"
+    return {
+        path: file_fingerprint(path)
+        for pattern in limits
+        for path in security_root.glob(pattern)
+    }
+
+
+def file_fingerprint(path: Path) -> str:
+    """Return a stable content fingerprint for one context file."""
+
+    return sha256(path.read_bytes()).hexdigest()
+
+
+def record_context_warnings(
+    record: dict[str, Any], target_root: Path, mode: Mode, config: dict[str, Any], before: dict[Path, str]
+) -> dict[str, Any]:
+    """Attach context-file overruns to a persisted trial record without changing its status."""
+
+    if mode == "context":
+        warnings = context_file_warnings(target_root, config["context_file_line_limits"], before)
+        if warnings:
+            record["warnings"] = warnings
+    return record
 
 
 def guard_api_keys(allow_api_key: bool) -> None:
