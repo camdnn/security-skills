@@ -1,0 +1,40 @@
+{
+  "truth": [
+    {
+      "id": "CONTEXT-01",
+      "cwe": "CWE-863",
+      "locations": [
+        {
+          "file": "vulnerable/approve-refund.ts",
+          "start_line": 11,
+          "end_line": 15
+        }
+      ],
+      "evidence": "if (request.user.role !== \"manager\") return response.sendStatus(403);",
+      "requires_context": true,
+      "description": "Business rule: a manager may not approve a refund they requested themselves. The handler checks the manager role but never compares the approver with the requester, so a manager can approve their own refund.",
+      "source": "Hand-made context fixture"
+    },
+    {
+      "id": "CONTEXT-02",
+      "cwe": "CWE-863",
+      "locations": [
+        {
+          "file": "vulnerable/download-invoice.ts",
+          "start_line": 9,
+          "end_line": 14
+        }
+      ],
+      "evidence": "const allowed = order.customerId === request.user.id || request.user.role === \"support\";",
+      "requires_context": true,
+      "description": "Business rule: only the customer who placed an order may download its invoice, because invoices hold payment details; support agents may not. The handler also lets the support role download any invoice.",
+      "source": "Hand-made context fixture"
+    }
+  ],
+  "must_not_find": [
+    {
+      "file": "safe/cancel-order.ts",
+      "cwe_family": "access-control"
+    }
+  ]
+}
