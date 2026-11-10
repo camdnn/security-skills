@@ -24,3 +24,5 @@ jobs:
       - run: pip install -e '.[dev]'
       - run: ruff check .
       - run: pytest
+      - name: Check ground truth points at its evidence
+        run: python -m eval check-truth
