@@ -202,7 +202,7 @@ Assumes ~10 hrs/week each. **P1 = context side**, **P2 = runtime + checker side*
 | `.claude-plugin/plugin.json`                                | JSON                        | Plugin manifest (`name: analyzer`)                                                   | 1     | P1                 |
 | `README.md`                                                 | Markdown                    | Project proposal (exists)                                                            | —     | —                  |
 | `CLAUDE.md`                                                 | Markdown                    | Rules from Section 0 + how to run checker                                            | 1     | P1                 |
-| `.gitignore`                                                | Text                        | Ignore `eval/results/**/raw/`, `.venv/`, cloned benchmarks                           | 1     | P2                 |
+| `.gitignore`                                                | Text                        | Ignore `eval/results/**/raw/`, replay results, `.venv/`, cloned benchmarks           | 1     | P2                 |
 | `pyproject.toml`                                            | TOML                        | Python deps: `jsonschema`, `pyyaml`, `pytest`                                        | 1     | P2                 |
 | `docs/tickets/TICKET-001.md`                                | Markdown                    | This ticket                                                                          | 0     | —                  |
 | `GLOSSARY.md` (or `CONTEXT.md`) + `docs/adr/*.md`           | Markdown                    | Created by `/grill-with-docs` (name depends on its version)                          | 0     | Both               |
@@ -318,7 +318,7 @@ benchmark.yaml ───┤
 | `fast` | All `tests/fixtures/*`            | After every `SKILL.md` change     | `claude`      | Low (small files) |
 | `full` | Fixtures + benchmarks, both modes | Weekly + before merging to `main` | `codex`       | High (Juice Shop) |
 
-Flags: `--skill <name>` (only fixtures for that check), `--mode code-only|context`, `--runs N`, `--agent claude|codex`, `--replay <dir>`, `--resume <results-dir>`, `--results-dir <dir>` (write a new eval run there instead of `eval/results/<date>-<commit>/`; not with `--resume`), `--no-baseline-check`, `--allow-api-key`.
+Flags: `--skill <name>` (only fixtures for that check), `--mode code-only|context`, `--runs N`, `--agent claude|codex`, `--replay <dir>`, `--resume <results-dir>`, `--results-dir <dir>` (write a new eval run there instead of the default folder: `eval/results/<date>-<commit>/` for live trials, a fresh gitignored `eval/results/<date>-<commit>-replay-<HHMMSS>/` per replay eval run; not with `--resume`), `--no-baseline-check`, `--allow-api-key`.
 
 Other commands: `python -m eval check-truth`, `python -m eval accept-baseline <results-dir>`.
 

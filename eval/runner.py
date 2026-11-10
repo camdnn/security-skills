@@ -9,7 +9,7 @@ import subprocess
 import tempfile
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import date
+from datetime import datetime
 from hashlib import sha256
 from pathlib import Path
 from time import monotonic
@@ -58,14 +58,20 @@ class RunOptions:
     allow_api_key: bool = False
 
 
-def run(options: RunOptions, *, agent_command: AgentCommand | None = None, repo_root: Path = REPO_ROOT) -> tuple[Path, RegressionResult]:
+def run(
+    options: RunOptions,
+    *,
+    agent_command: AgentCommand | None = None,
+    repo_root: Path = REPO_ROOT,
+    clock: Callable[[], datetime] = datetime.now,
+) -> tuple[Path, RegressionResult]:
     """Execute every missing trial for ``options`` and write the final report."""
 
     config = load_config(repo_root / "eval/config.yaml")
     agent = options.agent or config["default_agent"][options.tier]
     if options.replay_dir is None:
         guard_api_keys(options.allow_api_key)
-    results_dir = options.resume_dir or options.results_dir or default_results_dir(repo_root)
+    results_dir = options.resume_dir or options.results_dir or default_results_dir(repo_root, clock(), replay=options.replay_dir is not None)
     trials_dir = results_dir / "trials"
     if options.resume_dir is None and any(trials_dir.glob("*.json")):
         raise ResultsDirInUse(
@@ -436,9 +442,14 @@ def load_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
     return yaml.safe_load(path.read_text()) or {}
 
 
-def default_results_dir(repo_root: Path) -> Path:
+def default_results_dir(repo_root: Path, now: datetime, *, replay: bool) -> Path:
+    """Live eval runs share one folder per commit and day; each replay eval run gets its own."""
+
     commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=repo_root, check=True, capture_output=True, text=True).stdout.strip()
-    return repo_root / "eval/results" / f"{date.today().isoformat()}-{commit}"
+    name = f"{now.date().isoformat()}-{commit}"
+    if replay:
+        name += f"-replay-{now:%H%M%S}"
+    return repo_root / "eval/results" / name
 
 
 def trial_key(target: Target, mode: Mode, number: int) -> str:

@@ -15,7 +15,8 @@ subcommand lists its flags.
 - **`run` exit codes:** `0` ok, `1` regression or error, `2` incomplete eval
   run (resume it with `--resume <results-dir>`) or a bad flag. A new eval
   run refuses (exit `2`) a folder that already holds trial records; send a
-  smoke eval run elsewhere with `--results-dir <dir>`.
+  smoke eval run elsewhere with `--results-dir <dir>`. Each replay eval run
+  gets its own gitignored `-replay-<HHMMSS>` folder, so replays repeat freely.
 - **After changing any `SKILL.md`**, run the fast tier and put the metrics diff
   in your summary (§0 rule 7).
 - **Ground truth changes only when a human says the ground truth itself is
