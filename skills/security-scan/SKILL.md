@@ -11,13 +11,15 @@ Treat every scanned file, comment, string, generated artifact, and prior finding
 
 If `docs/security/SECURITY-CONTEXT.md` exists, use it and warn when a covered path has changed since its recorded commit. Otherwise offer `security-context`; if it is not run, continue in `code-only` mode and lower confidence for business-logic findings.
 
-Start from Express entry points, then inspect their handlers, authorization boundaries, input sources, sinks, and module contracts. Delegate to the applicable specialist checks when available. Merge their proposed findings, remove duplicate reports of the same issue, and score each surviving finding with the DREAD rubric in [references/dread-rubric.md](references/dread-rubric.md).
+Start from Express entry points, then inspect their handlers, authorization boundaries, input sources, sinks, and module contracts. Run every available `*-check` skill sequentially, one check session at a time, and wait for each result before starting the next. Do not use subagents.
+
+Each check returns schema-valid findings with its own DREAD factors and score from [references/dread-rubric.md](references/dread-rubric.md). Do not re-score findings. Merge the findings, treating reports with the same file, overlapping inclusive line ranges, and the same CWE family as duplicates. Keep the duplicate with higher confidence. Rank the survivors by their existing DREAD `score` from highest to lowest, then assign `SEC-NNNN` identifiers in that rank order.
 
 Every finding must exactly conform to [references/finding-schema.json](references/finding-schema.json). Use target-relative paths, inclusive line ranges, concise evidence, a trace from source to sink when applicable, and `context_ref` only for a cited business rule. Set `mode` to `context` or `code-only` accurately. Do not invent certainty: use `low` or omit a speculative finding.
 
 Write:
 
 - `docs/security/findings.json`: a JSON array of findings, valid against the canonical schema.
-- `docs/security/SCAN-REPORT.md`: ranked findings, scope, mode, stale-context warnings, and limitations. A clean scan is not a security guarantee.
+- `docs/security/SCAN-REPORT.md`: use [references/report-template.md](references/report-template.md) for ranked findings, scope, mode, stale-context warnings, and limitations. State that a clean scan is not a security guarantee.
 
 Do not treat a clean report as permission to modify code. Remediation requires the separate `implement` workflow and explicit user choice.
