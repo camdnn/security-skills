@@ -91,6 +91,35 @@ def test_replay_runs_end_to_end_and_writes_each_trial(tmp_path: Path):
     assert json.loads((results / "metrics.json").read_text())["metrics"]["mean"]["f1"] == 1
 
 
+def test_replay_eval_runs_over_the_same_findings_write_identical_trial_records(tmp_path: Path):
+    repo, target = runner_repo(tmp_path)
+    truth = expected()["truth"][0]
+    target.expected_path.write_text(json.dumps({"truth": [truth | {"id": f"SQLI-{n:02}"} for n in range(1, 9)]}))
+    replay = tmp_path / "replay"
+    replay.mkdir()
+    (replay / "findings.json").write_text(json.dumps([finding()]))
+    script = (
+        "import sys; from pathlib import Path; from eval.runner import RunOptions, run; "
+        "run(RunOptions(tier='fast', runs=1, replay_dir=Path(sys.argv[2]), resume_dir=Path(sys.argv[3]), "
+        "baseline_check=False), repo_root=Path(sys.argv[1]))"
+    )
+
+    def trial_record(seed: str) -> dict[str, Any]:
+        results = tmp_path / f"results-{seed}"
+        subprocess.run(
+            [sys.executable, "-c", script, str(repo), str(replay), str(results)],
+            check=True, capture_output=True, env={"PYTHONHASHSEED": seed, "PATH": "/usr/bin:/bin"},
+            cwd=Path(__file__).resolve().parents[2],
+        )
+        record = json.loads((results / "trials/injection-check-code-only-1.json").read_text())
+        record.pop("duration_seconds")
+        return record
+
+    records = [trial_record(seed) for seed in ("1", "2", "3", "4")]
+
+    assert all(record == records[0] for record in records)
+
+
 def test_run_cli_accepts_replay_mode(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     from eval.__main__ import main
 
