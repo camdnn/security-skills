@@ -318,11 +318,11 @@ benchmark.yaml ───┤
 | `fast` | All `tests/fixtures/*`            | After every `SKILL.md` change     | `claude`      | Low (small files) |
 | `full` | Fixtures + benchmarks, both modes | Weekly + before merging to `main` | `codex`       | High (Juice Shop) |
 
-Flags: `--skill <name>` (only fixtures for that check), `--mode code-only|context`, `--runs N`, `--agent claude|codex`, `--replay <dir>`, `--resume <results-dir>`, `--no-baseline-check`, `--allow-api-key`.
+Flags: `--skill <name>` (only fixtures for that check), `--mode code-only|context`, `--runs N`, `--agent claude|codex`, `--replay <dir>`, `--resume <results-dir>`, `--results-dir <dir>` (write a new eval run there instead of `eval/results/<date>-<commit>/`; not with `--resume`), `--no-baseline-check`, `--allow-api-key`.
 
 Other commands: `python -m eval check-truth`, `python -m eval accept-baseline <results-dir>`.
 
-Exit codes: `0` ok, `1` regression, `2` incomplete eval run.
+Exit codes: `0` ok, `1` regression, `2` incomplete eval run or bad flag. A new eval run refuses (exit `2`) a folder that already holds trial records unless `--resume` names it.
 
 ### 7.4 Matching algorithm (`matcher.py`)
 
