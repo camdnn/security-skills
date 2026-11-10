@@ -52,7 +52,7 @@
   "false_positives": [
     {
       "confidence": "high",
-      "context_ref": "BR-3",
+      "context_ref": null,
       "cwe": "CWE-89",
       "dread": {
         "affected_users": 4,
@@ -65,15 +65,15 @@
       "end_line": 1,
       "evidence": "declare const database: { query(sql: string, values: string[]): Promise<unknown> };",
       "file": "safe/parameterized-query.ts",
-      "fix": "Filter by req.user.id or check order.userId === req.user.id.",
+      "fix": "None needed.",
       "id": "SEC-0003",
       "line": 1,
       "mode": "code-only",
-      "owasp": "A01:2025",
+      "owasp": "A05:2025",
       "skill": "injection-check",
-      "title": "Order lookup missing ownership check (IDOR)",
+      "title": "Possible SQL injection in query helper",
       "trace": [],
-      "why": "Any logged-in user can read any order by changing the id."
+      "why": "Recorded false positive: the query is parameterized."
     }
   ],
   "fixture_passes": {
