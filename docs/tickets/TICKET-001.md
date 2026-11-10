@@ -112,6 +112,8 @@ Defined by `eval/schemas/expected.schema.json`; the locked `{truth, must_not_fin
 
 Fixture authoring rule: **one vulnerability per vulnerable file** (or ≥ 11 lines apart), so the ±5-line tolerance can't blur two entries together. Each `tests/fixtures/<check>/` folder (both `vulnerable/` and `safe/`) is **one target**, scanned in a single trial with paths relative to that folder.
 
+The runner (`discover_targets` in `eval/runner.py`) turns every folder under `tests/fixtures/` that has an `expected.json` into a target of every eval run (`modes_for_target` picks its modes). So a fixture is scored from the commit that adds its `expected.json`; land it once its target can be scored as intended.
+
 ### 3.3 Benchmark definition (`eval/benchmarks/<name>/benchmark.yaml`)
 
 ```yaml
