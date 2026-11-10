@@ -40,6 +40,10 @@ class Target:
     answers_path: Path | None = None
 
 
+class ResultsDirInUse(Exception):
+    """A new eval run named a results folder that already holds trial records."""
+
+
 @dataclass(frozen=True)
 class RunOptions:
     tier: Literal["fast", "full"]
@@ -62,8 +66,13 @@ def run(options: RunOptions, *, agent_command: AgentCommand | None = None, repo_
     if options.replay_dir is None:
         guard_api_keys(options.allow_api_key)
     results_dir = options.resume_dir or options.results_dir or default_results_dir(repo_root)
-    results_dir.mkdir(parents=True, exist_ok=True)
     trials_dir = results_dir / "trials"
+    if options.resume_dir is None and any(trials_dir.glob("*.json")):
+        raise ResultsDirInUse(
+            f"{results_dir} already holds trial records from another eval run; "
+            f"pass --resume {results_dir} to finish it, or choose another folder with --results-dir"
+        )
+    results_dir.mkdir(parents=True, exist_ok=True)
     trials_dir.mkdir(exist_ok=True)
     targets = discover_targets(repo_root, options.tier, options.skill)
     requested_runs = options.runs or int(config["trials_per_target"])

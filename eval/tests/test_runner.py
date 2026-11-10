@@ -12,6 +12,7 @@ import pytest
 
 from eval.runner import (
     Agent,
+    ResultsDirInUse,
     RunOptions,
     Target,
     default_agent_command,
@@ -117,6 +118,41 @@ def test_run_cli_accepts_replay_mode(monkeypatch: pytest.MonkeyPatch, tmp_path: 
 
     assert main() == 0
     assert (tmp_path / "results" / "metrics.json").exists()
+
+
+def replay_cli_args(replay: Path, *extra: str) -> list[str]:
+    return ["python -m eval", "run", "--tier", "fast", "--runs", "1", "--replay", str(replay), "--no-baseline-check", *extra]
+
+
+def test_run_cli_results_dir_receives_trial_records_and_report(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+    from eval.__main__ import main
+
+    replay = tmp_path / "replay"
+    replay.mkdir()
+    (replay / "findings.json").write_text(json.dumps([finding()]))
+    smoke = tmp_path / "smoke"
+    monkeypatch.setattr(sys, "argv", replay_cli_args(replay, "--results-dir", str(smoke)))
+
+    assert main() == 0
+    assert (smoke / "metrics.json").exists()
+    assert list((smoke / "trials").glob("*.json"))
+
+
+def test_run_cli_refuses_a_used_results_dir_without_resume(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+):
+    from eval.__main__ import main
+
+    replay = tmp_path / "replay"
+    replay.mkdir()
+    (replay / "findings.json").write_text(json.dumps([finding()]))
+    used = tmp_path / "used"
+    monkeypatch.setattr(sys, "argv", replay_cli_args(replay, "--results-dir", str(used)))
+    assert main() == 0
+    capsys.readouterr()
+
+    assert main() == 2
+    assert f"--resume {used}" in capsys.readouterr().out
 
 
 def test_live_trial_fails_when_agent_modifies_outside_security(tmp_path: Path):
@@ -237,6 +273,25 @@ def test_usage_limit_marks_incomplete_then_resume_completes(tmp_path: Path):
     )
     assert resumed.exit_code == 0
     assert all(json.loads(path.read_text())["status"] == "ok" for path in (results / "trials").glob("*.json"))
+
+
+def test_new_run_refuses_a_folder_with_trial_records_and_writes_nothing(tmp_path: Path):
+    repo, _ = runner_repo(tmp_path)
+    results, _ = run(
+        RunOptions(tier="fast", runs=1, results_dir=tmp_path / "results", baseline_check=False),
+        agent_command=successful_agent,
+        repo_root=repo,
+    )
+    before = {path: path.read_bytes() for path in results.rglob("*") if path.is_file()}
+
+    with pytest.raises(ResultsDirInUse, match="--resume"):
+        run(
+            RunOptions(tier="fast", runs=2, results_dir=results, baseline_check=False),
+            agent_command=successful_agent,
+            repo_root=repo,
+        )
+
+    assert {path: path.read_bytes() for path in results.rglob("*") if path.is_file()} == before
 
 
 def test_fast_run_uses_context_for_a_fixture_with_answers_and_copies_them(tmp_path: Path):

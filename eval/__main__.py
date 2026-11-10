@@ -6,7 +6,7 @@ import argparse
 from pathlib import Path
 
 from eval.report import accept_baseline
-from eval.runner import RunOptions, run
+from eval.runner import ResultsDirInUse, RunOptions, run
 from eval.truth import REPO_ROOT, check_all_truth
 
 
@@ -23,7 +23,11 @@ def main() -> int:
     run_parser.add_argument("--runs", type=int)
     run_parser.add_argument("--agent", choices=("claude", "codex"))
     run_parser.add_argument("--replay", type=Path)
-    run_parser.add_argument("--resume", type=Path)
+    destination = run_parser.add_mutually_exclusive_group()
+    destination.add_argument("--resume", type=Path, help="finish the missing trials of an earlier eval run in this folder")
+    destination.add_argument(
+        "--results-dir", type=Path, help="write a new eval run to this folder (default: eval/results/<date>-<commit>/)"
+    )
     run_parser.add_argument("--no-baseline-check", action="store_true")
     run_parser.add_argument("--allow-api-key", action="store_true")
     arguments = parser.parse_args()
@@ -53,10 +57,14 @@ def main() -> int:
                     agent=arguments.agent,
                     replay_dir=arguments.replay,
                     resume_dir=arguments.resume,
+                    results_dir=arguments.results_dir,
                     baseline_check=not arguments.no_baseline_check,
                     allow_api_key=arguments.allow_api_key,
                 )
             )
+        except ResultsDirInUse as error:
+            print(error)
+            return 2
         except (OSError, ValueError) as error:
             print(error)
             return 1
