@@ -416,3 +416,50 @@ def test_context_trial_does_not_warn_for_an_oversized_preexisting_context_file(t
     record = json.loads(next((results / "trials").glob("*.json")).read_text())
     assert "warnings" not in record
     assert "## Warnings\n\nNone." in (results / "report.md").read_text()
+
+
+def test_context_trial_hides_ground_truth_and_exposes_answers_only_as_input(tmp_path: Path):
+    repo, target = runner_repo(tmp_path)
+    (target.root / "answers.md").write_text("# Developer answers\n")
+    seen: list[tuple[bool, bool, str]] = []
+
+    def agent(root: Path, agent_name: str, prompt: str) -> subprocess.CompletedProcess[str]:
+        answers_input = root / "docs/security/ANSWERS.input.md"
+        seen.append((
+            (root / "expected.json").exists(),
+            (root / "answers.md").exists(),
+            answers_input.read_text() if answers_input.exists() else "",
+        ))
+        return successful_agent(root, agent_name, prompt)
+
+    _, outcome = run(
+        RunOptions(tier="fast", mode="context", runs=1, results_dir=tmp_path / "results", baseline_check=False),
+        agent_command=agent,
+        repo_root=repo,
+    )
+
+    assert outcome.exit_code == 0
+    assert seen == [(False, False, "# Developer answers\n"), (False, False, "# Developer answers\n")]
+
+
+def test_code_only_trial_hides_fixture_answers_and_ground_truth(tmp_path: Path):
+    repo, target = runner_repo(tmp_path)
+    (target.root / "answers.md").write_text("# Developer answers\n")
+    seen: list[tuple[bool, bool, bool]] = []
+
+    def agent(root: Path, agent_name: str, prompt: str) -> subprocess.CompletedProcess[str]:
+        seen.append((
+            (root / "expected.json").exists(),
+            (root / "answers.md").exists(),
+            (root / "docs/security/ANSWERS.input.md").exists(),
+        ))
+        return successful_agent(root, agent_name, prompt)
+
+    _, outcome = run(
+        RunOptions(tier="fast", mode="code-only", runs=1, results_dir=tmp_path / "results", baseline_check=False),
+        agent_command=agent,
+        repo_root=repo,
+    )
+
+    assert outcome.exit_code == 0
+    assert seen == [(False, False, False)]
