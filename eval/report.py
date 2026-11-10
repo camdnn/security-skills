@@ -42,6 +42,7 @@ class EvaluationRun:
     false_positives: list[dict[str, Any]]
     warnings: list[dict[str, Any]]
     tokens: int | None = None
+    replay: bool = False
 
 
 @dataclass(frozen=True)
@@ -130,6 +131,8 @@ def accept_baseline(results_dir: Path | str, *, baselines_dir: Path | str = BASE
         raise ValueError("cannot accept baseline from an incomplete eval run")
     if document.get("failed_trials"):
         raise ValueError("cannot accept baseline from an eval run with failed trials")
+    if document.get("replay"):
+        raise ValueError("cannot accept baseline from a replay eval run: a baseline must come from live trials")
 
     tier = document.get("tier")
     agent = document.get("agent")
@@ -187,6 +190,7 @@ def serialize_run(run: EvaluationRun, result: RegressionResult) -> dict[str, Any
         "false_positives": run.false_positives,
         "warnings": run.warnings,
         "tokens": run.tokens,
+        "replay": run.replay,
         "exit_code": result.exit_code,
         "regression_reasons": result.reasons,
     }

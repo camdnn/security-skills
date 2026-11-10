@@ -12,6 +12,7 @@ from typing import Any
 
 import pytest
 
+from eval.report import accept_baseline
 from eval.runner import (
     Agent,
     ResultsDirInUse,
@@ -91,7 +92,24 @@ def test_replay_runs_end_to_end_and_writes_each_trial(tmp_path: Path):
 
     assert outcome.exit_code == 0
     assert len(list((results / "trials").glob("*.json"))) == 2
-    assert json.loads((results / "metrics.json").read_text())["metrics"]["mean"]["f1"] == 1
+    metrics = json.loads((results / "metrics.json").read_text())
+    assert metrics["metrics"]["mean"]["f1"] == 1
+    assert metrics["replay"] is True
+
+
+def test_resuming_replay_trials_keeps_the_eval_run_marked_as_replay(tmp_path: Path):
+    repo, _ = runner_repo(tmp_path)
+    replay = tmp_path / "replay"
+    replay.mkdir()
+    (replay / "findings.json").write_text(json.dumps([finding()]))
+    results_dir = tmp_path / "results"
+    run(RunOptions(tier="fast", replay_dir=replay, results_dir=results_dir, baseline_check=False), repo_root=repo)
+
+    run(RunOptions(tier="fast", resume_dir=results_dir, baseline_check=False), repo_root=repo)
+
+    assert json.loads((results_dir / "metrics.json").read_text())["replay"] is True
+    with pytest.raises(ValueError, match="baseline must come from live trials"):
+        accept_baseline(results_dir, baselines_dir=tmp_path / "baselines")
 
 
 def test_replay_eval_runs_over_the_same_findings_write_identical_trial_records(tmp_path: Path):

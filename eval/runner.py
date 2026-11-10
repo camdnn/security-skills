@@ -112,6 +112,7 @@ def run(
                 agent_command,
                 config,
             )
+            record["replay"] = options.replay_dir is not None
             attempted += 1
             if record["status"] == "usage-limit":
                 stop_reason = record["reason"]
@@ -125,6 +126,7 @@ def run(
         list(completed.values()),
         results_dir,
         baseline_check=options.baseline_check,
+        replay=any(record.get("replay", False) for record in completed.values()),
     )
 
 
@@ -220,7 +222,9 @@ def score_findings(
     }
 
 
-def write_run_report(tier: str, agent: str, records: list[dict[str, Any]], results_dir: Path, *, baseline_check: bool) -> RegressionResult:
+def write_run_report(
+    tier: str, agent: str, records: list[dict[str, Any]], results_dir: Path, *, baseline_check: bool, replay: bool
+) -> RegressionResult:
     """Rehydrate successful trial metrics and delegate report/baseline rendering."""
 
     metrics = aggregate_trials(metric_from_json(record["metrics"]) for record in records if record["status"] == "ok")
@@ -243,6 +247,7 @@ def write_run_report(tier: str, agent: str, records: list[dict[str, Any]], resul
         false_positives=[item for record in records for item in record.get("false_positives", [])],
         warnings=[warning for record in records for warning in record.get("warnings", [])],
         tokens=None,
+        replay=replay,
     )
     return write_results(run, results_dir, check_baseline=baseline_check)
 
