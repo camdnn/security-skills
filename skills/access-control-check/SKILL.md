@@ -15,4 +15,10 @@ For each state-changing or sensitive read endpoint, identify authentication, the
 
 Do not equate authentication with authorization. Do not report when a route has an applicable centralized policy or middleware; trace it before deciding. For context-dependent findings, cite the relevant `BR-n` in `context_ref`; otherwise use `null` and describe the missing evidence conservatively.
 
-Return schema-valid findings with DREAD factors and score from the [canonical rubric](../security-scan/references/dread-rubric.md) to `security-scan`, or write only `docs/security/findings.json` and `docs/security/SCAN-REPORT.md` when invoked alone. Recommend a server-side authorization policy keyed to the authenticated actor, or a strict outbound destination allowlist for SSRF.
+## Finding format
+
+Every finding must include every required field and validate against the [canonical finding schema](../security-scan/references/finding-schema.json), which is the single source of truth for the finding format.
+
+Set `mode` to the actual scan mode. Use `context_ref` only for the `BR-n` that the finding cites; set it to `null` for every other finding. Keep the range focused on the authorization decision, object access, or outbound-request sink. Include a route-to-decision trace when available; for IDOR and SSRF, trace the user-controlled identifier or destination to the sensitive access or request. Score DREAD factors and their mean from the [canonical rubric](../security-scan/references/dread-rubric.md), and use `low` confidence instead of inventing certainty.
+
+Return schema-valid findings to `security-scan`, or write only `docs/security/findings.json` and `docs/security/SCAN-REPORT.md` when invoked alone. Recommend a server-side authorization policy keyed to the authenticated actor, or a strict outbound destination allowlist for SSRF.

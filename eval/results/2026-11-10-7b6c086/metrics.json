@@ -1,0 +1,188 @@
+{
+  "agent": "codex",
+  "exit_code": 0,
+  "failed_trials": [],
+  "false_negatives": [
+    {
+      "cwe": "CWE-863",
+      "description": "Business rule: a manager may not approve a refund they requested themselves. The handler checks the manager role but never compares the approver with the requester, so a manager can approve their own refund.",
+      "evidence": "if (request.user.role !== \"manager\") return response.sendStatus(403);",
+      "id": "CONTEXT-01",
+      "locations": [
+        {
+          "end_line": 15,
+          "file": "vulnerable/approve-refund.ts",
+          "start_line": 11
+        }
+      ],
+      "requires_context": true,
+      "source": "Hand-made context fixture"
+    },
+    {
+      "cwe": "CWE-863",
+      "description": "Business rule: only the customer who placed an order may download its invoice, because invoices hold payment details; support agents may not. The handler also lets the support role download any invoice.",
+      "evidence": "const allowed = order.customerId === request.user.id || request.user.role === \"support\";",
+      "id": "CONTEXT-02",
+      "locations": [
+        {
+          "end_line": 14,
+          "file": "vulnerable/download-invoice.ts",
+          "start_line": 9
+        }
+      ],
+      "requires_context": true,
+      "source": "Hand-made context fixture"
+    },
+    {
+      "cwe": "CWE-863",
+      "description": "Business rule: only the customer who placed an order may download its invoice, because invoices hold payment details; support agents may not. The handler also lets the support role download any invoice.",
+      "evidence": "const allowed = order.customerId === request.user.id || request.user.role === \"support\";",
+      "id": "CONTEXT-02",
+      "locations": [
+        {
+          "end_line": 14,
+          "file": "vulnerable/download-invoice.ts",
+          "start_line": 9
+        }
+      ],
+      "requires_context": true,
+      "source": "Hand-made context fixture"
+    },
+    {
+      "cwe": "CWE-863",
+      "description": "Business rule: a manager may not approve a refund they requested themselves. The handler checks the manager role but never compares the approver with the requester, so a manager can approve their own refund.",
+      "evidence": "if (request.user.role !== \"manager\") return response.sendStatus(403);",
+      "id": "CONTEXT-01",
+      "locations": [
+        {
+          "end_line": 15,
+          "file": "vulnerable/approve-refund.ts",
+          "start_line": 11
+        }
+      ],
+      "requires_context": true,
+      "source": "Hand-made context fixture"
+    },
+    {
+      "cwe": "CWE-863",
+      "description": "Business rule: only the customer who placed an order may download its invoice, because invoices hold payment details; support agents may not. The handler also lets the support role download any invoice.",
+      "evidence": "const allowed = order.customerId === request.user.id || request.user.role === \"support\";",
+      "id": "CONTEXT-02",
+      "locations": [
+        {
+          "end_line": 14,
+          "file": "vulnerable/download-invoice.ts",
+          "start_line": 9
+        }
+      ],
+      "requires_context": true,
+      "source": "Hand-made context fixture"
+    }
+  ],
+  "false_positives": [],
+  "fixture_passes": {
+    "access-control-check": {
+      "passed": 3,
+      "trials": 3
+    },
+    "context": {
+      "passed": 0,
+      "trials": 3
+    }
+  },
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 5,
+          "false_positives": 0,
+          "true_positives": 4
+        }
+      },
+      "mode": {
+        "code-only": {
+          "duplicates": 0,
+          "false_negatives": 5,
+          "false_positives": 0,
+          "true_positives": 4
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "true": {
+          "duplicates": 0,
+          "false_negatives": 5,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 5,
+          "false_positives": 0,
+          "true_positives": 4
+        }
+      }
+    },
+    "fixture_passes": 3,
+    "fixture_trials": 6,
+    "mean": {
+      "f1": 0.6,
+      "precision": 1.0,
+      "recall": 0.4444444444444444
+    },
+    "micro_counts": {
+      "duplicates": 0,
+      "false_negatives": 5,
+      "false_positives": 0,
+      "true_positives": 4
+    },
+    "micro_rates": {
+      "f1": 0.6153846153846153,
+      "precision": 1.0,
+      "recall": 0.4444444444444444
+    },
+    "minimum": {
+      "f1": 0.5,
+      "precision": 1.0,
+      "recall": 0.3333333333333333
+    },
+    "per_run": {
+      "1": {
+        "f1": 0.5,
+        "precision": 1.0,
+        "recall": 0.3333333333333333
+      },
+      "2": {
+        "f1": 0.8,
+        "precision": 1.0,
+        "recall": 0.6666666666666666
+      },
+      "3": {
+        "f1": 0.5,
+        "precision": 1.0,
+        "recall": 0.3333333333333333
+      }
+    },
+    "stable_recall": 0.3333333333333333,
+    "standard_deviation": {
+      "f1": 0.14142135623730953,
+      "precision": 0.0,
+      "recall": 0.15713484026367722
+    }
+  },
+  "regression_reasons": [
+    "no baseline for this tier and agent"
+  ],
+  "skipped_trials": [],
+  "tier": "fast",
+  "tokens": null,
+  "warnings": []
+}

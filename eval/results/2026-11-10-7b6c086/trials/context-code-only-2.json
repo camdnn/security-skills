@@ -1,0 +1,91 @@
+{
+  "duration_seconds": 80.02682978699886,
+  "false_negatives": [
+    {
+      "cwe": "CWE-863",
+      "description": "Business rule: only the customer who placed an order may download its invoice, because invoices hold payment details; support agents may not. The handler also lets the support role download any invoice.",
+      "evidence": "const allowed = order.customerId === request.user.id || request.user.role === \"support\";",
+      "id": "CONTEXT-02",
+      "locations": [
+        {
+          "end_line": 14,
+          "file": "vulnerable/download-invoice.ts",
+          "start_line": 9
+        }
+      ],
+      "requires_context": true,
+      "source": "Hand-made context fixture"
+    }
+  ],
+  "false_positives": [],
+  "id": "context-code-only-2",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      },
+      "mode": {
+        "code-only": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      },
+      "requires_context": {
+        "true": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 1,
+      "false_positives": 0,
+      "true_positives": 1
+    },
+    "fixture_passed": false,
+    "matched_truth": [
+      [
+        "context",
+        "CONTEXT-01"
+      ]
+    ],
+    "rates": {
+      "f1": 0.6666666666666666,
+      "precision": 1.0,
+      "recall": 0.5
+    },
+    "run_id": 2,
+    "truth_entries": [
+      [
+        "context",
+        "CONTEXT-01"
+      ],
+      [
+        "context",
+        "CONTEXT-02"
+      ]
+    ]
+  },
+  "mode": "code-only",
+  "run": 2,
+  "status": "ok",
+  "target": "context"
+}

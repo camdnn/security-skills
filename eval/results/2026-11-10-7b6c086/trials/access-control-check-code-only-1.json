@@ -1,0 +1,71 @@
+{
+  "duration_seconds": 89.19595756800118,
+  "false_negatives": [],
+  "false_positives": [],
+  "id": "access-control-check-code-only-1",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      },
+      "mode": {
+        "code-only": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 0,
+      "false_positives": 0,
+      "true_positives": 1
+    },
+    "fixture_passed": true,
+    "matched_truth": [
+      [
+        "access-control-check",
+        "ACCESS-01"
+      ]
+    ],
+    "rates": {
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "run_id": 1,
+    "truth_entries": [
+      [
+        "access-control-check",
+        "ACCESS-01"
+      ]
+    ]
+  },
+  "mode": "code-only",
+  "run": 1,
+  "status": "ok",
+  "target": "access-control-check"
+}
