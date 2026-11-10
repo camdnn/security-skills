@@ -236,13 +236,13 @@ def discover_targets(repo_root: Path, tier: str, skill: str | None) -> list[Targ
     """Discover fixture targets; full tier will also include benchmark definitions when present."""
 
     fixtures = repo_root / "tests/fixtures"
-    cwe_families = load_cwe_families(repo_root / "eval/cwe_families.json") if skill else None
+    paths = [path for path in sorted(fixtures.iterdir()) if path.is_dir() and (path / "expected.json").exists()]
+    if skill:
+        cwe_families = load_cwe_families(repo_root / "eval/cwe_families.json")
+        paths = [path for path in paths if target_is_owned_by_skill(path / "expected.json", skill, cwe_families)]
     targets = [
         Target(path.name, path, path / "expected.json", (path / "answers.md") if (path / "answers.md").exists() else None)
-        for path in sorted(fixtures.iterdir())
-        if path.is_dir()
-        and (path / "expected.json").exists()
-        and (skill is None or target_is_owned_by_skill(path / "expected.json", skill, cwe_families))
+        for path in paths
     ]
     if tier == "full":
         # Benchmark support is intentionally deferred until benchmark definitions land;

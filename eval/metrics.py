@@ -222,8 +222,8 @@ def _summary_rates(rates: list[Rates], statistic: str) -> Rates:
     )
 
 
-def _summary(values: list[float | None], statistic: str) -> float | None:
-    values = [value for value in values if value is not None]
+def _summary(raw_values: list[float | None], statistic: str) -> float | None:
+    values = [value for value in raw_values if value is not None]
     if not values:
         return None
     if statistic == "mean":

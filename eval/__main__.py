@@ -29,10 +29,10 @@ def main() -> int:
     arguments = parser.parse_args()
 
     if arguments.command == "check-truth":
-        result = check_all_truth(REPO_ROOT)
-        for error in result.errors:
+        truth_check = check_all_truth(REPO_ROOT)
+        for error in truth_check.errors:
             print(error)
-        return 0 if result.valid else 1
+        return 0 if truth_check.valid else 1
 
     if arguments.command == "accept-baseline":
         try:

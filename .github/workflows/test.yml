@@ -1,4 +1,4 @@
-# Unit tests and lint on every push and PR. Free to run, unlike the eval
+# Unit tests, lint and type checks on every push and PR. Free to run, unlike the eval
 # fast tier, which stays manual-trigger only (TICKET-001 §4 Q13).
 name: test
 
@@ -23,6 +23,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: pip install -e '.[dev]'
       - run: ruff check .
+      - run: mypy eval
       - run: pytest
       - name: Check ground truth points at its evidence
         run: python -m eval check-truth
