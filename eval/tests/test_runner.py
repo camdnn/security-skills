@@ -275,7 +275,7 @@ def test_usage_limit_marks_incomplete_then_resume_completes(tmp_path: Path):
     assert all(json.loads(path.read_text())["status"] == "ok" for path in (results / "trials").glob("*.json"))
 
 
-def test_new_run_refuses_a_folder_with_trial_records_and_writes_nothing(tmp_path: Path):
+def test_new_eval_run_refuses_a_folder_with_trial_records_and_writes_nothing(tmp_path: Path):
     repo, _ = runner_repo(tmp_path)
     results, _ = run(
         RunOptions(tier="fast", runs=1, results_dir=tmp_path / "results", baseline_check=False),
