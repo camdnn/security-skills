@@ -47,14 +47,18 @@ Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/ag
 ### Evaluator CLI assumptions
 
 The evaluator uses Claude Code's non-interactive `-p`, `--output-format json`,
-`--model`, and `--allowedTools` flags. Codex trials use `codex exec` with
+`--model`, `--plugin-dir`, `--allowedTools` and `--disallowedTools` flags, and
+isolates trials with `--strict-mcp-config` and `--setting-sources project`
+(ADR-0002). Claude trials invoke `/analyzer:security-scan` (ADR-0003). These
+flags were checked against `claude --help` for Claude Code `2.1.322` on
+2026-11-10. The Claude evaluator pin is `claude-sonnet-5-5`, verified by a
+successful local inference that day. Codex trials use `codex exec` with
 `--sandbox workspace-write`, `--cd`, and a pinned model. `codex exec` is
 non-interactive with that sandbox; `--approve-for-me` cannot be combined with it.
 These flags were checked against the installed Codex CLI `0.166.0` on
 2026-11-05. The current ChatGPT-account evaluator pin is `gpt-5.6-terra`,
 verified by a successful local inference; re-check both before changing the
-runner. Claude Code was not installed in this environment, so its version must
-be captured before a live Claude trial.
+runner.
 
 ### Local Python
 
