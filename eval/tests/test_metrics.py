@@ -79,3 +79,19 @@ def test_breakdowns_attribute_false_negatives_to_family_owner() -> None:
     assert metrics.breakdowns["skill"]["access-control-check"].false_negatives == 1
     assert metrics.breakdowns["requires_context"]["true"].false_negatives == 1
     assert metrics.breakdowns["mode"]["context"].false_negatives == 2
+
+
+def test_run_summaries_skip_undefined_rates() -> None:
+    truth = load("matcher-truth.json")
+    trials = [
+        score_trial(match([], truth, TARGET_ROOT), truth, run_id=1),
+        score_trial(match([finding()], truth, TARGET_ROOT), truth, run_id=2),
+    ]
+
+    aggregate = aggregate_trials(trials)
+
+    assert aggregate.per_run[1].precision is None
+    assert aggregate.mean.precision == 1
+    assert aggregate.minimum.precision == 1
+    assert aggregate.standard_deviation.precision == 0
+    assert aggregate_trials(trials[:1]).mean.precision is None
