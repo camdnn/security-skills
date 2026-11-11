@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 import pytest
@@ -21,7 +22,12 @@ from eval.report import (
 
 
 def run(
-    *, mean_f1: float = 0.8, skipped: bool = False, fixture: FixturePasses | None = None, agent: str = "claude"
+    *,
+    mean_f1: float = 0.8,
+    skipped: bool = False,
+    fixture: FixturePasses | None = None,
+    agent: str = "claude",
+    replay: bool = False,
 ) -> EvaluationRun:
     rates = Rates(0.8, 0.8, mean_f1)
     metrics = AggregateMetrics(
@@ -47,6 +53,7 @@ def run(
         false_positives=[{"id": "FP-1", "evidence": "safe query"}],
         warnings=[],
         tokens=42,
+        replay=replay,
     )
 
 
@@ -96,6 +103,14 @@ def test_write_results_writes_markdown_and_json(tmp_path: Path) -> None:
     assert "missed sink" in report
 
 
+def test_metrics_records_whether_an_eval_run_was_replayed(tmp_path: Path) -> None:
+    write_results(run(replay=True), tmp_path / "replay")
+    write_results(run(), tmp_path / "live")
+
+    assert json.loads((tmp_path / "replay" / "metrics.json").read_text())["replay"] is True
+    assert json.loads((tmp_path / "live" / "metrics.json").read_text())["replay"] is False
+
+
 @pytest.mark.parametrize(
     ("failed", "skipped", "message"),
     [
@@ -112,6 +127,35 @@ def test_accept_baseline_refuses_failed_and_incomplete_runs(
 
     with pytest.raises(ValueError, match=message):
         accept_baseline(tmp_path, baselines_dir=tmp_path / "baselines")
+
+
+def test_accept_baseline_refuses_a_replay_eval_run_without_changing_baselines(tmp_path: Path) -> None:
+    baselines = tmp_path / "baselines"
+    write_baseline_file(baselines, "claude", baseline())
+    before = (baselines / "claude.json").read_text()
+    report_dir = tmp_path / "results"
+    write_results(run(replay=True), report_dir, baselines_dir=baselines)
+
+    with pytest.raises(ValueError, match="baseline must come from live trials"):
+        accept_baseline(report_dir, baselines_dir=baselines)
+
+    assert (baselines / "claude.json").read_text() == before
+
+
+def test_accept_baseline_cli_refuses_a_replay_eval_run_with_exit_one(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from eval import __main__
+
+    report_dir = tmp_path / "results"
+    write_results(run(replay=True), report_dir)
+    monkeypatch.setattr(
+        __main__, "accept_baseline", lambda path: accept_baseline(path, baselines_dir=tmp_path / "baselines")
+    )
+    monkeypatch.setattr(sys, "argv", ["python -m eval", "accept-baseline", str(report_dir)])
+
+    assert __main__.main() == 1
+    assert "baseline must come from live trials" in capsys.readouterr().out
 
 
 def test_accept_baseline_writes_the_runs_agent_file_keyed_by_tier(tmp_path: Path) -> None:
