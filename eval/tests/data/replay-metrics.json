@@ -199,6 +199,7 @@
   "regression_reasons": [
     "baseline check disabled"
   ],
+  "replay": true,
   "skipped_trials": [],
   "tier": "fast",
   "tokens": null,
