@@ -1,0 +1,40 @@
+[
+  {
+    "id": "SEC-0001",
+    "skill": "xss-check",
+    "title": "Untrusted text reaches innerHTML",
+    "cwe": "CWE-79",
+    "owasp": "A03:2025",
+    "file": "vulnerable/inner-html.ts",
+    "line": 2,
+    "end_line": 2,
+    "evidence": "element.innerHTML = `<p>Hello ${name}</p>`;",
+    "why": "A caller can supply markup that the browser parses as HTML.",
+    "trace": [
+      {
+        "step": "source",
+        "file": "vulnerable/inner-html.ts",
+        "line": 1,
+        "note": "name is caller-controlled"
+      },
+      {
+        "step": "sink",
+        "file": "vulnerable/inner-html.ts",
+        "line": 2,
+        "note": "innerHTML parses the interpolated value"
+      }
+    ],
+    "context_ref": null,
+    "fix": "Assign the value with textContent or sanitize it before raw HTML rendering.",
+    "dread": {
+      "damage": 4,
+      "reproducibility": 5,
+      "exploitability": 4,
+      "affected_users": 4,
+      "discoverability": 4,
+      "score": 4.2
+    },
+    "confidence": "high",
+    "mode": "code-only"
+  }
+]

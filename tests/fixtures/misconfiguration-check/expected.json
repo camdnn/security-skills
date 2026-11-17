@@ -1,0 +1,25 @@
+{
+  "truth": [
+    {
+      "id": "MISCONFIG-01",
+      "cwe": "CWE-942",
+      "locations": [
+        {
+          "file": "vulnerable/credentialed-wildcard-cors.ts",
+          "start_line": 3,
+          "end_line": 6
+        }
+      ],
+      "evidence": "callback(null, origin);",
+      "requires_context": false,
+      "description": "Credentialed CORS reflects every requested origin.",
+      "source": "Hand-made misconfiguration-check fixture"
+    }
+  ],
+  "must_not_find": [
+    {
+      "file": "safe/origin-allowlist.ts",
+      "cwe_family": "misconfiguration"
+    }
+  ]
+}

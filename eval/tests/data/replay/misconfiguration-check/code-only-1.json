@@ -1,0 +1,27 @@
+[
+  {
+    "id": "SEC-0001",
+    "skill": "misconfiguration-check",
+    "title": "Credentialed CORS reflects every origin",
+    "cwe": "CWE-942",
+    "owasp": "A05:2025",
+    "file": "vulnerable/credentialed-wildcard-cors.ts",
+    "line": 4,
+    "end_line": 4,
+    "evidence": "callback(null, origin);",
+    "why": "Any website can make credentialed browser requests to the application.",
+    "trace": [],
+    "context_ref": null,
+    "fix": "Replace the wildcard with an explicit origin allowlist.",
+    "dread": {
+      "damage": 4,
+      "reproducibility": 5,
+      "exploitability": 4,
+      "affected_users": 4,
+      "discoverability": 4,
+      "score": 4.2
+    },
+    "confidence": "high",
+    "mode": "code-only"
+  }
+]

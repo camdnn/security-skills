@@ -1,0 +1,27 @@
+[
+  {
+    "id": "SEC-0001",
+    "skill": "auth-session-check",
+    "title": "Registration persists a plaintext password",
+    "cwe": "CWE-916",
+    "owasp": "A07:2025",
+    "file": "vulnerable/plaintext-password.ts",
+    "line": 4,
+    "end_line": 4,
+    "evidence": "await store.save({ email, password });",
+    "why": "A database disclosure exposes reusable account passwords.",
+    "trace": [],
+    "context_ref": null,
+    "fix": "Hash the password with Argon2 or bcrypt before storing it.",
+    "dread": {
+      "damage": 5,
+      "reproducibility": 5,
+      "exploitability": 4,
+      "affected_users": 4,
+      "discoverability": 3,
+      "score": 4.2
+    },
+    "confidence": "high",
+    "mode": "code-only"
+  }
+]

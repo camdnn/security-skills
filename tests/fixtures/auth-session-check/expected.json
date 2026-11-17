@@ -1,0 +1,25 @@
+{
+  "truth": [
+    {
+      "id": "AUTH-01",
+      "cwe": "CWE-916",
+      "locations": [
+        {
+          "file": "vulnerable/plaintext-password.ts",
+          "start_line": 4,
+          "end_line": 4
+        }
+      ],
+      "evidence": "await store.save({ email, password });",
+      "requires_context": false,
+      "description": "The registration path persists the plaintext password rather than a password hash.",
+      "source": "Hand-made auth-session-check fixture"
+    }
+  ],
+  "must_not_find": [
+    {
+      "file": "safe/argon2-password.ts",
+      "cwe_family": "auth-session"
+    }
+  ]
+}

@@ -49,3 +49,5 @@ def test_related_cwes_share_their_locked_family():
     assert {cwe_to_family[cwe] for cwe in ("CWE-78", "CWE-89", "CWE-94")} == {"injection"}
     assert {cwe_to_family[cwe] for cwe in ("CWE-22", "CWE-434", "CWE-502")} == {"file-handling"}
     assert cwe_to_family["CWE-918"] == "access-control"
+    assert {cwe_to_family[cwe] for cwe in ("CWE-347", "CWE-352", "CWE-384", "CWE-916")} == {"auth-session"}
+    assert {cwe_to_family[cwe] for cwe in ("CWE-16", "CWE-319", "CWE-614", "CWE-942")} == {"misconfiguration"}

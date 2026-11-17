@@ -1,6 +1,7 @@
 {
   "cwe_to_family": {
     "CWE-16": "misconfiguration",
+    "CWE-319": "misconfiguration",
     "CWE-22": "file-handling",
     "CWE-78": "injection",
     "CWE-79": "xss",
@@ -13,15 +14,20 @@
     "CWE-287": "auth-session",
     "CWE-327": "crypto",
     "CWE-330": "crypto",
+    "CWE-347": "auth-session",
     "CWE-352": "auth-session",
+    "CWE-384": "auth-session",
     "CWE-434": "file-handling",
     "CWE-502": "file-handling",
     "CWE-639": "access-control",
+    "CWE-614": "misconfiguration",
     "CWE-778": "error-logging",
     "CWE-798": "secrets",
     "CWE-862": "access-control",
     "CWE-863": "access-control",
     "CWE-918": "access-control",
+    "CWE-916": "auth-session",
+    "CWE-942": "misconfiguration",
     "CWE-1104": "dependency"
   },
   "families": {
