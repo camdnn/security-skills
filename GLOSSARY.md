@@ -52,6 +52,14 @@ _Avoid_: Sample, test app
 A real, intentionally vulnerable application pinned at a specific commit.
 _Avoid_: Test repo, corpus
 
+**Blank pattern**:
+A regex in `benchmark.yaml` whose matches the runner deletes from the trial copy, keeping their newlines so line numbers still match ground truth. It removes a benchmark's own answer hints, such as Juice Shop's `vuln-code-snippet` markers.
+_Avoid_: Filter, redaction
+
+**Draft ground truth**:
+Proposed ground truth in an `expected.draft.json` file. The checker ignores it until a human verifies every entry and renames it to `expected.json` in a PR with the `ground-truth-change` label.
+_Avoid_: Provisional answers
+
 **Ground truth**:
 The hand-verified set of truth entries and must-not-find rules for a target. Changed only on purpose, never to make a score pass.
 _Avoid_: Expected results, answers, labels
@@ -130,4 +138,12 @@ _Avoid_: Reference, golden
 A mean F1 drop larger than the threshold versus the baseline, or a fixture that passed in most baseline trials and now passes in none.
 
 **Ablation**:
-An eval run with one context technique turned off, to measure that technique's effect.
+An eval run with one context technique turned off, to measure that technique's effect. `--ablate contracts` removes module contracts; comparing code-only with context mode on the full tier ablates context as a whole. An ablation eval run is never accepted as a baseline.
+
+**Implement target**:
+A fixture app with its own test suite, an `implement.yaml` and recorded findings for `implement` to fix. It is scored by `python -m eval implement`, never by detection eval runs.
+_Avoid_: Implement fixture (in metrics)
+
+**Verified fix rate**:
+In the implement eval, the share of attempted findings whose fix the checker proved: a new test failed before the fix and passes after it, the full suite passes, a fresh scan no longer reports the finding, and it reports nothing new in changed files (TICKET-001 §7.7).
+_Avoid_: Fix rate, success rate

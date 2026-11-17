@@ -1,0 +1,53 @@
+# Optional fast-tier eval in CI (TICKET-001 §4 Q13, week 6). Manual trigger only:
+# every run spends subscription usage (§8 item 3), so it never runs on push.
+#
+# Auth: a Claude subscription OAuth token from `claude setup-token`, stored as the
+# CLAUDE_CODE_OAUTH_TOKEN repository secret. The runner refuses ANTHROPIC_API_KEY
+# (ADR-0004), so never set that secret here.
+name: eval-fast
+
+on:
+  workflow_dispatch:
+    inputs:
+      skill:
+        description: "Only fixtures owned by this check (blank = all)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      # Pinned to the version whose flags CLAUDE.md records as checked (§0 rule 10).
+      - run: npm install -g @anthropic-ai/claude-code@2.1.326
+      - run: pip install -e '.[dev]'
+      - run: python -m eval check-truth
+      - name: Fast tier
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          SKILL: ${{ inputs.skill }}
+        run: |
+          args=(run --tier fast --agent claude --results-dir eval/results/ci-${{ github.run_id }})
+          if [ -n "$SKILL" ]; then args+=(--skill "$SKILL"); fi
+          python -m eval "${args[@]}"
+      - name: Upload report and metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-fast-${{ github.run_id }}
+          path: |
+            eval/results/ci-${{ github.run_id }}/report.md
+            eval/results/ci-${{ github.run_id }}/metrics.json
+            eval/results/ci-${{ github.run_id }}/trials/
+          if-no-files-found: warn

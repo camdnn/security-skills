@@ -3,7 +3,7 @@ line_tolerance: 5 # Lines a finding may sit outside a truth location and still m
 regression_f1_threshold: 0.05 # Mean F1 may not drop by more than this amount (§7.5).
 trials_per_target: 3
 max_trials:
-  fast: 33 # 11 fixture targets x 3 trials; raise it when a fixture is added (test_trial_cap.py).
+  fast: 36 # 12 fixture targets x 3 trials once prompt-injection's ground truth lands; raise it when a fixture is added (test_trial_cap.py).
   full: 120
 default_agent:
   fast: claude
