@@ -1,0 +1,1 @@
+{"truth":[{"id":"CRYPTO-01","cwe":"CWE-330","locations":[{"file":"vulnerable/token.ts","start_line":1,"end_line":1}],"evidence":"Math.random()","requires_context":false,"description":"A reset token uses predictable randomness.","source":"Hand-made crypto-check fixture"}],"must_not_find":[{"file":"safe/token.ts","cwe_family":"crypto"}]}

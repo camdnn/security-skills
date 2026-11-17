@@ -89,6 +89,10 @@
       "passed": 0,
       "trials": 1
     },
+    "crypto-check": {"passed": 1, "trials": 1},
+    "dependency-check": {"passed": 1, "trials": 1},
+    "error-logging-check": {"passed": 1, "trials": 1},
+    "file-handling-check": {"passed": 1, "trials": 1},
     "injection-check": {
       "passed": 0,
       "trials": 1
@@ -121,6 +125,10 @@
           "false_positives": 0,
           "true_positives": 1
         },
+        "crypto": {"duplicates": 0, "false_negatives": 0, "false_positives": 0, "true_positives": 1},
+        "dependency": {"duplicates": 0, "false_negatives": 0, "false_positives": 0, "true_positives": 1},
+        "error-logging": {"duplicates": 0, "false_negatives": 0, "false_positives": 0, "true_positives": 1},
+        "file-handling": {"duplicates": 0, "false_negatives": 0, "false_positives": 0, "true_positives": 1},
         "injection": {
           "duplicates": 0,
           "false_negatives": 1,
@@ -151,7 +159,7 @@
           "duplicates": 0,
           "false_negatives": 3,
           "false_positives": 1,
-          "true_positives": 8
+          "true_positives": 12
         }
       },
       "requires_context": {
@@ -159,7 +167,7 @@
           "duplicates": 0,
           "false_negatives": 1,
           "false_positives": 0,
-          "true_positives": 8
+          "true_positives": 12
         },
         "true": {
           "duplicates": 0,
@@ -181,6 +189,10 @@
           "false_positives": 0,
           "true_positives": 1
         },
+        "crypto-check": {"duplicates": 0, "false_negatives": 0, "false_positives": 0, "true_positives": 1},
+        "dependency-check": {"duplicates": 0, "false_negatives": 0, "false_positives": 0, "true_positives": 1},
+        "error-logging-check": {"duplicates": 0, "false_negatives": 0, "false_positives": 0, "true_positives": 1},
+        "file-handling-check": {"duplicates": 0, "false_negatives": 0, "false_positives": 0, "true_positives": 1},
         "injection-check": {
           "duplicates": 0,
           "false_negatives": 1,
@@ -207,37 +219,37 @@
         }
       }
     },
-    "fixture_passes": 5,
-    "fixture_trials": 7,
+    "fixture_passes": 9,
+    "fixture_trials": 11,
     "mean": {
-      "f1": 0.7999999999999999,
-      "precision": 0.8888888888888888,
-      "recall": 0.7272727272727273
+      "f1": 0.8571428571428571,
+      "precision": 0.9230769230769231,
+      "recall": 0.8
     },
     "micro_counts": {
       "duplicates": 0,
       "false_negatives": 3,
       "false_positives": 1,
-      "true_positives": 8
+      "true_positives": 12
     },
     "micro_rates": {
-      "f1": 0.7999999999999999,
-      "precision": 0.8888888888888888,
-      "recall": 0.7272727272727273
+      "f1": 0.8571428571428571,
+      "precision": 0.9230769230769231,
+      "recall": 0.8
     },
     "minimum": {
-      "f1": 0.7999999999999999,
-      "precision": 0.8888888888888888,
-      "recall": 0.7272727272727273
+      "f1": 0.8571428571428571,
+      "precision": 0.9230769230769231,
+      "recall": 0.8
     },
     "per_run": {
       "1": {
-        "f1": 0.7999999999999999,
-        "precision": 0.8888888888888888,
-        "recall": 0.7272727272727273
+        "f1": 0.8571428571428571,
+        "precision": 0.9230769230769231,
+        "recall": 0.8
       }
     },
-    "stable_recall": 0.7272727272727273,
+    "stable_recall": 0.8,
     "standard_deviation": {
       "f1": 0.0,
       "precision": 0.0,
