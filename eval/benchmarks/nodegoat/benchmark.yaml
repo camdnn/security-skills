@@ -1,0 +1,14 @@
+# OWASP NodeGoat, the second benchmark (TICKET-001 §4 Q3, week 4). Apache-2.0 licensed.
+name: nodegoat
+repo: https://github.com/OWASP/NodeGoat
+commit: c5cb68a7084e4ae7dcc60e6a98768720a81841e8 # master on 2026-11-17; never a branch
+# Server code only; app/views templates and front-end assets are out of scope.
+scan_paths: [app/routes/, app/data/, config/, server.js, package.json]
+answers_file: answers.md
+modes: [code-only, context]
+# NodeGoat explains each vulnerability and ships its fix as commented-out code.
+# The runner deletes comments in the trial copy, keeping their newlines so line
+# numbers still match ground truth.
+blank_patterns:
+  - '/\*[\s\S]*?\*/'
+  - '(?m)^[ \t]*//.*$'

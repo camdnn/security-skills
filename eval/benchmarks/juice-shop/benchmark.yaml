@@ -1,0 +1,14 @@
+# OWASP Juice Shop, the main benchmark (TICKET-001 §3.3, §4 Q3). MIT licensed.
+name: juice-shop
+repo: https://github.com/juice-shop/juice-shop
+commit: 266448aba68cd8ba5915f526a128da4fa7bc3f9f # tag v20.4.0; never a branch
+# Back end only (§4 Q12); package.json is in scope for dependency-check.
+scan_paths: [routes/, lib/, models/, server.ts, package.json]
+answers_file: answers.md # copied into the trial as docs/security/ANSWERS.input.md
+modes: [code-only, context]
+# Juice Shop marks its own vulnerable lines with "vuln-code-snippet" comments.
+# The runner deletes each whole-file regex match in the trial copy, keeping its
+# newlines so line numbers still match ground truth, and the agent can't read the
+# answers off the code.
+blank_patterns:
+  - '(?m)[ \t]*// vuln-code-snippet.*$'

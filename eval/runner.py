@@ -393,13 +393,18 @@ def copy_target(target: Target, copy_root: Path) -> None:
 
 
 def blank_matches(root: Path, patterns: tuple[str, ...]) -> None:
-    """Delete each pattern match within its line, keeping line numbers aligned with ground truth.
+    """Delete each pattern match but keep its newlines, so line numbers stay aligned with ground truth.
 
-    Benchmarks such as Juice Shop annotate their own vulnerable lines; leaving those
-    markers in place would hand the agent the answers.
+    Patterns apply to whole files (use ``(?m)`` for per-line anchors). Benchmarks such as
+    Juice Shop and NodeGoat annotate their own vulnerable lines or explain the fix in
+    comments; leaving those in place would hand the agent the answers.
     """
 
     compiled = [re.compile(pattern) for pattern in patterns]
+
+    def keep_newlines(match: re.Match[str]) -> str:
+        return "\n" * match.group(0).count("\n")
+
     for path in sorted(root.rglob("*")):
         if not path.is_file():
             continue
@@ -407,14 +412,11 @@ def blank_matches(root: Path, patterns: tuple[str, ...]) -> None:
             text = path.read_text(encoding="utf-8")
         except UnicodeDecodeError:
             continue
-        lines = text.split("\n")
-        cleaned = []
-        for line in lines:
-            for pattern in compiled:
-                line = pattern.sub("", line)
-            cleaned.append(line)
-        if cleaned != lines:
-            path.write_text("\n".join(cleaned), encoding="utf-8")
+        cleaned = text
+        for pattern in compiled:
+            cleaned = pattern.sub(keep_newlines, cleaned)
+        if cleaned != text:
+            path.write_text(cleaned, encoding="utf-8")
 
 
 CONTRACT_SECTION = re.compile(r"^## Contract\b.*?(?=^## |\Z)", re.MULTILINE | re.DOTALL)

@@ -1,0 +1,234 @@
+{
+  "truth": [
+    {
+      "id": "NG-SSJS-EVAL",
+      "cwe": "CWE-94",
+      "locations": [
+        {
+          "file": "app/routes/contributions.js",
+          "start_line": 32,
+          "end_line": 34
+        }
+      ],
+      "evidence": "eval(req.body.preTax)",
+      "requires_context": false,
+      "description": "Contribution percentages are parsed with eval() on request body fields (server-side JavaScript injection).",
+      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+    },
+    {
+      "id": "NG-NOSQL-WHERE",
+      "cwe": "CWE-943",
+      "locations": [
+        {
+          "file": "app/data/allocations-dao.js",
+          "start_line": 77,
+          "end_line": 79
+        }
+      ],
+      "evidence": "this.stocks > '${threshold}'",
+      "requires_context": false,
+      "description": "The threshold query parameter is interpolated into a MongoDB $where expression.",
+      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+    },
+    {
+      "id": "NG-IDOR-ALLOCATIONS",
+      "cwe": "CWE-639",
+      "locations": [
+        {
+          "file": "app/routes/allocations.js",
+          "start_line": 16,
+          "end_line": 18
+        }
+      ],
+      "evidence": "} = req.params;",
+      "requires_context": true,
+      "description": "Allocations are loaded for the userId in the URL rather than the session user, so any user can view anyone's allocations.",
+      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+    },
+    {
+      "id": "NG-BENEFITS-ADMIN",
+      "cwe": "CWE-862",
+      "locations": [
+        {
+          "file": "app/routes/index.js",
+          "start_line": 55,
+          "end_line": 56
+        }
+      ],
+      "evidence": "app.get(\"/benefits\", isLoggedIn, benefitsHandler.displayBenefits)",
+      "requires_context": true,
+      "description": "The benefits pages, which list and change every user's benefit start date, check only that the caller is logged in, not that they are an admin.",
+      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+    },
+    {
+      "id": "NG-OPEN-REDIRECT",
+      "cwe": "CWE-601",
+      "locations": [
+        {
+          "file": "app/routes/index.js",
+          "start_line": 70,
+          "end_line": 72
+        }
+      ],
+      "evidence": "res.redirect(req.query.url)",
+      "requires_context": false,
+      "description": "/learn redirects to any URL given in the url query parameter.",
+      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+    },
+    {
+      "id": "NG-SSRF",
+      "cwe": "CWE-918",
+      "locations": [
+        {
+          "file": "app/routes/research.js",
+          "start_line": 15,
+          "end_line": 16
+        }
+      ],
+      "evidence": "const url = req.query.url + req.query.symbol;",
+      "requires_context": false,
+      "description": "The research page fetches a server-side request to a URL built from query parameters and echoes the body.",
+      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+    },
+    {
+      "id": "NG-PLAINTEXT-PASSWORD",
+      "cwe": "CWE-916",
+      "locations": [
+        {
+          "file": "app/data/user-dao.js",
+          "start_line": 20,
+          "end_line": 25
+        },
+        {
+          "file": "app/data/user-dao.js",
+          "start_line": 60,
+          "end_line": 61
+        }
+      ],
+      "evidence": "password //received from request param",
+      "requires_context": false,
+      "description": "Passwords are stored and compared in plaintext.",
+      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+    },
+    {
+      "id": "NG-SSN-CLEARTEXT",
+      "cwe": "CWE-311",
+      "locations": [
+        {
+          "file": "app/data/profile-dao.js",
+          "start_line": 61,
+          "end_line": 66
+        }
+      ],
+      "evidence": "user.ssn = ssn;",
+      "requires_context": false,
+      "description": "Social security numbers and dates of birth are stored unencrypted.",
+      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+    },
+    {
+      "id": "NG-HARDCODED-SECRETS",
+      "cwe": "CWE-798",
+      "locations": [
+        {
+          "file": "config/env/all.js",
+          "start_line": 8,
+          "end_line": 9
+        }
+      ],
+      "evidence": "cookieSecret: \"session_cookie_secret_key_here\"",
+      "requires_context": false,
+      "description": "The session cookie secret and the crypto key are hard-coded in the shared config.",
+      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+    },
+    {
+      "id": "NG-SESSION-COOKIE",
+      "cwe": "CWE-614",
+      "locations": [
+        {
+          "file": "server.js",
+          "start_line": 78,
+          "end_line": 102
+        }
+      ],
+      "evidence": "secret: cookieSecret,",
+      "requires_context": false,
+      "description": "The session cookie is configured without httpOnly or secure flags and keeps the default cookie name.",
+      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+    },
+    {
+      "id": "NG-NO-CSRF",
+      "cwe": "CWE-352",
+      "locations": [
+        {
+          "file": "server.js",
+          "start_line": 71,
+          "end_line": 113
+        }
+      ],
+      "evidence": "app.use(session({",
+      "requires_context": false,
+      "description": "State-changing forms (profile, contributions, benefits, memos) have no CSRF protection.",
+      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+    },
+    {
+      "id": "NG-XSS-AUTOESCAPE",
+      "cwe": "CWE-79",
+      "locations": [
+        {
+          "file": "server.js",
+          "start_line": 135,
+          "end_line": 137
+        }
+      ],
+      "evidence": "autoescape: false",
+      "requires_context": false,
+      "description": "Template autoescaping is turned off globally, so every interpolated user value renders as HTML.",
+      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+    },
+    {
+      "id": "NG-SESSION-FIXATION",
+      "cwe": "CWE-384",
+      "locations": [
+        {
+          "file": "app/routes/session.js",
+          "start_line": 116,
+          "end_line": 116
+        }
+      ],
+      "evidence": "req.session.userId = user._id;",
+      "requires_context": false,
+      "description": "Login reuses the existing session ID instead of regenerating it (session fixation).",
+      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+    },
+    {
+      "id": "NG-LOG-INJECTION",
+      "cwe": "CWE-117",
+      "locations": [
+        {
+          "file": "app/routes/session.js",
+          "start_line": 64,
+          "end_line": 64
+        }
+      ],
+      "evidence": "console.log(\"Error: attempt to login with invalid user: \", userName);",
+      "requires_context": false,
+      "description": "Failed logins log the raw user name, allowing forged log lines.",
+      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+    },
+    {
+      "id": "NG-DEP-MARKED",
+      "cwe": "CWE-1104",
+      "locations": [
+        {
+          "file": "package.json",
+          "start_line": 17,
+          "end_line": 17
+        }
+      ],
+      "evidence": "\"marked\": \"0.3.5\"",
+      "requires_context": false,
+      "description": "marked 0.3.5 has known sanitizer bypasses leading to XSS.",
+      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+    }
+  ]
+}
