@@ -376,21 +376,6 @@
       "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
     },
     {
-      "id": "JS-CORS-ANY",
-      "cwe": "CWE-942",
-      "locations": [
-        {
-          "file": "server.ts",
-          "start_line": 184,
-          "end_line": 185
-        }
-      ],
-      "evidence": "app.use(cors())",
-      "requires_context": false,
-      "description": "CORS is enabled for every origin on every route.",
-      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
-    },
-    {
       "id": "JS-DIR-LISTING",
       "cwe": "CWE-548",
       "locations": [

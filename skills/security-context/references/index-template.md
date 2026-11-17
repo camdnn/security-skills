@@ -11,7 +11,7 @@ developer answer gives; number the other rules after the highest one, in the
 order you record them, and keep a number once given: findings cite it in
 `context_ref`. State each rule as intended behaviour, not as what the code does.
 
-The module table's Link column stays `—` until module files exist.
+The module table's Link column holds a Markdown link to each module file at `modules/<name>.md`.
 
 Never write secret values here: give only the location and kind of secret.
 
@@ -68,5 +68,5 @@ Scope: <paths in scope>; excluded: <paths excluded>. (SCOPE)
 
 | Module | Path | Risk | Owner | Link | Last verified commit |
 | --- | --- | --- | --- | --- | --- |
-| <name> | `<path>/` | <high / medium / low> | <owner or "unknown"> | — | <short SHA> |
+| <name> | `<path>/` | <high / medium / low> | <owner or "unknown"> | link to `modules/<name>.md` | <short SHA> |
 ```

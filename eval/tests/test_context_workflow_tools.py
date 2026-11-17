@@ -49,3 +49,15 @@ def test_stale_modules_reports_covered_file_changed_since_recorded_commit(tmp_pa
     stale = load_script("stale_modules.py").stale_modules(tmp_path)
 
     assert stale == [{"module": "docs/security/modules/orders.md", "changed_paths": ["routes.ts"]}]
+
+
+def test_stale_modules_matches_folders_and_globs_in_covers():
+    covered = load_script("stale_modules.py").covered
+
+    assert covered("routes/**", "routes/admin/users.ts")
+    assert covered("routes/*.ts", "routes/orders.ts")
+    assert covered("routes/", "routes/orders.ts")
+    assert covered("routes", "routes/orders.ts")
+    assert covered("server.ts", "server.ts")
+    assert not covered("routes", "routes-old/orders.ts")
+    assert not covered("lib/**", "routes/orders.ts")

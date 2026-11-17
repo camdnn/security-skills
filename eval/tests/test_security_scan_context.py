@@ -34,9 +34,25 @@ def test_context_findings_cite_the_exact_business_rule_id():
     assert "`BR-1`" in skill
 
 
-def test_v1_defers_module_contract_and_coverage_staleness():
+def test_scan_uses_module_contracts_and_staleness():
+    """Week 3 (techniques C + E + G): contracts guide tracing, stale modules are flagged, search fills gaps."""
+
     skill = SKILL.read_text(encoding="utf-8")
 
-    assert "Module contracts" in skill
-    assert "only after a later context format adds module files" in skill
-    assert "do not infer them from the v1 index table" in skill
+    assert "docs/security/modules/" in skill
+    assert "](scripts/stale_modules.py)" in skill
+    assert "stale-context warnings" in skill
+    assert "ASSUMES / GUARANTEES" in skill
+    assert "`unverified`" in skill
+    assert "Search the code on demand" in skill
+
+
+def test_fan_out_is_optional_and_sequential_is_the_portable_path():
+    """Technique D is a Claude-only option; every agent can run checks one after another (ADR-0004)."""
+
+    skill = SKILL.read_text(encoding="utf-8")
+
+    assert "sequential" in skill
+    assert "(module × check)" in skill
+    assert "optional and never required" in skill
+    assert "untrusted data" in skill

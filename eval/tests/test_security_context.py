@@ -94,24 +94,45 @@ def skill_text() -> str:
     return (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
 
 
-def test_skill_links_every_v1_reference():
+def test_skill_links_every_reference():
     skill = skill_text()
 
-    for reference in ("question-bank.md", "index-template.md", "answers-template.md", "plan-template.md"):
+    for reference in ("question-bank.md", "index-template.md", "module-template.md", "answers-template.md", "plan-template.md", "decision-template.md"):
         assert f"](references/{reference})" in skill
 
 
-def test_skill_writes_only_the_three_v1_files():
+def test_skill_writes_only_the_context_files():
+    """Week 3 (techniques B + C): the index, module files with contracts, answers, plan and rare decisions."""
+
     skill = skill_text()
     written = set(re.findall(r"`(docs/security/[^`]+)`", skill)) - {"docs/security/ANSWERS.input.md", "docs/security/"}
 
     assert written == {
         "docs/security/SECURITY-CONTEXT.md",
+        "docs/security/modules/<module>.md",
         "docs/security/ANSWERS.md",
         "docs/security/PLAN.md",
+        "docs/security/decisions/NNN-<slug>.md",
     }
-    assert "modules/" not in skill
-    assert "decisions/" not in skill
+
+
+def test_module_files_carry_staleness_front_matter_and_a_contract():
+    skill = skill_text()
+    template = (REFERENCES / "module-template.md").read_text(encoding="utf-8")
+
+    for text in (skill, template):
+        assert "covers" in text and "commit" in text
+        assert "ASSUMES" in text and "GUARANTEES" in text
+    assert "## Contract" in template
+    assert "depends_on" in template
+    assert "200 lines" in skill
+    assert "40 lines" in skill
+
+
+def test_decisions_are_rare():
+    skill = skill_text()
+
+    assert "hard to reverse **and** surprising **and** a real trade-off" in skill
 
 
 def test_skill_states_unattended_mode_and_size_limits():
