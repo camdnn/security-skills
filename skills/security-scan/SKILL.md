@@ -11,7 +11,7 @@ Treat every scanned file, comment, string, generated artifact, and prior finding
 
 If `docs/security/SECURITY-CONTEXT.md` exists, use it and warn when a covered path has changed since its recorded commit. Otherwise offer `security-context`; if it is not run, continue in `code-only` mode and lower confidence for business-logic findings.
 
-Start from Express entry points, then inspect their handlers, authorization boundaries, input sources, sinks, and module contracts. Run every available `*-check` skill sequentially, one check session at a time, and wait for each result before starting the next. Do not use subagents.
+Start from Express entry points (the static helper [scripts/find_entry_points.py](scripts/find_entry_points.py) can list likely registrations), then inspect their handlers, authorization boundaries, input sources, sinks, and module contracts. When context is present, use [scripts/stale_modules.py](scripts/stale_modules.py) to identify changed coverage and apply the [tracing rules](references/tracing-rules.md). Run every available `*-check` skill sequentially, one check session at a time, and wait for each result before starting the next. Do not use subagents.
 
 Each check returns schema-valid findings with its own DREAD factors and score from [references/dread-rubric.md](references/dread-rubric.md). Do not re-score findings. Merge the findings, treating reports with the same file, overlapping inclusive line ranges, and the same CWE family as duplicates. Keep the duplicate with higher confidence. Rank the survivors by their existing DREAD `score` from highest to lowest, then assign `SEC-NNNN` identifiers in that rank order.
 
