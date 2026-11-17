@@ -290,3 +290,33 @@ def test_strip_module_contracts_leaves_other_sections(tmp_path: Path):
     text = (modules / "app.md").read_text()
     assert "## Contract" not in text and "ASSUMES" not in text
     assert "## Entry points" in text and "## Open questions" in text
+
+
+def test_target_flag_runs_only_the_named_benchmark(tmp_path: Path):
+    repo, _ = benchmark_repo(tmp_path)
+    fixture = repo / "tests/fixtures/injection-check"
+    fixture.mkdir()
+    (fixture / "a.ts").write_text("x\n")
+    (fixture / "expected.json").write_text(json.dumps({"truth": []}))
+    calls: list[str] = []
+
+    def agent(target: Path, name: str, prompt: str) -> subprocess.CompletedProcess[str]:
+        calls.append(prompt)
+        (target / "docs/security").mkdir(parents=True, exist_ok=True)
+        (target / "docs/security/findings.json").write_text(json.dumps([finding()]))
+        return subprocess.CompletedProcess([name], 0, "", "")
+
+    results, _ = run(
+        RunOptions(tier="full", targets=("demo",), results_dir=tmp_path / "results", baseline_check=False),
+        agent_command=agent,
+        repo_root=repo,
+    )
+
+    assert sorted(p.stem for p in (results / "trials").glob("*.json")) == ["demo-code-only-1"]
+
+
+def test_unknown_target_is_refused_with_the_choices(tmp_path: Path):
+    repo, _ = benchmark_repo(tmp_path)
+
+    with pytest.raises(ValueError, match="unknown target.*juice-shop.*choose from demo"):
+        run(RunOptions(tier="full", targets=("juice-shop",), results_dir=tmp_path / "r"), repo_root=repo)

@@ -67,6 +67,7 @@ class RunOptions:
     baseline_check: bool = True
     allow_api_key: bool = False
     ablate: Ablation | None = None
+    targets: tuple[str, ...] = ()
 
 
 def run(
@@ -97,7 +98,7 @@ def run(
         )
     results_dir.mkdir(parents=True, exist_ok=True)
     trials_dir.mkdir(exist_ok=True)
-    targets = discover_targets(repo_root, options.tier, options.skill)
+    targets = select_targets(discover_targets(repo_root, options.tier, options.skill), options.targets)
     if options.replay_dir is None:
         for target in targets:
             prepare_target(target, repo_root)
@@ -306,6 +307,18 @@ def discover_targets(repo_root: Path, tier: str, skill: str | None) -> list[Targ
         cwe_families = load_cwe_families(repo_root / "eval/cwe_families.json")
         targets = [target for target in targets if target_is_owned_by_skill(target.expected_path, skill, cwe_families)]
     return targets
+
+
+def select_targets(targets: list[Target], names: tuple[str, ...]) -> list[Target]:
+    """Keep only the named targets (``--target``); every name must be a target of this tier."""
+
+    if not names:
+        return targets
+    known = {target.name for target in targets}
+    unknown = sorted(set(names) - known)
+    if unknown:
+        raise ValueError(f"unknown target(s) for this tier and --skill: {', '.join(unknown)}; choose from {', '.join(sorted(known))}")
+    return [target for target in targets if target.name in names]
 
 
 def load_benchmark(definition_path: Path) -> Target:

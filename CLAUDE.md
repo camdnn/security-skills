@@ -34,6 +34,8 @@ subcommand lists its flags.
 - **Benchmarks and the implement eval.** `run --tier full` also clones and
   scans each `eval/benchmarks/*/` that has an `expected.json`;
   `python -m eval implement` runs the §7.7 implement eval. Both spend usage.
+  Use `--target <name>` to run one target, e.g.
+  `run --tier full --target juice-shop` (6 trials instead of the whole tier).
 - **A sudden perfect score is suspect.** Check that nothing touched an
   `expected.json`, a fixture, or a file in `eval/baselines/` (§8 item 6).
 

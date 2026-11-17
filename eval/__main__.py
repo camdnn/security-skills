@@ -27,6 +27,12 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser = commands.add_parser("run", help="run or replay checker trials")
     run_parser.add_argument("--tier", choices=("fast", "full"), required=True)
     run_parser.add_argument("--skill")
+    run_parser.add_argument(
+        "--target",
+        action="append",
+        default=[],
+        help="only this fixture or benchmark, by folder name (repeatable), e.g. --target juice-shop",
+    )
     run_parser.add_argument("--mode", choices=("code-only", "context"))
     run_parser.add_argument("--runs", type=int)
     run_parser.add_argument("--agent", choices=("claude", "codex"))
@@ -98,6 +104,7 @@ def main() -> int:
                     baseline_check=not arguments.no_baseline_check,
                     allow_api_key=arguments.allow_api_key,
                     ablate=arguments.ablate,
+                    targets=tuple(arguments.target),
                 )
             )
         except ResultsDirInUse as error:
