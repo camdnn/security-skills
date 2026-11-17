@@ -1,0 +1,25 @@
+{
+  "truth": [
+    {
+      "id": "XSS-01",
+      "cwe": "CWE-79",
+      "locations": [
+        {
+          "file": "vulnerable/inner-html.ts",
+          "start_line": 2,
+          "end_line": 2
+        }
+      ],
+      "evidence": "element.innerHTML = `<p>Hello ${name}</p>`;",
+      "requires_context": false,
+      "description": "Caller-controlled text is interpolated into an HTML execution sink.",
+      "source": "Hand-made xss-check fixture"
+    }
+  ],
+  "must_not_find": [
+    {
+      "file": "safe/text-content.ts",
+      "cwe_family": "xss"
+    }
+  ]
+}
