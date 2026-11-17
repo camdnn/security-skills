@@ -1,0 +1,80 @@
+{
+  "duration_seconds": 99.3641743749904,
+  "false_negatives": [],
+  "false_positives": [],
+  "id": "context-context-3",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        }
+      },
+      "mode": {
+        "context": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        }
+      },
+      "requires_context": {
+        "true": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 0,
+      "false_positives": 0,
+      "true_positives": 2
+    },
+    "fixture_passed": true,
+    "matched_truth": [
+      [
+        "context",
+        "CONTEXT-01"
+      ],
+      [
+        "context",
+        "CONTEXT-02"
+      ]
+    ],
+    "rates": {
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "run_id": 3,
+    "truth_entries": [
+      [
+        "context",
+        "CONTEXT-01"
+      ],
+      [
+        "context",
+        "CONTEXT-02"
+      ]
+    ]
+  },
+  "mode": "context",
+  "replay": false,
+  "run": 3,
+  "status": "ok",
+  "target": "context"
+}
