@@ -1,0 +1,88 @@
+{
+  "duration_seconds": 46.27089389899993,
+  "false_negatives": [],
+  "false_positives": [],
+  "id": "injection-check-code-only-1",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "injection": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        }
+      },
+      "mode": {
+        "code-only": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        }
+      },
+      "skill": {
+        "injection-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 0,
+      "false_positives": 0,
+      "true_positives": 3
+    },
+    "fixture_passed": true,
+    "matched_truth": [
+      [
+        "injection-check",
+        "INJECTION-01"
+      ],
+      [
+        "injection-check",
+        "INJECTION-02"
+      ],
+      [
+        "injection-check",
+        "INJECTION-03"
+      ]
+    ],
+    "rates": {
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "run_id": 1,
+    "truth_entries": [
+      [
+        "injection-check",
+        "INJECTION-01"
+      ],
+      [
+        "injection-check",
+        "INJECTION-02"
+      ],
+      [
+        "injection-check",
+        "INJECTION-03"
+      ]
+    ]
+  },
+  "mode": "code-only",
+  "replay": false,
+  "run": 1,
+  "status": "ok",
+  "target": "injection-check"
+}

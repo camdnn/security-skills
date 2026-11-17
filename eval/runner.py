@@ -616,8 +616,12 @@ def changed_outside_security(target_root: Path) -> list[str]:
 
 
 # Lowercase phrases a failed agent run prints when the subscription is exhausted.
-# Codex says "your workspace is out of credits" (seen 2026-11-05 and 2026-11-17).
-USAGE_LIMIT_MARKERS = ("usage limit", "rate limit", "quota exceeded", "out of credits", "insufficient credits")
+# Codex says "your workspace is out of credits" (seen 2026-11-05 and 2026-11-17). Claude Code's
+# JSON result says "api_error":"usage_limit_reached" with "you've hit your 5-hour limit" (2026-11-17).
+USAGE_LIMIT_MARKERS = (
+    "usage limit", "usage_limit", "rate limit", "rate_limit", "quota exceeded",
+    "out of credits", "insufficient credits", "you've hit your",
+)
 
 
 def is_usage_limit(completed: subprocess.CompletedProcess[str], output: str) -> bool:

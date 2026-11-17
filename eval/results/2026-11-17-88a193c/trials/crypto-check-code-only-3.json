@@ -1,0 +1,72 @@
+{
+  "duration_seconds": 33.22098832399979,
+  "false_negatives": [],
+  "false_positives": [],
+  "id": "crypto-check-code-only-3",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "crypto": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      },
+      "mode": {
+        "code-only": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      },
+      "skill": {
+        "crypto-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 0,
+      "false_positives": 0,
+      "true_positives": 1
+    },
+    "fixture_passed": true,
+    "matched_truth": [
+      [
+        "crypto-check",
+        "CRYPTO-01"
+      ]
+    ],
+    "rates": {
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "run_id": 3,
+    "truth_entries": [
+      [
+        "crypto-check",
+        "CRYPTO-01"
+      ]
+    ]
+  },
+  "mode": "code-only",
+  "replay": false,
+  "run": 3,
+  "status": "ok",
+  "target": "crypto-check"
+}
