@@ -1,0 +1,83 @@
+{
+  "duration_seconds": 51.45725958398543,
+  "false_negatives": [
+    {
+      "cwe": "CWE-1104",
+      "description": "Manifest declares a package version marked as unsafe in this fixture.",
+      "evidence": "event-stream",
+      "id": "DEPENDENCY-01",
+      "locations": [
+        {
+          "end_line": 1,
+          "file": "vulnerable/package.json",
+          "start_line": 1
+        }
+      ],
+      "requires_context": false,
+      "source": "Hand-made dependency-check fixture"
+    }
+  ],
+  "false_positives": [],
+  "id": "dependency-check-code-only-1",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "dependency": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        }
+      },
+      "mode": {
+        "code-only": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        }
+      },
+      "skill": {
+        "dependency-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 1,
+      "false_positives": 0,
+      "true_positives": 0
+    },
+    "fixture_passed": false,
+    "matched_truth": [],
+    "rates": {
+      "f1": null,
+      "precision": null,
+      "recall": 0.0
+    },
+    "run_id": 1,
+    "truth_entries": [
+      [
+        "dependency-check",
+        "DEPENDENCY-01"
+      ]
+    ]
+  },
+  "mode": "code-only",
+  "replay": false,
+  "run": 1,
+  "status": "ok",
+  "target": "dependency-check"
+}

@@ -1,0 +1,52 @@
+{
+  "fast": {
+    "agent": "claude",
+    "fixture_passes": {
+      "access-control-check": {
+        "passed": 3,
+        "trials": 3
+      },
+      "auth-session-check": {
+        "passed": 3,
+        "trials": 3
+      },
+      "context": {
+        "passed": 3,
+        "trials": 3
+      },
+      "crypto-check": {
+        "passed": 3,
+        "trials": 3
+      },
+      "dependency-check": {
+        "passed": 1,
+        "trials": 3
+      },
+      "error-logging-check": {
+        "passed": 3,
+        "trials": 3
+      },
+      "file-handling-check": {
+        "passed": 3,
+        "trials": 3
+      },
+      "injection-check": {
+        "passed": 3,
+        "trials": 3
+      },
+      "misconfiguration-check": {
+        "passed": 3,
+        "trials": 3
+      },
+      "secrets-check": {
+        "passed": 3,
+        "trials": 3
+      },
+      "xss-check": {
+        "passed": 3,
+        "trials": 3
+      }
+    },
+    "mean_f1": 0.9662835249042145
+  }
+}
