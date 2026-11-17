@@ -166,7 +166,7 @@ def execute_trial(
         for prompt in trial_prompts(agent, mode):
             completed = command(copy_root, agent, prompt)
             output = f"{completed.stdout}\n{completed.stderr}".lower()
-            if is_usage_limit(output):
+            if is_usage_limit(completed, output):
                 return record_context_warnings(
                     usage_limit_record(target, mode, number, output), copy_root, mode, config, context_files_before
                 )
@@ -439,8 +439,25 @@ def changed_outside_security(target_root: Path) -> list[str]:
     return [path for path in paths if not path.startswith("docs/security/")]
 
 
-def is_usage_limit(output: str) -> bool:
-    return any(marker in output for marker in ("usage limit", "rate limit", "quota exceeded"))
+def is_usage_limit(completed: subprocess.CompletedProcess[str], output: str) -> bool:
+    """Return whether a failed agent run hit a usage limit.
+
+    A successful run is never a usage limit, even when its output mentions one:
+    a skill's own summary can say "no rate limiting".
+    """
+
+    failed = completed.returncode != 0 or reports_error(completed.stdout)
+    return failed and any(marker in output for marker in ("usage limit", "rate limit", "quota exceeded"))
+
+
+def reports_error(stdout: str) -> bool:
+    """Return whether JSON agent output (Claude's ``--output-format json``) flags an error."""
+
+    try:
+        result = json.loads(stdout)
+    except ValueError:
+        return False
+    return isinstance(result, dict) and result.get("is_error") is True
 
 
 def load_config(path: Path = CONFIG_PATH) -> dict[str, Any]:

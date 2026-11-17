@@ -324,6 +324,40 @@ def test_usage_limit_marks_incomplete_then_resume_completes(tmp_path: Path):
     assert all(json.loads(path.read_text())["status"] == "ok" for path in (results / "trials").glob("*.json"))
 
 
+def test_successful_agent_output_that_mentions_rate_limiting_is_scored_not_a_usage_limit(tmp_path: Path):
+    """A skill's own summary can say "no rate limiting"; only a failed agent run can hit a usage limit."""
+
+    repo, _ = runner_repo(tmp_path)
+
+    def agent_reporting_rate_limiting(target: Path, agent: str, prompt: str) -> subprocess.CompletedProcess[str]:
+        completed = successful_agent(target, agent, prompt)
+        return subprocess.CompletedProcess(completed.args, 0, '{"result": "Rate limiting: absent. No usage limits found."}', "")
+
+    results, outcome = run(
+        RunOptions(tier="fast", runs=1, results_dir=tmp_path / "results", baseline_check=False),
+        agent_command=agent_reporting_rate_limiting,
+        repo_root=repo,
+    )
+
+    assert outcome.exit_code == 0
+    assert [json.loads(path.read_text())["status"] for path in (results / "trials").glob("*.json")] == ["ok"]
+
+
+def test_usage_limit_reported_as_a_json_error_with_exit_zero_marks_incomplete(tmp_path: Path):
+    repo, _ = runner_repo(tmp_path)
+
+    def limited_agent(target: Path, agent: str, prompt: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.CompletedProcess([agent], 0, '{"is_error": true, "result": "Claude usage limit reached"}', "")
+
+    _, outcome = run(
+        RunOptions(tier="fast", runs=1, results_dir=tmp_path / "results", baseline_check=False),
+        agent_command=limited_agent,
+        repo_root=repo,
+    )
+
+    assert outcome.exit_code == 2
+
+
 def test_new_eval_run_refuses_a_folder_with_trial_records_and_writes_nothing(tmp_path: Path):
     repo, _ = runner_repo(tmp_path)
     results, _ = run(
