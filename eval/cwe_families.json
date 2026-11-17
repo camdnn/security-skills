@@ -16,6 +16,7 @@
     "CWE-319": "misconfiguration",
     "CWE-327": "crypto",
     "CWE-330": "crypto",
+    "CWE-338": "crypto",
     "CWE-347": "auth-session",
     "CWE-352": "auth-session",
     "CWE-384": "auth-session",
