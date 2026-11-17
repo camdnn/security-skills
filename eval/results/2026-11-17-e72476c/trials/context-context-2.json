@@ -1,0 +1,212 @@
+{
+  "duration_seconds": 99.61927498900013,
+  "false_negatives": [],
+  "false_positives": [
+    {
+      "confidence": "medium",
+      "context_ref": null,
+      "cwe": "CWE-778",
+      "dread": {
+        "affected_users": 3,
+        "damage": 2,
+        "discoverability": 2,
+        "exploitability": 3,
+        "reproducibility": 5,
+        "score": 3.0
+      },
+      "end_line": 14,
+      "evidence": "response.json(await refunds.approve(refund.id, request.user.id));",
+      "file": "vulnerable/approve-refund.ts",
+      "fix": "Emit a structured audit event (actor id, role, refundId, outcome, timestamp) for each approval and each denied attempt. Do the same for invoice access. Keep payment details out of the logs.",
+      "id": "SEC-0003",
+      "line": 14,
+      "mode": "context",
+      "owasp": "A09:2021",
+      "skill": "error-logging-check",
+      "title": "No audit log for refund approvals",
+      "trace": [],
+      "why": "A financial approval is performed with no audit record of who approved what and when, or of denied attempts. A self-approval (see SEC-0002) or insider abuse could not be detected or investigated. Invoice downloads (SEC-0001) are likewise unlogged."
+    },
+    {
+      "confidence": "low",
+      "context_ref": "BR-4",
+      "cwe": "CWE-367",
+      "dread": {
+        "affected_users": 2,
+        "damage": 3,
+        "discoverability": 1,
+        "exploitability": 3,
+        "reproducibility": 2,
+        "score": 2.2
+      },
+      "end_line": 13,
+      "evidence": "if (order.status !== \"placed\") return response.sendStatus(409);\nresponse.json(await orders.cancel(order.id));",
+      "file": "safe/cancel-order.ts",
+      "fix": "Make the transition atomic, for example a conditional update (cancel where id = ? and status = 'placed') that reports whether a row changed, and return 409 when none did.",
+      "id": "SEC-0004",
+      "line": 12,
+      "mode": "context",
+      "owasp": "A04:2021",
+      "skill": "access-control-check",
+      "title": "Non-atomic status check and cancel allows cancelling a shipped order (BR-4)",
+      "trace": [
+        {
+          "file": "safe/cancel-order.ts",
+          "line": 8,
+          "note": "order read with status",
+          "step": "source"
+        },
+        {
+          "file": "safe/cancel-order.ts",
+          "line": 12,
+          "note": "status guard on the stale read",
+          "step": "check"
+        },
+        {
+          "file": "safe/cancel-order.ts",
+          "line": 13,
+          "note": "cancel(order.id) is unconditional",
+          "step": "sink"
+        }
+      ],
+      "why": "Status is read in findById and then orders.cancel is called separately. If the order ships in between, a concurrent request can cancel a shipped order, breaking BR-4. Whether the store's cancel re-checks status is unseen."
+    },
+    {
+      "confidence": "low",
+      "context_ref": "BR-5",
+      "cwe": "CWE-367",
+      "dread": {
+        "affected_users": 2,
+        "damage": 3,
+        "discoverability": 1,
+        "exploitability": 3,
+        "reproducibility": 2,
+        "score": 2.2
+      },
+      "end_line": 14,
+      "evidence": "if (!refund || refund.status !== \"requested\") return response.sendStatus(404);\nresponse.json(await refunds.approve(refund.id, request.user.id));",
+      "file": "vulnerable/approve-refund.ts",
+      "fix": "Perform a conditional update (approve where id = ? and status = 'requested') and treat zero rows changed as a conflict.",
+      "id": "SEC-0005",
+      "line": 13,
+      "mode": "context",
+      "owasp": "A04:2021",
+      "skill": "access-control-check",
+      "title": "Non-atomic refund status check allows double approval (BR-5)",
+      "trace": [
+        {
+          "file": "vulnerable/approve-refund.ts",
+          "line": 12,
+          "note": "refund read with status",
+          "step": "source"
+        },
+        {
+          "file": "vulnerable/approve-refund.ts",
+          "line": 13,
+          "note": "status guard on the stale read",
+          "step": "check"
+        },
+        {
+          "file": "vulnerable/approve-refund.ts",
+          "line": 14,
+          "note": "approve is unconditional",
+          "step": "sink"
+        }
+      ],
+      "why": "BR-5 allows approval only while the status is requested. The check and the approve call are separate, so two concurrent approvals can both pass the check, risking a duplicate payout depending on the store. Whether approve is idempotent is unseen."
+    }
+  ],
+  "id": "context-context-2",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "error-logging": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "unknown": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 2,
+          "true_positives": 0
+        }
+      },
+      "mode": {
+        "context": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 3,
+          "true_positives": 2
+        }
+      },
+      "requires_context": {
+        "true": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 2,
+          "true_positives": 2
+        },
+        "error-logging-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 0,
+      "false_positives": 3,
+      "true_positives": 2
+    },
+    "fixture_passed": true,
+    "matched_truth": [
+      [
+        "context",
+        "CONTEXT-01"
+      ],
+      [
+        "context",
+        "CONTEXT-02"
+      ]
+    ],
+    "rates": {
+      "f1": 0.5714285714285715,
+      "precision": 0.4,
+      "recall": 1.0
+    },
+    "run_id": 2,
+    "truth_entries": [
+      [
+        "context",
+        "CONTEXT-01"
+      ],
+      [
+        "context",
+        "CONTEXT-02"
+      ]
+    ]
+  },
+  "mode": "context",
+  "replay": false,
+  "run": 2,
+  "status": "ok",
+  "target": "context"
+}

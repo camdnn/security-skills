@@ -1,0 +1,125 @@
+{
+  "duration_seconds": 113.51163204700015,
+  "false_negatives": [],
+  "false_positives": [
+    {
+      "confidence": "low",
+      "context_ref": null,
+      "cwe": "CWE-203",
+      "dread": {
+        "affected_users": 1,
+        "damage": 1,
+        "discoverability": 2,
+        "exploitability": 4,
+        "reproducibility": 4,
+        "score": 2.4
+      },
+      "end_line": 12,
+      "evidence": "if (!order) return response.sendStatus(404); const allowed = ...; if (!allowed) return response.sendStatus(403);",
+      "file": "safe/cancel-order.ts",
+      "fix": "Return the same status (for example 404) for missing orders and for orders the caller may not access.",
+      "id": "SEC-0003",
+      "line": 9,
+      "mode": "context",
+      "owasp": "A01:2021",
+      "skill": "access-control-check",
+      "title": "Order existence revealed before authorization (404 before 403)",
+      "trace": [
+        {
+          "file": "safe/cancel-order.ts",
+          "line": 8,
+          "note": "request.params.orderId is attacker-chosen",
+          "step": "source"
+        },
+        {
+          "file": "safe/cancel-order.ts",
+          "line": 9,
+          "note": "distinct 404 response before the ownership check",
+          "step": "sink"
+        }
+      ],
+      "why": "An authenticated caller can tell whether an arbitrary order ID exists (404 vs 403) without owning it, which allows order ID enumeration. The impact is low. Ownership and BR-3 enforcement on this handler is correct."
+    }
+  ],
+  "id": "context-context-1",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "unknown": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        }
+      },
+      "mode": {
+        "context": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 2
+        }
+      },
+      "requires_context": {
+        "true": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 2
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 0,
+      "false_positives": 1,
+      "true_positives": 2
+    },
+    "fixture_passed": true,
+    "matched_truth": [
+      [
+        "context",
+        "CONTEXT-01"
+      ],
+      [
+        "context",
+        "CONTEXT-02"
+      ]
+    ],
+    "rates": {
+      "f1": 0.8,
+      "precision": 0.6666666666666666,
+      "recall": 1.0
+    },
+    "run_id": 1,
+    "truth_entries": [
+      [
+        "context",
+        "CONTEXT-01"
+      ],
+      [
+        "context",
+        "CONTEXT-02"
+      ]
+    ]
+  },
+  "mode": "context",
+  "replay": false,
+  "run": 1,
+  "status": "ok",
+  "target": "context"
+}

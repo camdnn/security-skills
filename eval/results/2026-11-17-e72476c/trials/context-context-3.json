@@ -1,0 +1,162 @@
+{
+  "duration_seconds": 96.60818528799996,
+  "false_negatives": [],
+  "false_positives": [
+    {
+      "confidence": "low",
+      "context_ref": null,
+      "cwe": "CWE-778",
+      "dread": {
+        "affected_users": 3,
+        "damage": 2,
+        "discoverability": 2,
+        "exploitability": 3,
+        "reproducibility": 5,
+        "score": 3.0
+      },
+      "end_line": 14,
+      "evidence": "response.json(await refunds.approve(refund.id, request.user.id));",
+      "file": "vulnerable/approve-refund.ts",
+      "fix": "Write an audit record (approver id, refund id, timestamp, outcome, including denied attempts) at the approval point or confirm refunds.approve does so.",
+      "id": "SEC-0003",
+      "line": 14,
+      "mode": "context",
+      "owasp": "A09:2021",
+      "skill": "error-logging-check",
+      "title": "Refund approval is not audit-logged",
+      "trace": [],
+      "why": "A money-moving approval emits no audit event in the handler, and the module contract's audit-log guarantee is unverified. Without it, self-approval (SEC-0002) or abuse by a manager cannot be reconstructed. The store implementation is not in the repo, so it may log internally."
+    },
+    {
+      "confidence": "low",
+      "context_ref": "BR-3",
+      "cwe": "CWE-367",
+      "dread": {
+        "affected_users": 2,
+        "damage": 3,
+        "discoverability": 1,
+        "exploitability": 3,
+        "reproducibility": 2,
+        "score": 2.2
+      },
+      "end_line": 13,
+      "evidence": "if (order.status !== \"placed\") return response.sendStatus(409); response.json(await orders.cancel(order.id));",
+      "file": "safe/cancel-order.ts",
+      "fix": "Make the cancel an atomic conditional update (for example UPDATE ... WHERE id = ? AND status = 'placed') and return 409 when no row changes.",
+      "id": "SEC-0004",
+      "line": 12,
+      "mode": "context",
+      "owasp": "A04:2021",
+      "skill": "access-control-check",
+      "title": "Possible check-then-act race between status check and cancel",
+      "trace": [
+        {
+          "file": "safe/cancel-order.ts",
+          "line": 12,
+          "note": "status read from an earlier findById result",
+          "step": "check"
+        },
+        {
+          "file": "safe/cancel-order.ts",
+          "line": 13,
+          "note": "cancel(id) carries no expected-status condition",
+          "step": "act"
+        }
+      ],
+      "why": "BR-3 allows cancellation only while an order is placed. The status is read, then orders.cancel(id) is called with no status condition in the call. If the store does not re-check atomically, an order that ships between the two calls could be cancelled. The store is not shown, so this is unverified."
+    }
+  ],
+  "id": "context-context-3",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "error-logging": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "unknown": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        }
+      },
+      "mode": {
+        "context": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 2,
+          "true_positives": 2
+        }
+      },
+      "requires_context": {
+        "true": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 2
+        },
+        "error-logging-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 0,
+      "false_positives": 2,
+      "true_positives": 2
+    },
+    "fixture_passed": true,
+    "matched_truth": [
+      [
+        "context",
+        "CONTEXT-01"
+      ],
+      [
+        "context",
+        "CONTEXT-02"
+      ]
+    ],
+    "rates": {
+      "f1": 0.6666666666666666,
+      "precision": 0.5,
+      "recall": 1.0
+    },
+    "run_id": 3,
+    "truth_entries": [
+      [
+        "context",
+        "CONTEXT-01"
+      ],
+      [
+        "context",
+        "CONTEXT-02"
+      ]
+    ]
+  },
+  "mode": "context",
+  "replay": false,
+  "run": 3,
+  "status": "ok",
+  "target": "context"
+}
