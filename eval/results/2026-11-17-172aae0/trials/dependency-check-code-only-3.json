@@ -1,0 +1,115 @@
+{
+  "duration_seconds": 48.57823516699136,
+  "false_negatives": [
+    {
+      "cwe": "CWE-1104",
+      "description": "Manifest declares a package version marked as unsafe in this fixture.",
+      "evidence": "event-stream",
+      "id": "DEPENDENCY-01",
+      "locations": [
+        {
+          "end_line": 1,
+          "file": "vulnerable/package.json",
+          "start_line": 1
+        }
+      ],
+      "requires_context": false,
+      "source": "Hand-made dependency-check fixture"
+    }
+  ],
+  "false_positives": [
+    {
+      "confidence": "medium",
+      "context_ref": null,
+      "cwe": "CWE-506",
+      "dread": {
+        "affected_users": 4,
+        "damage": 5,
+        "discoverability": 3,
+        "exploitability": 3,
+        "reproducibility": 4,
+        "score": 3.8
+      },
+      "end_line": 1,
+      "evidence": "{\"dependencies\":{\"event-stream\":\"3.3.6\"}}",
+      "file": "vulnerable/package.json",
+      "fix": "Remove event-stream or pin to a clean release (e.g. 4.0.1 or later), replace it with a maintained stream utility, and audit installed trees and lockfiles for flatmap-stream.",
+      "id": "SEC-0001",
+      "line": 1,
+      "mode": "code-only",
+      "owasp": "A06:2021",
+      "skill": "dependency-check",
+      "title": "Known-compromised dependency event-stream 3.3.6",
+      "trace": [],
+      "why": "event-stream 3.3.6 is the publicly documented release that pulled in the malicious flatmap-stream package (2018 supply-chain compromise) to steal cryptocurrency wallet data. No advisory metadata exists in the repository and no registry lookup was performed; this finding rests on the exact pinned version matching that public incident."
+    }
+  ],
+  "id": "dependency-check-code-only-3",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "dependency": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        },
+        "unknown": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        }
+      },
+      "mode": {
+        "code-only": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 0
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        }
+      },
+      "skill": {
+        "dependency-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 0
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 1,
+      "false_positives": 1,
+      "true_positives": 0
+    },
+    "fixture_passed": false,
+    "matched_truth": [],
+    "rates": {
+      "f1": null,
+      "precision": 0.0,
+      "recall": 0.0
+    },
+    "run_id": 3,
+    "truth_entries": [
+      [
+        "dependency-check",
+        "DEPENDENCY-01"
+      ]
+    ]
+  },
+  "mode": "code-only",
+  "replay": false,
+  "run": 3,
+  "status": "ok",
+  "target": "dependency-check"
+}
