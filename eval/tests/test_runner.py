@@ -358,6 +358,30 @@ def test_usage_limit_reported_as_a_json_error_with_exit_zero_marks_incomplete(tm
     assert outcome.exit_code == 2
 
 
+def test_codex_out_of_credits_marks_incomplete_not_failed(tmp_path: Path):
+    """Codex reports an exhausted workspace as "out of credits"; that ends the run as incomplete (§4 Q10)."""
+
+    repo, _ = runner_repo(tmp_path)
+    calls = 0
+
+    def broke_agent(target: Path, agent: str, prompt: str) -> subprocess.CompletedProcess[str]:
+        nonlocal calls
+        calls += 1
+        message = "error: your workspace is out of credits. ask your workspace owner to refill in order to continue."
+        return subprocess.CompletedProcess([agent], 1, "", message)
+
+    results, outcome = run(
+        RunOptions(tier="fast", results_dir=tmp_path / "results", baseline_check=False),
+        agent_command=broke_agent,
+        repo_root=repo,
+    )
+
+    statuses = [json.loads(path.read_text())["status"] for path in (results / "trials").glob("*.json")]
+    assert outcome.exit_code == 2
+    assert calls == 1
+    assert statuses == ["skipped", "skipped"]
+
+
 def test_new_eval_run_refuses_a_folder_with_trial_records_and_writes_nothing(tmp_path: Path):
     repo, _ = runner_repo(tmp_path)
     results, _ = run(

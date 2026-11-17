@@ -43,6 +43,7 @@ class EvaluationRun:
     warnings: list[dict[str, Any]]
     tokens: int | None = None
     replay: bool = False
+    ablation: str | None = None
 
 
 @dataclass(frozen=True)
@@ -133,6 +134,8 @@ def accept_baseline(results_dir: Path | str, *, baselines_dir: Path | str = BASE
         raise ValueError("cannot accept baseline from an eval run with failed trials")
     if document.get("replay"):
         raise ValueError("cannot accept baseline from a replay eval run: a baseline must come from live trials")
+    if document.get("ablation"):
+        raise ValueError("cannot accept baseline from an ablation eval run: it deliberately removes part of the plugin")
 
     tier = document.get("tier")
     agent = document.get("agent")
@@ -179,7 +182,7 @@ def _baseline_file(baselines_dir: Path | str, agent: str) -> Path:
 def serialize_run(run: EvaluationRun, result: RegressionResult) -> dict[str, Any]:
     """Return the stable, JSON-only report contract consumed by baseline acceptance."""
 
-    return {
+    document: dict[str, Any] = {
         "tier": run.tier,
         "agent": run.agent,
         "metrics": _json_value(run.metrics),
@@ -194,6 +197,9 @@ def serialize_run(run: EvaluationRun, result: RegressionResult) -> dict[str, Any
         "exit_code": result.exit_code,
         "regression_reasons": result.reasons,
     }
+    if run.ablation:
+        document["ablation"] = run.ablation
+    return document
 
 
 def render_report(
@@ -221,6 +227,7 @@ def render_report(
         "",
         run.agent,
         "",
+        *([f"Ablation: {run.ablation} removed before the scan.", ""] if run.ablation else []),
         "## Baseline comparison",
         "",
         _baseline_line(run, baseline, checked=checked),

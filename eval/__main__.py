@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import subprocess
 from pathlib import Path
 
 from eval.report import accept_baseline
@@ -31,6 +32,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--results-dir",
         type=Path,
         help="write a new eval run to this folder (default: eval/results/<date>-<commit>/, or a fresh -replay- folder for a replay eval run)",
+    )
+    run_parser.add_argument(
+        "--ablate",
+        choices=("contracts",),
+        help="remove a plugin feature before the scan to measure its effect (contracts: module ASSUMES/GUARANTEES)",
     )
     run_parser.add_argument("--no-baseline-check", action="store_true")
     run_parser.add_argument("--allow-api-key", action="store_true")
@@ -68,12 +74,13 @@ def main() -> int:
                     results_dir=arguments.results_dir,
                     baseline_check=not arguments.no_baseline_check,
                     allow_api_key=arguments.allow_api_key,
+                    ablate=arguments.ablate,
                 )
             )
         except ResultsDirInUse as error:
             print(error)
             return 2
-        except (OSError, ValueError) as error:
+        except (OSError, ValueError, subprocess.CalledProcessError) as error:
             print(error)
             return 1
         print(results_dir)

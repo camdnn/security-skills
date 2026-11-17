@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -27,6 +28,12 @@ CONFIG_PATH = Path(__file__).with_name("config.yaml")
 CWE_FAMILIES_PATH = Path(__file__).with_name("cwe_families.json")
 Agent = Literal["claude", "codex"]
 Mode = Literal["code-only", "context"]
+Ablation = Literal["contracts"]
+MODES: tuple[Mode, ...] = ("code-only", "context")
+SHA = re.compile(r"^[0-9a-f]{40}$")
+# A target's own agent configuration could steer or hook into the trial agent (ADR-0002, issue #64).
+AGENT_CONFIG_DIRS = frozenset({".claude", ".codex", ".agents"})
+AGENT_CONFIG_FILES = frozenset({"CLAUDE.md", "CLAUDE.local.md", "AGENTS.md", "AGENTS.override.md"})
 AgentCommand = Callable[[Path, Agent, str], subprocess.CompletedProcess[str]]
 
 
@@ -38,6 +45,9 @@ class Target:
     root: Path
     expected_path: Path
     answers_path: Path | None = None
+    scan_paths: tuple[str, ...] | None = None
+    modes: tuple[Mode, ...] | None = None
+    blank_patterns: tuple[str, ...] = ()
 
 
 class ResultsDirInUse(Exception):
@@ -56,6 +66,7 @@ class RunOptions:
     results_dir: Path | None = None
     baseline_check: bool = True
     allow_api_key: bool = False
+    ablate: Ablation | None = None
 
 
 def run(
@@ -71,7 +82,13 @@ def run(
     agent = options.agent or config["default_agent"][options.tier]
     if options.replay_dir is None:
         guard_api_keys(options.allow_api_key)
-    results_dir = options.resume_dir or options.results_dir or default_results_dir(repo_root, clock(), replay=options.replay_dir is not None)
+    if options.ablate and options.mode == "code-only":
+        raise ValueError("--ablate contracts removes module contracts, which only context mode writes")
+    if options.ablate and options.replay_dir is not None:
+        raise ValueError("--ablate changes what a live agent sees; it has no effect on a replay")
+    results_dir = options.resume_dir or options.results_dir or default_results_dir(
+        repo_root, clock(), replay=options.replay_dir is not None, ablate=options.ablate
+    )
     trials_dir = results_dir / "trials"
     if options.resume_dir is None and any(trials_dir.glob("*.json")):
         raise ResultsDirInUse(
@@ -81,6 +98,9 @@ def run(
     results_dir.mkdir(parents=True, exist_ok=True)
     trials_dir.mkdir(exist_ok=True)
     targets = discover_targets(repo_root, options.tier, options.skill)
+    if options.replay_dir is None:
+        for target in targets:
+            prepare_target(target, repo_root)
     requested_runs = options.runs or int(config["trials_per_target"])
     max_trials = int(config["max_trials"][options.tier])
     specs = [
@@ -90,6 +110,9 @@ def run(
         for number in range(1, requested_runs + 1)
     ]
     completed = load_trial_records(trials_dir)
+    recorded_ablations = {record.get("ablation") for record in completed.values() if record["status"] != "skipped"}
+    if recorded_ablations - {options.ablate}:
+        raise ValueError(f"{results_dir} holds trials with a different --ablate setting; resume it with the same flag")
     attempted = sum(record["status"] != "skipped" for record in completed.values())
     stop_reason: str | None = None
 
@@ -111,8 +134,11 @@ def run(
                 options.replay_dir,
                 agent_command,
                 config,
+                ablate=options.ablate,
             )
             record["replay"] = options.replay_dir is not None
+            if options.ablate:
+                record["ablation"] = options.ablate
             attempted += 1
             if record["status"] == "usage-limit":
                 stop_reason = record["reason"]
@@ -127,6 +153,7 @@ def run(
         results_dir,
         baseline_check=options.baseline_check,
         replay=any(record.get("replay", False) for record in completed.values()),
+        ablation=options.ablate,
     )
 
 
@@ -138,6 +165,8 @@ def execute_trial(
     replay_dir: Path | None,
     agent_command: AgentCommand | None,
     config: dict[str, Any],
+    *,
+    ablate: Ablation | None = None,
 ) -> dict[str, Any]:
     """Run one replay or live trial, returning a JSON-ready record."""
 
@@ -148,13 +177,7 @@ def execute_trial(
 
     with tempfile.TemporaryDirectory(prefix="eval-trial-") as temporary_directory:
         copy_root = Path(temporary_directory) / "target"
-        def ignore_trial_metadata(directory: str, names: list[str]) -> set[str]:
-            ignored = {".git"}
-            if Path(directory) == target.root:
-                ignored.update({"expected.json", "answers.md"})
-            return ignored.intersection(names)
-
-        shutil.copytree(target.root, copy_root, ignore=ignore_trial_metadata)
+        copy_target(target, copy_root)
         install_trial_skills(copy_root)
         if mode == "context" and target.answers_path is not None:
             destination = copy_root / "docs/security/ANSWERS.input.md"
@@ -163,7 +186,9 @@ def execute_trial(
         initialize_trial_git(copy_root)
         context_files_before = context_file_fingerprints(copy_root, config["context_file_line_limits"]) if mode == "context" else {}
         command = agent_command or default_agent_command(config)
-        for prompt in trial_prompts(agent, mode):
+        for step, prompt in enumerate(trial_prompts(agent, mode)):
+            if step and ablate == "contracts":
+                strip_module_contracts(copy_root)
             completed = command(copy_root, agent, prompt)
             output = f"{completed.stdout}\n{completed.stderr}".lower()
             if is_usage_limit(completed, output):
@@ -223,7 +248,14 @@ def score_findings(
 
 
 def write_run_report(
-    tier: str, agent: str, records: list[dict[str, Any]], results_dir: Path, *, baseline_check: bool, replay: bool
+    tier: str,
+    agent: str,
+    records: list[dict[str, Any]],
+    results_dir: Path,
+    *,
+    baseline_check: bool,
+    replay: bool,
+    ablation: str | None = None,
 ) -> RegressionResult:
     """Rehydrate successful trial metrics and delegate report/baseline rendering."""
 
@@ -248,27 +280,154 @@ def write_run_report(
         warnings=[warning for record in records for warning in record.get("warnings", [])],
         tokens=None,
         replay=replay,
+        ablation=ablation,
     )
     return write_results(run, results_dir, check_baseline=baseline_check)
 
 
 def discover_targets(repo_root: Path, tier: str, skill: str | None) -> list[Target]:
-    """Discover fixture targets; full tier will also include benchmark definitions when present."""
+    """Discover fixture targets, plus benchmark targets in the full tier (§3.3, §7.3).
+
+    A fixture folder with an ``implement.yaml`` belongs to the implement eval (§7.7), not
+    to detection runs. A benchmark counts once its ``expected.json`` lands (§3.2).
+    """
 
     fixtures = repo_root / "tests/fixtures"
-    paths = [path for path in sorted(fixtures.iterdir()) if path.is_dir() and (path / "expected.json").exists()]
-    if skill:
-        cwe_families = load_cwe_families(repo_root / "eval/cwe_families.json")
-        paths = [path for path in paths if target_is_owned_by_skill(path / "expected.json", skill, cwe_families)]
     targets = [
         Target(path.name, path, path / "expected.json", (path / "answers.md") if (path / "answers.md").exists() else None)
-        for path in paths
+        for path in sorted(fixtures.iterdir())
+        if path.is_dir() and (path / "expected.json").exists() and not (path / "implement.yaml").exists()
     ]
     if tier == "full":
-        # Benchmark support is intentionally deferred until benchmark definitions land;
-        # fixtures still run in full tier as the spec requires.
-        return targets
+        benchmarks = repo_root / "eval/benchmarks"
+        definitions = sorted(benchmarks.glob("*/benchmark.yaml")) if benchmarks.is_dir() else []
+        targets += [load_benchmark(path) for path in definitions if (path.parent / "expected.json").exists()]
+    if skill:
+        cwe_families = load_cwe_families(repo_root / "eval/cwe_families.json")
+        targets = [target for target in targets if target_is_owned_by_skill(target.expected_path, skill, cwe_families)]
     return targets
+
+
+def load_benchmark(definition_path: Path) -> Target:
+    """Read one ``benchmark.yaml`` into a target whose root is its disposable local clone."""
+
+    directory = definition_path.parent
+    definition = yaml.safe_load(definition_path.read_text()) or {}
+    for key in ("name", "repo", "commit", "scan_paths"):
+        if key not in definition:
+            raise ValueError(f"{definition_path}: missing {key!r}")
+    if not SHA.match(str(definition["commit"])):
+        raise ValueError(f"{definition_path}: commit must be a full 40-character SHA, never a branch (§3.3)")
+    modes = tuple(definition.get("modes") or MODES)
+    if not modes or any(mode not in MODES for mode in modes):
+        raise ValueError(f"{definition_path}: modes must be drawn from {', '.join(MODES)}")
+    answers = definition.get("answers_file")
+    scan_paths = tuple(str(path).rstrip("/") for path in definition["scan_paths"])
+    if not scan_paths or any(Path(path).is_absolute() or ".." in Path(path).parts for path in scan_paths):
+        raise ValueError(f"{definition_path}: scan_paths must be relative paths inside the repository")
+    return Target(
+        name=str(definition["name"]),
+        root=directory / "repo",
+        expected_path=directory / "expected.json",
+        answers_path=(directory / answers) if answers else None,
+        scan_paths=scan_paths,
+        modes=modes,  # type: ignore[arg-type]
+        blank_patterns=tuple(definition.get("blank_patterns") or ()),
+    )
+
+
+def prepare_target(target: Target, repo_root: Path) -> None:
+    """Clone a benchmark at its pinned commit when its local clone is missing or elsewhere."""
+
+    if target.scan_paths is None:
+        return
+    definition = yaml.safe_load((target.expected_path.parent / "benchmark.yaml").read_text())
+    ensure_clone(str(definition["repo"]), str(definition["commit"]), target.root)
+
+
+def ensure_clone(repository: str, commit: str, destination: Path) -> None:
+    """Make ``destination`` a checkout of ``repository`` at exactly ``commit``."""
+
+    def git(*arguments: str, cwd: Path | None = None) -> str:
+        return subprocess.run(["git", *arguments], cwd=cwd, check=True, capture_output=True, text=True).stdout.strip()
+
+    if not (destination / ".git").exists():
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        git("clone", "--quiet", repository, str(destination))
+    if git("rev-parse", "HEAD", cwd=destination) == commit:
+        return
+    try:
+        git("checkout", "--quiet", commit, cwd=destination)
+    except subprocess.CalledProcessError:
+        git("fetch", "--quiet", "origin", commit, cwd=destination)
+        git("checkout", "--quiet", commit, cwd=destination)
+    if git("rev-parse", "HEAD", cwd=destination) != commit:
+        raise ValueError(f"{destination} is not at pinned commit {commit}")
+
+
+def copy_target(target: Target, copy_root: Path) -> None:
+    """Copy what the agent may see: no Git data, ground truth, canned answers or agent config."""
+
+    def ignore(directory: str, names: list[str]) -> set[str]:
+        ignored = {".git"} | AGENT_CONFIG_DIRS | AGENT_CONFIG_FILES
+        if Path(directory) == target.root:
+            ignored.update({"expected.json", "answers.md", "implement.yaml"})
+        return ignored.intersection(names)
+
+    if target.scan_paths is None:
+        shutil.copytree(target.root, copy_root, ignore=ignore)
+    else:
+        copy_root.mkdir(parents=True)
+        for relative in target.scan_paths:
+            source = target.root / relative
+            destination = copy_root / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            if source.is_dir():
+                shutil.copytree(source, destination, ignore=ignore)
+            elif source.is_file():
+                shutil.copyfile(source, destination)
+            else:
+                raise ValueError(f"benchmark {target.name}: scan path {relative} does not exist at the pinned commit")
+    if target.blank_patterns:
+        blank_matches(copy_root, target.blank_patterns)
+
+
+def blank_matches(root: Path, patterns: tuple[str, ...]) -> None:
+    """Delete each pattern match within its line, keeping line numbers aligned with ground truth.
+
+    Benchmarks such as Juice Shop annotate their own vulnerable lines; leaving those
+    markers in place would hand the agent the answers.
+    """
+
+    compiled = [re.compile(pattern) for pattern in patterns]
+    for path in sorted(root.rglob("*")):
+        if not path.is_file():
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        lines = text.split("\n")
+        cleaned = []
+        for line in lines:
+            for pattern in compiled:
+                line = pattern.sub("", line)
+            cleaned.append(line)
+        if cleaned != lines:
+            path.write_text("\n".join(cleaned), encoding="utf-8")
+
+
+CONTRACT_SECTION = re.compile(r"^## Contract\b.*?(?=^## |\Z)", re.MULTILINE | re.DOTALL)
+
+
+def strip_module_contracts(target_root: Path) -> None:
+    """Ablation: remove the ASSUMES / GUARANTEES contract from every module file before the scan."""
+
+    for module in sorted((target_root / "docs/security/modules").glob("*.md")):
+        text = module.read_text(encoding="utf-8")
+        stripped = CONTRACT_SECTION.sub("", text)
+        if stripped != text:
+            module.write_text(stripped, encoding="utf-8")
 
 
 def modes_for_target(target: Target, tier: str, forced_mode: Mode | None) -> list[Mode]:
@@ -276,6 +435,8 @@ def modes_for_target(target: Target, tier: str, forced_mode: Mode | None) -> lis
 
     if forced_mode is not None:
         return [forced_mode]
+    if target.modes is not None:
+        return list(target.modes)
     if tier == "fast" and target.answers_path is not None:
         return ["context"]
     if tier == "full":
@@ -439,6 +600,11 @@ def changed_outside_security(target_root: Path) -> list[str]:
     return [path for path in paths if not path.startswith("docs/security/")]
 
 
+# Lowercase phrases a failed agent run prints when the subscription is exhausted.
+# Codex says "your workspace is out of credits" (seen 2026-11-05 and 2026-11-17).
+USAGE_LIMIT_MARKERS = ("usage limit", "rate limit", "quota exceeded", "out of credits", "insufficient credits")
+
+
 def is_usage_limit(completed: subprocess.CompletedProcess[str], output: str) -> bool:
     """Return whether a failed agent run hit a usage limit.
 
@@ -447,7 +613,7 @@ def is_usage_limit(completed: subprocess.CompletedProcess[str], output: str) -> 
     """
 
     failed = completed.returncode != 0 or reports_error(completed.stdout)
-    return failed and any(marker in output for marker in ("usage limit", "rate limit", "quota exceeded"))
+    return failed and any(marker in output for marker in USAGE_LIMIT_MARKERS)
 
 
 def reports_error(stdout: str) -> bool:
@@ -464,11 +630,13 @@ def load_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
     return yaml.safe_load(path.read_text()) or {}
 
 
-def default_results_dir(repo_root: Path, now: datetime, *, replay: bool) -> Path:
+def default_results_dir(repo_root: Path, now: datetime, *, replay: bool, ablate: str | None = None) -> Path:
     """Live eval runs share one folder per commit and day; each replay eval run gets its own."""
 
     commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=repo_root, check=True, capture_output=True, text=True).stdout.strip()
     name = f"{now.date().isoformat()}-{commit}"
+    if ablate:
+        name += f"-ablate-{ablate}"
     if replay:
         name += f"-replay-{now:%H%M%S}"
     return repo_root / "eval/results" / name

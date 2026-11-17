@@ -21,3 +21,7 @@ packages = ["eval"]
 [tool.pytest.ini_options]
 testpaths = ["eval/tests"]
 pythonpath = ["."]
+
+[tool.mypy]
+# Benchmark clones are third-party code checked out at run time (§3.3).
+exclude = ["^eval/benchmarks/.*/repo/"]
