@@ -19,6 +19,11 @@ def build_parser() -> argparse.ArgumentParser:
     commands.add_parser("check-truth", help="verify ground-truth evidence at declared locations")
     accept = commands.add_parser("accept-baseline", help="accept a complete, successful eval run as baseline")
     accept.add_argument("results_dir")
+    implement = commands.add_parser("implement", help="run the implement-skill eval on tests/fixtures/*/implement.yaml (§7.7)")
+    implement.add_argument("--agent", choices=("claude", "codex"))
+    implement.add_argument("--runs", type=int)
+    implement.add_argument("--results-dir", type=Path, help="write the eval run here (default: eval/results/<date>-<commit>-implement/)")
+    implement.add_argument("--allow-api-key", action="store_true")
     run_parser = commands.add_parser("run", help="run or replay checker trials")
     run_parser.add_argument("--tier", choices=("fast", "full"), required=True)
     run_parser.add_argument("--skill")
@@ -59,6 +64,24 @@ def main() -> int:
             print(error)
             return 1
         return 0
+
+    if arguments.command == "implement":
+        from eval.implement import ImplementOptions, run_implement
+
+        try:
+            results_dir, exit_code = run_implement(
+                ImplementOptions(
+                    agent=arguments.agent,
+                    runs=arguments.runs,
+                    results_dir=arguments.results_dir,
+                    allow_api_key=arguments.allow_api_key,
+                )
+            )
+        except (OSError, ValueError, subprocess.CalledProcessError) as error:
+            print(error)
+            return 1
+        print(results_dir)
+        return exit_code
 
     if arguments.command == "run":
         try:
