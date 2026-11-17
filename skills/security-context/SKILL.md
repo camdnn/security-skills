@@ -18,6 +18,8 @@ Write these target-project artifacts:
 - `docs/security/ANSWERS.md`: question, recommended answer, actual or assumed answer, source, and date.
 - `docs/security/PLAN.md`: pre-findings and prioritized scan focus (about 100 lines maximum).
 
+Use [the index template](references/index-template.md), [module template](references/module-template.md), and [question bank](references/question-bank.md) so the artifacts have a consistent structure.
+
 Never copy secret values into context artifacts. Record only a location and the kind of secret. When the project is not a Node.js/TypeScript Express app, state the scope limitation in `PLAN.md` rather than pretending support.
 
 Before finishing, confirm the files are within their size limits and summarize the context confidence and any unanswered assumptions.
