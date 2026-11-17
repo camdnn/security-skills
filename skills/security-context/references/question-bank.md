@@ -11,7 +11,7 @@ For each question, first derive the recommended answer from the code, as the
 `Recommended answer` line says. Then:
 
 - **Interactive:** skip the question when the code settles it, and record the
-  derived answer with source `code`. Otherwise ask it and state your recommended
+  derived answer with status `derived` and who `code`. Otherwise ask it and state your recommended
   answer with it.
 - **Unattended** (`docs/security/ANSWERS.input.md` exists): never ask. Use the
   canned answer under the question's ID. With no canned answer, use the

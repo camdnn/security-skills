@@ -58,12 +58,16 @@ def test_questions_depend_only_on_earlier_questions():
     assert out_of_order == []
 
 
+def fixture_answers() -> str:
+    return (ROOT / "tests/fixtures/context/answers.md").read_text(encoding="utf-8")
+
+
 def answer_ids(markdown: str) -> list[str]:
     return re.findall(r"^## (\S+)\s*$", markdown, re.MULTILINE)
 
 
 def test_context_fixture_answers_are_keyed_by_question_bank_ids():
-    answers = (ROOT / "tests/fixtures/context/answers.md").read_text(encoding="utf-8")
+    answers = fixture_answers()
     known = {question_id for question_id, _ in bank()}
     ids = answer_ids(answers)
 
@@ -72,7 +76,7 @@ def test_context_fixture_answers_are_keyed_by_question_bank_ids():
 
 
 def test_context_fixture_answers_state_its_business_rules():
-    answers = (ROOT / "tests/fixtures/context/answers.md").read_text(encoding="utf-8")
+    answers = fixture_answers()
 
     assert re.search(r"\bBR-1\b", answers)
     assert re.search(r"\bBR-2\b", answers)

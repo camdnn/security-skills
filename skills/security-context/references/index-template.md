@@ -6,9 +6,12 @@ dropping a section. Replace each `<...>` placeholder; write "Unknown" rather
 than guessing. Cite the [question bank](question-bank.md) ID each section draws
 on, so a reader can find the answer in `ANSWERS.md`.
 
-Business rules live in this file in v1. Number them `BR-1`, `BR-2`, … in the
-order you record them and keep a number once given: findings cite it in
+Business rules live in this file in v1. Keep any `BR-n` number a canned or
+developer answer gives; number the other rules after the highest one, in the
+order you record them, and keep a number once given: findings cite it in
 `context_ref`. State each rule as intended behaviour, not as what the code does.
+
+The module table's Link column stays `—` until module files exist.
 
 Never write secret values here: give only the location and kind of secret.
 
@@ -17,7 +20,7 @@ Never write secret values here: give only the location and kind of secret.
 ```markdown
 # Security context
 
-Commit: <short SHA or "unknown"> · Date: <YYYY-MM-DD> · Mode: <interactive | unattended> · Confidence: <high | medium | low>
+Commit: <short SHA or "unknown"> · Date: <YYYY-MM-DD> · Interview: <interactive | unattended> · Confidence: <high | medium | low>
 
 ## Purpose
 
@@ -63,7 +66,7 @@ Scope: <paths in scope>; excluded: <paths excluded>. (SCOPE)
 
 ## Modules
 
-| Module | Path | Risk | Owner | Last verified commit |
-| --- | --- | --- | --- | --- |
-| <name> | `<path>/` | <high / medium / low> | <owner or "unknown"> | <short SHA> |
+| Module | Path | Risk | Owner | Link | Last verified commit |
+| --- | --- | --- | --- | --- | --- |
+| <name> | `<path>/` | <high / medium / low> | <owner or "unknown"> | — | <short SHA> |
 ```
