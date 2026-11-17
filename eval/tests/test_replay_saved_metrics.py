@@ -17,7 +17,7 @@ DATA = Path(__file__).parent / "data"
 
 def test_replay_eval_run_over_recorded_findings_gives_the_saved_metrics(tmp_path: Path):
     results, _ = run(
-        RunOptions(tier="fast", runs=1, replay_dir=DATA / "replay", results_dir=tmp_path, baseline_check=False)
+        RunOptions(tier="fast", mode="code-only", runs=1, replay_dir=DATA / "replay", results_dir=tmp_path, baseline_check=False)
     )
 
     assert json.loads((results / "metrics.json").read_text()) == json.loads((DATA / "replay-metrics.json").read_text())

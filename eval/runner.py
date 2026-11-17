@@ -156,11 +156,11 @@ def execute_trial(
 
         shutil.copytree(target.root, copy_root, ignore=ignore_trial_metadata)
         install_trial_skills(copy_root)
-        initialize_trial_git(copy_root)
         if mode == "context" and target.answers_path is not None:
             destination = copy_root / "docs/security/ANSWERS.input.md"
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(target.answers_path, destination)
+        initialize_trial_git(copy_root)
         context_files_before = context_file_fingerprints(copy_root, config["context_file_line_limits"]) if mode == "context" else {}
         command = agent_command or default_agent_command(config)
         for prompt in trial_prompts(agent, mode):
@@ -358,7 +358,7 @@ def guard_api_keys(allow_api_key: bool) -> None:
 TRIAL_PROMPTS: dict[Agent, tuple[str, str]] = {
     "claude": ("/analyzer:security-context", "/analyzer:security-scan"),
     "codex": (
-        "Run security-context unattended, using docs/security/ANSWERS.input.md when present.",
+        "Run security-context unattended. First read docs/security/ANSWERS.input.md; it is present and contains the developer answers.",
         "Run security-scan and write findings to docs/security/findings.json.",
     ),
 }

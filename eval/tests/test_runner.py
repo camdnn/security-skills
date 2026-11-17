@@ -441,7 +441,7 @@ def test_full_run_uses_both_modes_for_a_fixture_with_answers(tmp_path: Path):
     assert sorted(json.loads(path.read_text())["mode"] for path in (results / "trials").glob("*.json")) == ["code-only", "context"]
     assert prompts == [
         "Run security-scan and write findings to docs/security/findings.json.",
-        "Run security-context unattended, using docs/security/ANSWERS.input.md when present.",
+        "Run security-context unattended. First read docs/security/ANSWERS.input.md; it is present and contains the developer answers.",
         "Run security-scan and write findings to docs/security/findings.json.",
     ]
 
