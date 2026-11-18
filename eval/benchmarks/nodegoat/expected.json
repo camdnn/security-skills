@@ -13,7 +13,7 @@
       "evidence": "eval(req.body.preTax)",
       "requires_context": false,
       "description": "Contribution percentages are parsed with eval() on request body fields (server-side JavaScript injection).",
-      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+      "source": "NodeGoat c5cb68a code review"
     },
     {
       "id": "NG-NOSQL-WHERE",
@@ -28,7 +28,7 @@
       "evidence": "this.stocks > '${threshold}'",
       "requires_context": false,
       "description": "The threshold query parameter is interpolated into a MongoDB $where expression.",
-      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+      "source": "NodeGoat c5cb68a code review"
     },
     {
       "id": "NG-IDOR-ALLOCATIONS",
@@ -43,7 +43,7 @@
       "evidence": "} = req.params;",
       "requires_context": true,
       "description": "Allocations are loaded for the userId in the URL rather than the session user, so any user can view anyone's allocations.",
-      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+      "source": "NodeGoat c5cb68a code review"
     },
     {
       "id": "NG-BENEFITS-ADMIN",
@@ -58,7 +58,7 @@
       "evidence": "app.get(\"/benefits\", isLoggedIn, benefitsHandler.displayBenefits)",
       "requires_context": true,
       "description": "The benefits pages, which list and change every user's benefit start date, check only that the caller is logged in, not that they are an admin.",
-      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+      "source": "NodeGoat c5cb68a code review"
     },
     {
       "id": "NG-OPEN-REDIRECT",
@@ -73,7 +73,7 @@
       "evidence": "res.redirect(req.query.url)",
       "requires_context": false,
       "description": "/learn redirects to any URL given in the url query parameter.",
-      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+      "source": "NodeGoat c5cb68a code review"
     },
     {
       "id": "NG-SSRF",
@@ -88,7 +88,7 @@
       "evidence": "const url = req.query.url + req.query.symbol;",
       "requires_context": false,
       "description": "The research page fetches a server-side request to a URL built from query parameters and echoes the body.",
-      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+      "source": "NodeGoat c5cb68a code review"
     },
     {
       "id": "NG-PLAINTEXT-PASSWORD",
@@ -108,7 +108,7 @@
       "evidence": "password //received from request param",
       "requires_context": false,
       "description": "Passwords are stored and compared in plaintext.",
-      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+      "source": "NodeGoat c5cb68a code review"
     },
     {
       "id": "NG-SSN-CLEARTEXT",
@@ -123,7 +123,7 @@
       "evidence": "user.ssn = ssn;",
       "requires_context": false,
       "description": "Social security numbers and dates of birth are stored unencrypted.",
-      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+      "source": "NodeGoat c5cb68a code review"
     },
     {
       "id": "NG-HARDCODED-SECRETS",
@@ -132,13 +132,13 @@
         {
           "file": "config/env/all.js",
           "start_line": 8,
-          "end_line": 9
+          "end_line": 8
         }
       ],
       "evidence": "cookieSecret: \"session_cookie_secret_key_here\"",
       "requires_context": false,
-      "description": "The session cookie secret and the crypto key are hard-coded in the shared config.",
-      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+      "description": "The session cookie secret is hard-coded in the shared config and used to sign session cookies (server.js:82).",
+      "source": "NodeGoat c5cb68a code review"
     },
     {
       "id": "NG-SESSION-COOKIE",
@@ -152,8 +152,8 @@
       ],
       "evidence": "secret: cookieSecret,",
       "requires_context": false,
-      "description": "The session cookie is configured without httpOnly or secure flags and keeps the default cookie name.",
-      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+      "description": "The session cookie is configured without the secure flag and keeps the default connect.sid cookie name (express-session sets httpOnly by default).",
+      "source": "NodeGoat c5cb68a code review"
     },
     {
       "id": "NG-NO-CSRF",
@@ -168,7 +168,7 @@
       "evidence": "app.use(session({",
       "requires_context": false,
       "description": "State-changing forms (profile, contributions, benefits, memos) have no CSRF protection.",
-      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+      "source": "NodeGoat c5cb68a code review"
     },
     {
       "id": "NG-XSS-AUTOESCAPE",
@@ -183,7 +183,7 @@
       "evidence": "autoescape: false",
       "requires_context": false,
       "description": "Template autoescaping is turned off globally, so every interpolated user value renders as HTML.",
-      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+      "source": "NodeGoat c5cb68a code review"
     },
     {
       "id": "NG-SESSION-FIXATION",
@@ -198,7 +198,7 @@
       "evidence": "req.session.userId = user._id;",
       "requires_context": false,
       "description": "Login reuses the existing session ID instead of regenerating it (session fixation).",
-      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+      "source": "NodeGoat c5cb68a code review"
     },
     {
       "id": "NG-LOG-INJECTION",
@@ -213,7 +213,7 @@
       "evidence": "console.log(\"Error: attempt to login with invalid user: \", userName);",
       "requires_context": false,
       "description": "Failed logins log the raw user name, allowing forged log lines.",
-      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+      "source": "NodeGoat c5cb68a code review"
     },
     {
       "id": "NG-DEP-MARKED",
@@ -228,7 +228,7 @@
       "evidence": "\"marked\": \"0.3.5\"",
       "requires_context": false,
       "description": "marked 0.3.5 has known sanitizer bypasses leading to XSS.",
-      "source": "NodeGoat c5cb68a code review (draft, needs human verification)"
+      "source": "NodeGoat c5cb68a code review"
     }
   ]
 }
