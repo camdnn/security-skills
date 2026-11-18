@@ -27,6 +27,15 @@ subcommand lists its flags.
   picks the file. Commit each one on its own, with a message that names the
   agent and says why (§8 item 7). Evaluate a `SKILL.md` change on your own
   agent and name it in the metrics diff.
+- **Draft ground truth.** New ground truth lands as `expected.draft.json`
+  (benchmarks, the prompt-injection fixture), which the checker ignores. A human
+  verifies each entry against the code, then renames it to `expected.json` on
+  its own branch and PR with the `ground-truth-change` label.
+- **Benchmarks and the implement eval.** `run --tier full` also clones and
+  scans each `eval/benchmarks/*/` that has an `expected.json`;
+  `python -m eval implement` runs the §7.7 implement eval. Both spend usage.
+  Use `--target <name>` to run one target, e.g.
+  `run --tier full --target juice-shop` (6 trials instead of the whole tier).
 - **A sudden perfect score is suspect.** Check that nothing touched an
   `expected.json`, a fixture, or a file in `eval/baselines/` (§8 item 6).
 
@@ -50,15 +59,19 @@ The evaluator uses Claude Code's non-interactive `-p`, `--output-format json`,
 `--model`, `--plugin-dir`, `--allowedTools` and `--disallowedTools` flags, and
 isolates trials with `--strict-mcp-config` and `--setting-sources project`
 (ADR-0002). Claude trials invoke `/analyzer:security-scan` (ADR-0003). These
-flags were checked against `claude --help` for Claude Code `2.1.322` on
-2026-11-10. The Claude evaluator pin is `claude-sonnet-5-5`, verified by a
-successful local inference that day. Codex trials use `codex exec` with
+flags were checked against `claude --help` for Claude Code `2.1.326` on
+2026-11-17 (first checked on `2.1.322`, 2026-11-10). The Claude evaluator pin
+is `claude-sonnet-5-5`, verified by a live fast-tier eval run on 2026-11-17.
+Implement trials (`python -m eval implement`) also allow `Bash(git:*)`,
+`Bash(node:*)` and `Bash(npm test:*)`, because `implement` edits code and runs
+tests. Codex trials use `codex exec` with
 `--sandbox workspace-write`, `--cd`, and a pinned model. `codex exec` is
 non-interactive with that sandbox; `--approve-for-me` cannot be combined with it.
-These flags were checked against the installed Codex CLI `0.166.0` on
-2026-11-05. The current ChatGPT-account evaluator pin is `gpt-5.6-terra`,
-verified by a successful local inference; re-check both before changing the
-runner.
+These flags were checked against the installed Codex CLI `0.169.0` on
+2026-11-17 (first checked on `0.166.0`, 2026-11-05). The current ChatGPT-account evaluator pin is `gpt-5.6-terra`,
+verified by a successful local inference on 2026-11-05; it was not re-verified
+on 2026-11-17 because the workspace was out of credits. Re-check both before
+changing the runner.
 
 ### Local Python
 

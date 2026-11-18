@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import fnmatch
 import json
 import subprocess
 from pathlib import Path
@@ -41,6 +42,16 @@ def changed_paths(root: Path, commit: str) -> set[str]:
     return {line for line in result.stdout.splitlines() if line}
 
 
+def covered(pattern: str, path: str) -> bool:
+    """Return whether a ``covers:`` entry (file, folder or glob) includes ``path``."""
+
+    pattern = pattern.strip().strip("\"'")
+    if any(character in pattern for character in "*?["):
+        return fnmatch.fnmatchcase(path, pattern)
+    folder = pattern.rstrip("/")
+    return path == folder or path.startswith(folder + "/")
+
+
 def stale_modules(root: Path) -> list[dict[str, object]]:
     modules = root / "docs/security/modules"
     if not modules.is_dir():
@@ -55,7 +66,7 @@ def stale_modules(root: Path) -> list[dict[str, object]]:
             continue
         if not isinstance(covers, list):
             covers = []
-        changed = sorted(set(covers) & changed_paths(root, commit))
+        changed = sorted(path for path in changed_paths(root, commit) if any(covered(str(p), path) for p in covers))
         if changed:
             stale.append({"module": module.relative_to(root).as_posix(), "changed_paths": changed})
     return stale

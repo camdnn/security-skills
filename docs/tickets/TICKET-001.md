@@ -267,6 +267,8 @@ Assumes ~10 hrs/week each. **P1 = context side**, **P2 = runtime + checker side*
 | `docs/security/SECURE-CODING-RULES.md` | Markdown | `secure-coding-guide`        |
 | `docs/security/IMPLEMENT-LOG.md`       | Markdown | `implement`                  |
 | `docs/security/ANSWERS.input.md`       | Markdown | **Checker only** (unattended mode) |
+| `docs/security/implement-results.json` | JSON     | `implement` (per finding: status and its tests; read by the implement eval) |
+| `docs/security/IMPLEMENT.input.md`     | Markdown | **Checker only** (unattended `implement` selection) |
 
 ---
 
@@ -318,9 +320,9 @@ benchmark.yaml ───┤
 | `fast` | All `tests/fixtures/*`            | After every `SKILL.md` change     | `claude`      | Low (small files) |
 | `full` | Fixtures + benchmarks, both modes | Weekly + before merging to `main` | `codex`       | High (Juice Shop) |
 
-Flags: `--tier fast|full` (required), `--skill <name>` (only fixtures for that check), `--mode code-only|context`, `--runs N`, `--agent claude|codex`, `--replay <dir>`, `--resume <results-dir>`, `--results-dir <dir>` (write a new eval run there instead of the default folder: `eval/results/<date>-<commit>/` for live trials, a fresh gitignored `eval/results/<date>-<commit>-replay-<HHMMSS>/` per replay eval run; not with `--resume`), `--no-baseline-check`, `--allow-api-key`.
+Flags: `--tier fast|full` (required), `--skill <name>` (only fixtures for that check), `--target <name>` (only that fixture or benchmark, by folder name; repeatable; combines with `--skill`), `--mode code-only|context`, `--runs N`, `--agent claude|codex`, `--replay <dir>`, `--resume <results-dir>`, `--results-dir <dir>` (write a new eval run there instead of the default folder: `eval/results/<date>-<commit>/` for live trials, a fresh gitignored `eval/results/<date>-<commit>-replay-<HHMMSS>/` per replay eval run; not with `--resume`), `--ablate contracts` (strip module ASSUMES / GUARANTEES contracts between `security-context` and `security-scan`, for the week 4 ablation; context mode only; never accepted as a baseline; default folder gets an `-ablate-contracts` suffix), `--no-baseline-check`, `--allow-api-key`.
 
-Other commands: `python -m eval check-truth`, `python -m eval accept-baseline <results-dir>`.
+Other commands: `python -m eval check-truth`, `python -m eval accept-baseline <results-dir>`, `python -m eval implement [--agent] [--runs] [--results-dir] [--allow-api-key]` (the §7.7 implement eval over every `tests/fixtures/*/implement.yaml`).
 
 Exit codes: `0` ok, `1` regression, `2` incomplete eval run or bad flag. A new eval run refuses (exit `2`) a folder that already holds trial records unless `--resume` names it.
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import subprocess
 from pathlib import Path
 
 from eval.report import accept_baseline
@@ -18,9 +19,20 @@ def build_parser() -> argparse.ArgumentParser:
     commands.add_parser("check-truth", help="verify ground-truth evidence at declared locations")
     accept = commands.add_parser("accept-baseline", help="accept a complete, successful eval run as baseline")
     accept.add_argument("results_dir")
+    implement = commands.add_parser("implement", help="run the implement-skill eval on tests/fixtures/*/implement.yaml (§7.7)")
+    implement.add_argument("--agent", choices=("claude", "codex"))
+    implement.add_argument("--runs", type=int)
+    implement.add_argument("--results-dir", type=Path, help="write the eval run here (default: eval/results/<date>-<commit>-implement/)")
+    implement.add_argument("--allow-api-key", action="store_true")
     run_parser = commands.add_parser("run", help="run or replay checker trials")
     run_parser.add_argument("--tier", choices=("fast", "full"), required=True)
     run_parser.add_argument("--skill")
+    run_parser.add_argument(
+        "--target",
+        action="append",
+        default=[],
+        help="only this fixture or benchmark, by folder name (repeatable), e.g. --target juice-shop",
+    )
     run_parser.add_argument("--mode", choices=("code-only", "context"))
     run_parser.add_argument("--runs", type=int)
     run_parser.add_argument("--agent", choices=("claude", "codex"))
@@ -31,6 +43,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--results-dir",
         type=Path,
         help="write a new eval run to this folder (default: eval/results/<date>-<commit>/, or a fresh -replay- folder for a replay eval run)",
+    )
+    run_parser.add_argument(
+        "--ablate",
+        choices=("contracts",),
+        help="remove a plugin feature before the scan to measure its effect (contracts: module ASSUMES/GUARANTEES)",
     )
     run_parser.add_argument("--no-baseline-check", action="store_true")
     run_parser.add_argument("--allow-api-key", action="store_true")
@@ -54,6 +71,24 @@ def main() -> int:
             return 1
         return 0
 
+    if arguments.command == "implement":
+        from eval.implement import ImplementOptions, run_implement
+
+        try:
+            results_dir, exit_code = run_implement(
+                ImplementOptions(
+                    agent=arguments.agent,
+                    runs=arguments.runs,
+                    results_dir=arguments.results_dir,
+                    allow_api_key=arguments.allow_api_key,
+                )
+            )
+        except (OSError, ValueError, subprocess.CalledProcessError) as error:
+            print(error)
+            return 1
+        print(results_dir)
+        return exit_code
+
     if arguments.command == "run":
         try:
             results_dir, result = run(
@@ -68,12 +103,14 @@ def main() -> int:
                     results_dir=arguments.results_dir,
                     baseline_check=not arguments.no_baseline_check,
                     allow_api_key=arguments.allow_api_key,
+                    ablate=arguments.ablate,
+                    targets=tuple(arguments.target),
                 )
             )
         except ResultsDirInUse as error:
             print(error)
             return 2
-        except (OSError, ValueError) as error:
+        except (OSError, ValueError, subprocess.CalledProcessError) as error:
             print(error)
             return 1
         print(results_dir)

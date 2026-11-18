@@ -1,0 +1,115 @@
+{
+  "duration_seconds": 24.937065276000112,
+  "false_negatives": [
+    {
+      "cwe": "CWE-330",
+      "description": "A reset token uses predictable randomness.",
+      "evidence": "Math.random()",
+      "id": "CRYPTO-01",
+      "locations": [
+        {
+          "end_line": 1,
+          "file": "vulnerable/token.ts",
+          "start_line": 1
+        }
+      ],
+      "requires_context": false,
+      "source": "Hand-made crypto-check fixture"
+    }
+  ],
+  "false_positives": [
+    {
+      "confidence": "medium",
+      "context_ref": null,
+      "cwe": "CWE-338",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 2,
+        "exploitability": 2,
+        "reproducibility": 3,
+        "score": 3.0
+      },
+      "end_line": 1,
+      "evidence": "export function resetToken() { return Math.random().toString(36).slice(2); }",
+      "file": "vulnerable/token.ts",
+      "fix": "Generate the token with a CSPRNG, as safe/token.ts does: randomBytes(32).toString(\"hex\") from node:crypto (or crypto.randomUUID()). Store only a hash of the token, give it a short expiry, and make it single-use.",
+      "id": "SEC-0001",
+      "line": 1,
+      "mode": "code-only",
+      "owasp": "A02:2021",
+      "skill": "crypto-check",
+      "title": "Password-reset token generated with Math.random()",
+      "trace": [],
+      "why": "Math.random() is not a cryptographically secure generator; its output can be predicted from observed values. A reset token built from it can be guessed or reconstructed, which can allow account takeover if the token authorizes a password reset."
+    }
+  ],
+  "id": "crypto-check-code-only-3",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "crypto": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        },
+        "unknown": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        }
+      },
+      "mode": {
+        "code-only": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 0
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        }
+      },
+      "skill": {
+        "crypto-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 0
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 1,
+      "false_positives": 1,
+      "true_positives": 0
+    },
+    "fixture_passed": false,
+    "matched_truth": [],
+    "rates": {
+      "f1": null,
+      "precision": 0.0,
+      "recall": 0.0
+    },
+    "run_id": 3,
+    "truth_entries": [
+      [
+        "crypto-check",
+        "CRYPTO-01"
+      ]
+    ]
+  },
+  "mode": "code-only",
+  "replay": false,
+  "run": 3,
+  "status": "ok",
+  "target": "crypto-check"
+}

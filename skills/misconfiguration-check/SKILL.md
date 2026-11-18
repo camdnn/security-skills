@@ -14,6 +14,10 @@ Report configuration that directly weakens a security boundary:
 - CWE-319 for explicitly disabling TLS verification or accepting invalid certificates.
 - CWE-614 when a session cookie used over HTTPS lacks `secure`.
 - CWE-798 for a real default credential reachable in application configuration.
+- CWE-548 when the application serves a directory listing of a folder holding backups, keys, logs or other non-public files.
+- CWE-611 when XML from a request is parsed with external entities or DTD loading enabled.
+
+Use only these CWE IDs.
 
 Trace framework defaults and central middleware before reporting. Do not report `origin: "*"` as credentialed-CORS exposure: browsers reject wildcard allow-origin responses when credentials are requested. Do not infer a missing security header, cookie attribute, or production setting when the application does not own the relevant response or cookie. Prefer a low-confidence finding when deployment evidence is incomplete.
 

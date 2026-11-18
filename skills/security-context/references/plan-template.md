@@ -20,6 +20,12 @@ Commit: <short SHA or "unknown"> · Date: <YYYY-MM-DD>
 | --- | --- | --- | --- | --- |
 | P-1 | BR-<n> | `<file>:<start>-<end>` | <what the rule requires and what the code does instead> | <access-control-check / ...> |
 
+## Unverified contract lines
+
+| Module | Contract line | Why unverified |
+| --- | --- | --- |
+| <module> | <ASSUMES / GUARANTEES line> | <what the code does not show> |
+
 ## Recommended scan focus
 
 1. <Entry point, module or check to scan first, and why (risk, sensitive data, a pre-finding)>.

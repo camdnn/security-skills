@@ -1,0 +1,464 @@
+{
+  "truth": [
+    {
+      "id": "JS-SQLI-LOGIN",
+      "cwe": "CWE-89",
+      "locations": [
+        {
+          "file": "routes/login.ts",
+          "start_line": 34,
+          "end_line": 34
+        }
+      ],
+      "evidence": "SELECT * FROM Users WHERE email = '${req.body.email || ''}'",
+      "requires_context": false,
+      "description": "Login builds its SQL query by interpolating the email and password hash from the request body.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-SQLI-SEARCH",
+      "cwe": "CWE-89",
+      "locations": [
+        {
+          "file": "routes/search.ts",
+          "start_line": 23,
+          "end_line": 23
+        }
+      ],
+      "evidence": "name LIKE '%${criteria}%'",
+      "requires_context": false,
+      "description": "Product search interpolates the q query parameter into a raw SQL LIKE clause.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-NOSQL-TRACK",
+      "cwe": "CWE-943",
+      "locations": [
+        {
+          "file": "routes/trackOrder.ts",
+          "start_line": 18,
+          "end_line": 18
+        }
+      ],
+      "evidence": "$where: `this.orderId === '${id}'`",
+      "requires_context": false,
+      "description": "Order tracking builds a MongoDB-style $where JavaScript expression from the id route parameter.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-NOSQL-REVIEWS",
+      "cwe": "CWE-943",
+      "locations": [
+        {
+          "file": "routes/showProductReviews.ts",
+          "start_line": 36,
+          "end_line": 36
+        }
+      ],
+      "evidence": "$where: 'this.product == ' + id",
+      "requires_context": false,
+      "description": "Review listing concatenates the id route parameter into a $where expression.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-NOSQL-UPDATE",
+      "cwe": "CWE-943",
+      "locations": [
+        {
+          "file": "routes/updateProductReviews.ts",
+          "start_line": 17,
+          "end_line": 20
+        }
+      ],
+      "evidence": "{ _id: req.body.id }",
+      "requires_context": false,
+      "description": "Review update passes req.body.id straight into the query selector with multi:true, so an operator object updates every review.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-RCE-B2B",
+      "cwe": "CWE-94",
+      "locations": [
+        {
+          "file": "routes/b2bOrder.ts",
+          "start_line": 21,
+          "end_line": 23
+        }
+      ],
+      "evidence": "vm.runInContext('safeEval(orderLinesData)', sandbox, { timeout: 2000 })",
+      "requires_context": false,
+      "description": "B2B orders evaluate client-supplied orderLinesData as code with notevil inside a vm context, which is not a security boundary.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-RCE-PROFILE",
+      "cwe": "CWE-94",
+      "locations": [
+        {
+          "file": "routes/userProfile.ts",
+          "start_line": 60,
+          "end_line": 65
+        }
+      ],
+      "evidence": "username = eval(code)",
+      "requires_context": false,
+      "description": "The profile page evaluates a #{...} expression taken from the user-controlled username.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-SSRF-IMAGE",
+      "cwe": "CWE-918",
+      "locations": [
+        {
+          "file": "routes/profileImageUrlUpload.ts",
+          "start_line": 19,
+          "end_line": 24
+        }
+      ],
+      "evidence": "const response = await fetch(url)",
+      "requires_context": false,
+      "description": "Profile image upload fetches an arbitrary user-supplied URL from the server.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-REDIRECT",
+      "cwe": "CWE-601",
+      "locations": [
+        {
+          "file": "lib/insecurity.ts",
+          "start_line": 133,
+          "end_line": 138
+        },
+        {
+          "file": "routes/redirect.ts",
+          "start_line": 15,
+          "end_line": 18
+        }
+      ],
+      "evidence": "allowed = allowed || url.includes(allowedUrl)",
+      "requires_context": false,
+      "description": "The redirect allowlist uses substring matching, so any URL containing an allowed URL passes and /redirect sends the user there.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-LFR-ERASURE",
+      "cwe": "CWE-22",
+      "locations": [
+        {
+          "file": "routes/dataErasure.ts",
+          "start_line": 103,
+          "end_line": 109
+        }
+      ],
+      "evidence": "path.resolve(req.body.layout)",
+      "requires_context": false,
+      "description": "The data-erasure result renders with a layout path taken from the request body, enabling local file read via the template engine.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-ZIPSLIP",
+      "cwe": "CWE-22",
+      "locations": [
+        {
+          "file": "routes/fileUpload.ts",
+          "start_line": 30,
+          "end_line": 34
+        }
+      ],
+      "evidence": "fs.createWriteStream('uploads/complaints/' + fileName)",
+      "requires_context": false,
+      "description": "Zip entries are written using their archive path; the includes(path.resolve('.')) check still allows ../ escapes inside the application folder.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-XXE",
+      "cwe": "CWE-611",
+      "locations": [
+        {
+          "file": "lib/xml.ts",
+          "start_line": 35,
+          "end_line": 38
+        },
+        {
+          "file": "routes/fileUpload.ts",
+          "start_line": 78,
+          "end_line": 80
+        }
+      ],
+      "evidence": "XML_PARSE_NOENT",
+      "requires_context": false,
+      "description": "Uploaded XML is parsed with entity substitution and external DTD loading enabled.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-FORGED-REVIEW-EDIT",
+      "cwe": "CWE-639",
+      "locations": [
+        {
+          "file": "routes/updateProductReviews.ts",
+          "start_line": 16,
+          "end_line": 18
+        }
+      ],
+      "evidence": "const user = security.authenticatedUsers.from(req)",
+      "requires_context": true,
+      "description": "Any logged-in user can edit any review: the update never checks that the review's author is the caller.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-FORGED-REVIEW-AUTHOR",
+      "cwe": "CWE-639",
+      "locations": [
+        {
+          "file": "routes/createProductReviews.ts",
+          "start_line": 23,
+          "end_line": 27
+        }
+      ],
+      "evidence": "author: req.body.author",
+      "requires_context": true,
+      "description": "New reviews take their author from the request body instead of the authenticated user, so users can post as someone else.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-BASKET-IDOR",
+      "cwe": "CWE-639",
+      "locations": [
+        {
+          "file": "routes/basket.ts",
+          "start_line": 18,
+          "end_line": 19
+        }
+      ],
+      "evidence": "BasketModel.findOne({ where: { id }",
+      "requires_context": true,
+      "description": "Any authenticated user can read any basket by id; the basket is not checked against the caller's own basket.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-BASKET-HPP",
+      "cwe": "CWE-639",
+      "locations": [
+        {
+          "file": "routes/basketItems.ts",
+          "start_line": 37,
+          "end_line": 43
+        }
+      ],
+      "evidence": "BasketId: basketIds[basketIds.length - 1]",
+      "requires_context": true,
+      "description": "Adding an item checks the first BasketId in the body but saves the last one, so a duplicated key adds items to another user's basket.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-RECYCLE-IDOR",
+      "cwe": "CWE-639",
+      "locations": [
+        {
+          "file": "routes/recycles.ts",
+          "start_line": 12,
+          "end_line": 15
+        }
+      ],
+      "evidence": "id: JSON.parse(req.params.id)",
+      "requires_context": true,
+      "description": "GET /api/Recycles/:id is unauthenticated and parses the id as JSON, returning other users' recycle requests (with addresses).",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-USER-LIST",
+      "cwe": "CWE-862",
+      "locations": [
+        {
+          "file": "routes/authenticatedUsers.ts",
+          "start_line": 12,
+          "end_line": 17
+        }
+      ],
+      "evidence": "const users = await UserModel.findAll()",
+      "requires_context": true,
+      "description": "Any authenticated user can list every user account with emails, roles and token timestamps; listing users is an admin function.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-DELUXE-FREE",
+      "cwe": "CWE-863",
+      "locations": [
+        {
+          "file": "routes/deluxe.ts",
+          "start_line": 24,
+          "end_line": 43
+        }
+      ],
+      "evidence": "await user.update({ role: security.roles.deluxe",
+      "requires_context": true,
+      "description": "Deluxe upgrade is granted when paymentMode is neither wallet nor card, so membership can be obtained without paying.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-ROLE-MASS-ASSIGN",
+      "cwe": "CWE-915",
+      "locations": [
+        {
+          "file": "models/user.ts",
+          "start_line": 82,
+          "end_line": 94
+        }
+      ],
+      "evidence": "this.setDataValue('role', role)",
+      "requires_context": true,
+      "description": "The user model accepts any role from the request on registration, so a client can self-register as admin.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-PRODUCT-PUT",
+      "cwe": "CWE-862",
+      "locations": [
+        {
+          "file": "server.ts",
+          "start_line": 401,
+          "end_line": 403
+        }
+      ],
+      "evidence": "// app.put('/api/Products/:id', security.isAuthorized())",
+      "requires_context": true,
+      "description": "The authorization guard for updating products is commented out, so anyone can modify products through the generated REST API.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-JWT-PRIVATE-KEY",
+      "cwe": "CWE-798",
+      "locations": [
+        {
+          "file": "lib/insecurity.ts",
+          "start_line": 21,
+          "end_line": 21
+        }
+      ],
+      "evidence": "const privateKey = '-----BEGIN RSA PRIVATE KEY-----",
+      "requires_context": false,
+      "description": "The RSA private key that signs every JWT is hard-coded in source.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-COOKIE-SECRET",
+      "cwe": "CWE-798",
+      "locations": [
+        {
+          "file": "server.ts",
+          "start_line": 321,
+          "end_line": 321
+        }
+      ],
+      "evidence": "cookieParser('kekse')",
+      "requires_context": false,
+      "description": "The cookie-signing secret is hard-coded.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-MD5-PASSWORD",
+      "cwe": "CWE-916",
+      "locations": [
+        {
+          "file": "models/user.ts",
+          "start_line": 72,
+          "end_line": 73
+        },
+        {
+          "file": "lib/insecurity.ts",
+          "start_line": 41,
+          "end_line": 41
+        }
+      ],
+      "evidence": "security.hash(clearTextPassword)",
+      "requires_context": false,
+      "description": "Passwords are stored as unsalted MD5 hashes.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-DIR-LISTING",
+      "cwe": "CWE-548",
+      "locations": [
+        {
+          "file": "server.ts",
+          "start_line": 294,
+          "end_line": 294
+        },
+        {
+          "file": "server.ts",
+          "start_line": 302,
+          "end_line": 302
+        },
+        {
+          "file": "server.ts",
+          "start_line": 306,
+          "end_line": 306
+        }
+      ],
+      "evidence": "serveIndex(",
+      "requires_context": false,
+      "description": "Directory listings are served for /ftp, /encryptionkeys and /support/logs, exposing backups, keys and access logs.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-ERROR-DETAIL",
+      "cwe": "CWE-209",
+      "locations": [
+        {
+          "file": "server.ts",
+          "start_line": 722,
+          "end_line": 722
+        }
+      ],
+      "evidence": "app.use(errorhandler())",
+      "requires_context": false,
+      "description": "The development errorhandler middleware returns stack traces to clients in every environment.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-RATE-LIMIT-XFF",
+      "cwe": "CWE-307",
+      "locations": [
+        {
+          "file": "server.ts",
+          "start_line": 375,
+          "end_line": 378
+        }
+      ],
+      "evidence": "headers['X-Forwarded-For'] ?? ip",
+      "requires_context": false,
+      "description": "The password-reset rate limiter keys on the client-controlled X-Forwarded-For header, so rotating it bypasses the limit.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-PASSWORD-CHANGE",
+      "cwe": "CWE-620",
+      "locations": [
+        {
+          "file": "routes/changePassword.ts",
+          "start_line": 39,
+          "end_line": 39
+        }
+      ],
+      "evidence": "if (currentPassword && security.hash(currentPassword) !== loggedInUser.data.password)",
+      "requires_context": false,
+      "description": "Changing a password only checks the current password when one is supplied, so omitting it changes the password with just a token.",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "id": "JS-DEP-JSONWEBTOKEN",
+      "cwe": "CWE-1104",
+      "locations": [
+        {
+          "file": "package.json",
+          "start_line": 123,
+          "end_line": 123
+        }
+      ],
+      "evidence": "\"jsonwebtoken\": \"0.4.0\"",
+      "requires_context": false,
+      "description": "jsonwebtoken 0.4.0 has known signature-verification bypasses (CVE-2015-9235).",
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    }
+  ]
+}

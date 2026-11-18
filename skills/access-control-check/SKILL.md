@@ -12,6 +12,11 @@ For each state-changing or sensitive read endpoint, identify authentication, the
 - CWE-862 when a sensitive action has no authorization check.
 - CWE-639 when a user-controlled object identifier is used without proving ownership or permission (IDOR/BOLA).
 - CWE-918 when attacker-controlled input can choose an outbound network destination without an allowlist or equivalent restriction.
+- CWE-863 when an authorization or business-rule check exists but is wrong or bypassable (for example a privileged action granted when a required condition is skipped).
+- CWE-915 when a request can set a privileged field such as `role` or `isAdmin` through mass assignment.
+- CWE-601 when a redirect target comes from the request without an exact allowlist match.
+
+Use only these CWE IDs.
 
 Do not equate authentication with authorization. Do not report when a route has an applicable centralized policy or middleware; trace it before deciding. For context-dependent findings, cite the relevant `BR-n` in `context_ref`; otherwise use `null` and describe the missing evidence conservatively.
 

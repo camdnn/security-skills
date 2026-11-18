@@ -1,0 +1,166 @@
+[
+  {
+    "id": "SEC-0001",
+    "skill": "injection-check",
+    "title": "SQL injection in user lookup",
+    "cwe": "CWE-89",
+    "owasp": "A05:2025",
+    "file": "src/users.ts",
+    "line": 4,
+    "end_line": 4,
+    "evidence": "db.query(`SELECT ... WHERE name = '${name}'`)",
+    "why": "The name argument is interpolated into SQL, so a crafted name returns every user.",
+    "trace": [
+      {
+        "step": "source",
+        "file": "src/users.ts",
+        "line": 3,
+        "note": "name parameter"
+      },
+      {
+        "step": "sink",
+        "file": "src/users.ts",
+        "line": 4,
+        "note": "interpolated SQL"
+      }
+    ],
+    "context_ref": null,
+    "fix": "Pass name as a bound parameter: db.query('... WHERE name = ?', [name]).",
+    "dread": {
+      "damage": 4,
+      "reproducibility": 5,
+      "exploitability": 4,
+      "affected_users": 4,
+      "discoverability": 4,
+      "score": 4.2
+    },
+    "confidence": "high",
+    "mode": "code-only"
+  },
+  {
+    "id": "SEC-0002",
+    "skill": "access-control-check",
+    "title": "Order lookup has no ownership check (IDOR)",
+    "cwe": "CWE-639",
+    "owasp": "A01:2025",
+    "file": "src/orders.ts",
+    "line": 5,
+    "end_line": 5,
+    "evidence": "return orders.get(orderId)",
+    "why": "Any customer can read any order by id; only the owner or support should.",
+    "trace": [
+      {
+        "step": "source",
+        "file": "src/orders.ts",
+        "line": 4,
+        "note": "orderId parameter"
+      },
+      {
+        "step": "sink",
+        "file": "src/orders.ts",
+        "line": 5,
+        "note": "lookup without owner check"
+      }
+    ],
+    "context_ref": null,
+    "fix": "Return the order only when order.ownerId === user.id or user.role === 'support'.",
+    "dread": {
+      "damage": 4,
+      "reproducibility": 5,
+      "exploitability": 5,
+      "affected_users": 4,
+      "discoverability": 3,
+      "score": 4.2
+    },
+    "confidence": "high",
+    "mode": "code-only"
+  },
+  {
+    "id": "SEC-0003",
+    "skill": "file-handling-check",
+    "title": "Path traversal in report download",
+    "cwe": "CWE-22",
+    "owasp": "A01:2025",
+    "file": "src/files.ts",
+    "line": 5,
+    "end_line": 5,
+    "evidence": "path.join(reportsDir, name)",
+    "why": "A name such as ../../etc/passwd escapes the reports folder.",
+    "trace": [
+      {
+        "step": "source",
+        "file": "src/files.ts",
+        "line": 4,
+        "note": "name parameter"
+      },
+      {
+        "step": "sink",
+        "file": "src/files.ts",
+        "line": 6,
+        "note": "readFileSync of joined path"
+      }
+    ],
+    "context_ref": null,
+    "fix": "Resolve the path and refuse it unless it stays inside reportsDir.",
+    "dread": {
+      "damage": 4,
+      "reproducibility": 5,
+      "exploitability": 4,
+      "affected_users": 3,
+      "discoverability": 3,
+      "score": 3.8
+    },
+    "confidence": "high",
+    "mode": "code-only"
+  },
+  {
+    "id": "SEC-0004",
+    "skill": "secrets-check",
+    "title": "Hard-coded payment API key",
+    "cwe": "CWE-798",
+    "owasp": "A07:2025",
+    "file": "src/config.ts",
+    "line": 2,
+    "end_line": 2,
+    "evidence": "const apiKey = 'sk_live_\u2026EXAMPLE'",
+    "why": "A live-looking API key is committed to source.",
+    "trace": [],
+    "context_ref": null,
+    "fix": "Read the key from process.env.PAYMENT_API_KEY and fail if it is missing; rotate the exposed key.",
+    "dread": {
+      "damage": 4,
+      "reproducibility": 3,
+      "exploitability": 3,
+      "affected_users": 4,
+      "discoverability": 3,
+      "score": 3.4
+    },
+    "confidence": "high",
+    "mode": "code-only"
+  },
+  {
+    "id": "SEC-0005",
+    "skill": "dependency-check",
+    "title": "Vulnerable lodash version",
+    "cwe": "CWE-1104",
+    "owasp": "A03:2025",
+    "file": "package.json",
+    "line": 9,
+    "end_line": 9,
+    "evidence": "\"lodash\": \"4.17.4\"",
+    "why": "lodash 4.17.4 is affected by prototype pollution (CVE-2019-10744).",
+    "trace": [],
+    "context_ref": null,
+    "fix": "Upgrade lodash to 4.17.21 or later and regenerate the lockfile.",
+    "dread": {
+      "damage": 3,
+      "reproducibility": 4,
+      "exploitability": 3,
+      "affected_users": 3,
+      "discoverability": 3,
+      "score": 3.2
+    },
+    "confidence": "medium",
+    "mode": "code-only"
+  }
+]

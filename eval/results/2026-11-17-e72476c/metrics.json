@@ -1,0 +1,584 @@
+{
+  "agent": "claude",
+  "exit_code": 1,
+  "failed_trials": [],
+  "false_negatives": [
+    {
+      "cwe": "CWE-862",
+      "description": "A caller-controlled account identifier is read without an authenticated actor or authorization decision.",
+      "evidence": "const account = await accounts.findById(request.params.userId);",
+      "id": "ACCESS-01",
+      "locations": [
+        {
+          "end_line": 9,
+          "file": "vulnerable/missing-authorization.ts",
+          "start_line": 6
+        }
+      ],
+      "requires_context": false,
+      "source": "Hand-made access-control-check fixture"
+    },
+    {
+      "cwe": "CWE-330",
+      "description": "A reset token uses predictable randomness.",
+      "evidence": "Math.random()",
+      "id": "CRYPTO-01",
+      "locations": [
+        {
+          "end_line": 1,
+          "file": "vulnerable/token.ts",
+          "start_line": 1
+        }
+      ],
+      "requires_context": false,
+      "source": "Hand-made crypto-check fixture"
+    }
+  ],
+  "false_positives": [
+    {
+      "confidence": "medium",
+      "context_ref": null,
+      "cwe": "CWE-639",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 3,
+        "exploitability": 4,
+        "reproducibility": 5,
+        "score": 4.0
+      },
+      "end_line": 19,
+      "evidence": "const account = await accounts.findById(request.params.userId);\n  response.json(account);",
+      "file": "vulnerable/missing-authorization.ts",
+      "fix": "Require authentication, then compare the account's ownerId to request.user.id (or check an admin role) before responding, and return 403/404 otherwise, as safe/ownership-check.ts does.",
+      "id": "SEC-0001",
+      "line": 16,
+      "mode": "code-only",
+      "owasp": "A01:2021",
+      "skill": "access-control-check",
+      "title": "Account returned by caller-supplied ID without ownership check (IDOR)",
+      "trace": [
+        {
+          "file": "vulnerable/missing-authorization.ts",
+          "line": 16,
+          "note": "request.params.userId is attacker-controlled; the Request type has no authenticated user",
+          "step": "source"
+        },
+        {
+          "file": "vulnerable/missing-authorization.ts",
+          "line": 17,
+          "note": "accounts.findById(userId) is called with no owner or role filter",
+          "step": "lookup"
+        },
+        {
+          "file": "vulnerable/missing-authorization.ts",
+          "line": 18,
+          "note": "the full account record is returned with response.json",
+          "step": "sink"
+        }
+      ],
+      "why": "The handler looks up an account by the URL parameter and returns it without identifying the caller or comparing the account owner to the caller. Any requester who can reach the route can read any user's account by changing the ID."
+    },
+    {
+      "confidence": "low",
+      "context_ref": null,
+      "cwe": "CWE-203",
+      "dread": {
+        "affected_users": 1,
+        "damage": 1,
+        "discoverability": 2,
+        "exploitability": 4,
+        "reproducibility": 4,
+        "score": 2.4
+      },
+      "end_line": 12,
+      "evidence": "if (!order) return response.sendStatus(404); const allowed = ...; if (!allowed) return response.sendStatus(403);",
+      "file": "safe/cancel-order.ts",
+      "fix": "Return the same status (for example 404) for missing orders and for orders the caller may not access.",
+      "id": "SEC-0003",
+      "line": 9,
+      "mode": "context",
+      "owasp": "A01:2021",
+      "skill": "access-control-check",
+      "title": "Order existence revealed before authorization (404 before 403)",
+      "trace": [
+        {
+          "file": "safe/cancel-order.ts",
+          "line": 8,
+          "note": "request.params.orderId is attacker-chosen",
+          "step": "source"
+        },
+        {
+          "file": "safe/cancel-order.ts",
+          "line": 9,
+          "note": "distinct 404 response before the ownership check",
+          "step": "sink"
+        }
+      ],
+      "why": "An authenticated caller can tell whether an arbitrary order ID exists (404 vs 403) without owning it, which allows order ID enumeration. The impact is low. Ownership and BR-3 enforcement on this handler is correct."
+    },
+    {
+      "confidence": "medium",
+      "context_ref": null,
+      "cwe": "CWE-778",
+      "dread": {
+        "affected_users": 3,
+        "damage": 2,
+        "discoverability": 2,
+        "exploitability": 3,
+        "reproducibility": 5,
+        "score": 3.0
+      },
+      "end_line": 14,
+      "evidence": "response.json(await refunds.approve(refund.id, request.user.id));",
+      "file": "vulnerable/approve-refund.ts",
+      "fix": "Emit a structured audit event (actor id, role, refundId, outcome, timestamp) for each approval and each denied attempt. Do the same for invoice access. Keep payment details out of the logs.",
+      "id": "SEC-0003",
+      "line": 14,
+      "mode": "context",
+      "owasp": "A09:2021",
+      "skill": "error-logging-check",
+      "title": "No audit log for refund approvals",
+      "trace": [],
+      "why": "A financial approval is performed with no audit record of who approved what and when, or of denied attempts. A self-approval (see SEC-0002) or insider abuse could not be detected or investigated. Invoice downloads (SEC-0001) are likewise unlogged."
+    },
+    {
+      "confidence": "low",
+      "context_ref": "BR-4",
+      "cwe": "CWE-367",
+      "dread": {
+        "affected_users": 2,
+        "damage": 3,
+        "discoverability": 1,
+        "exploitability": 3,
+        "reproducibility": 2,
+        "score": 2.2
+      },
+      "end_line": 13,
+      "evidence": "if (order.status !== \"placed\") return response.sendStatus(409);\nresponse.json(await orders.cancel(order.id));",
+      "file": "safe/cancel-order.ts",
+      "fix": "Make the transition atomic, for example a conditional update (cancel where id = ? and status = 'placed') that reports whether a row changed, and return 409 when none did.",
+      "id": "SEC-0004",
+      "line": 12,
+      "mode": "context",
+      "owasp": "A04:2021",
+      "skill": "access-control-check",
+      "title": "Non-atomic status check and cancel allows cancelling a shipped order (BR-4)",
+      "trace": [
+        {
+          "file": "safe/cancel-order.ts",
+          "line": 8,
+          "note": "order read with status",
+          "step": "source"
+        },
+        {
+          "file": "safe/cancel-order.ts",
+          "line": 12,
+          "note": "status guard on the stale read",
+          "step": "check"
+        },
+        {
+          "file": "safe/cancel-order.ts",
+          "line": 13,
+          "note": "cancel(order.id) is unconditional",
+          "step": "sink"
+        }
+      ],
+      "why": "Status is read in findById and then orders.cancel is called separately. If the order ships in between, a concurrent request can cancel a shipped order, breaking BR-4. Whether the store's cancel re-checks status is unseen."
+    },
+    {
+      "confidence": "low",
+      "context_ref": "BR-5",
+      "cwe": "CWE-367",
+      "dread": {
+        "affected_users": 2,
+        "damage": 3,
+        "discoverability": 1,
+        "exploitability": 3,
+        "reproducibility": 2,
+        "score": 2.2
+      },
+      "end_line": 14,
+      "evidence": "if (!refund || refund.status !== \"requested\") return response.sendStatus(404);\nresponse.json(await refunds.approve(refund.id, request.user.id));",
+      "file": "vulnerable/approve-refund.ts",
+      "fix": "Perform a conditional update (approve where id = ? and status = 'requested') and treat zero rows changed as a conflict.",
+      "id": "SEC-0005",
+      "line": 13,
+      "mode": "context",
+      "owasp": "A04:2021",
+      "skill": "access-control-check",
+      "title": "Non-atomic refund status check allows double approval (BR-5)",
+      "trace": [
+        {
+          "file": "vulnerable/approve-refund.ts",
+          "line": 12,
+          "note": "refund read with status",
+          "step": "source"
+        },
+        {
+          "file": "vulnerable/approve-refund.ts",
+          "line": 13,
+          "note": "status guard on the stale read",
+          "step": "check"
+        },
+        {
+          "file": "vulnerable/approve-refund.ts",
+          "line": 14,
+          "note": "approve is unconditional",
+          "step": "sink"
+        }
+      ],
+      "why": "BR-5 allows approval only while the status is requested. The check and the approve call are separate, so two concurrent approvals can both pass the check, risking a duplicate payout depending on the store. Whether approve is idempotent is unseen."
+    },
+    {
+      "confidence": "low",
+      "context_ref": null,
+      "cwe": "CWE-778",
+      "dread": {
+        "affected_users": 3,
+        "damage": 2,
+        "discoverability": 2,
+        "exploitability": 3,
+        "reproducibility": 5,
+        "score": 3.0
+      },
+      "end_line": 14,
+      "evidence": "response.json(await refunds.approve(refund.id, request.user.id));",
+      "file": "vulnerable/approve-refund.ts",
+      "fix": "Write an audit record (approver id, refund id, timestamp, outcome, including denied attempts) at the approval point or confirm refunds.approve does so.",
+      "id": "SEC-0003",
+      "line": 14,
+      "mode": "context",
+      "owasp": "A09:2021",
+      "skill": "error-logging-check",
+      "title": "Refund approval is not audit-logged",
+      "trace": [],
+      "why": "A money-moving approval emits no audit event in the handler, and the module contract's audit-log guarantee is unverified. Without it, self-approval (SEC-0002) or abuse by a manager cannot be reconstructed. The store implementation is not in the repo, so it may log internally."
+    },
+    {
+      "confidence": "low",
+      "context_ref": "BR-3",
+      "cwe": "CWE-367",
+      "dread": {
+        "affected_users": 2,
+        "damage": 3,
+        "discoverability": 1,
+        "exploitability": 3,
+        "reproducibility": 2,
+        "score": 2.2
+      },
+      "end_line": 13,
+      "evidence": "if (order.status !== \"placed\") return response.sendStatus(409); response.json(await orders.cancel(order.id));",
+      "file": "safe/cancel-order.ts",
+      "fix": "Make the cancel an atomic conditional update (for example UPDATE ... WHERE id = ? AND status = 'placed') and return 409 when no row changes.",
+      "id": "SEC-0004",
+      "line": 12,
+      "mode": "context",
+      "owasp": "A04:2021",
+      "skill": "access-control-check",
+      "title": "Possible check-then-act race between status check and cancel",
+      "trace": [
+        {
+          "file": "safe/cancel-order.ts",
+          "line": 12,
+          "note": "status read from an earlier findById result",
+          "step": "check"
+        },
+        {
+          "file": "safe/cancel-order.ts",
+          "line": 13,
+          "note": "cancel(id) carries no expected-status condition",
+          "step": "act"
+        }
+      ],
+      "why": "BR-3 allows cancellation only while an order is placed. The status is read, then orders.cancel(id) is called with no status condition in the call. If the store does not re-check atomically, an order that ships between the two calls could be cancelled. The store is not shown, so this is unverified."
+    },
+    {
+      "confidence": "medium",
+      "context_ref": null,
+      "cwe": "CWE-338",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 2,
+        "exploitability": 2,
+        "reproducibility": 3,
+        "score": 3.0
+      },
+      "end_line": 1,
+      "evidence": "export function resetToken() { return Math.random().toString(36).slice(2); }",
+      "file": "vulnerable/token.ts",
+      "fix": "Generate the token with a CSPRNG, as safe/token.ts does: randomBytes(32).toString(\"hex\") from node:crypto (or crypto.randomUUID()). Store only a hash of the token, give it a short expiry, and make it single-use.",
+      "id": "SEC-0001",
+      "line": 1,
+      "mode": "code-only",
+      "owasp": "A02:2021",
+      "skill": "crypto-check",
+      "title": "Password-reset token generated with Math.random()",
+      "trace": [],
+      "why": "Math.random() is not a cryptographically secure generator; its output can be predicted from observed values. A reset token built from it can be guessed or reconstructed, which can allow account takeover if the token authorizes a password reset."
+    }
+  ],
+  "fixture_passes": {
+    "access-control-check": {
+      "passed": 2,
+      "trials": 3
+    },
+    "auth-session-check": {
+      "passed": 3,
+      "trials": 3
+    },
+    "context": {
+      "passed": 3,
+      "trials": 3
+    },
+    "crypto-check": {
+      "passed": 2,
+      "trials": 3
+    },
+    "dependency-check": {
+      "passed": 3,
+      "trials": 3
+    },
+    "error-logging-check": {
+      "passed": 3,
+      "trials": 3
+    },
+    "file-handling-check": {
+      "passed": 3,
+      "trials": 3
+    },
+    "injection-check": {
+      "passed": 3,
+      "trials": 3
+    },
+    "misconfiguration-check": {
+      "passed": 3,
+      "trials": 3
+    },
+    "secrets-check": {
+      "passed": 3,
+      "trials": 3
+    },
+    "xss-check": {
+      "passed": 3,
+      "trials": 3
+    }
+  },
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 8
+        },
+        "auth-session": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "crypto": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "dependency": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "error-logging": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 2,
+          "true_positives": 3
+        },
+        "file-handling": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "injection": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 9
+        },
+        "misconfiguration": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "secrets": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 6
+        },
+        "unknown": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 5,
+          "true_positives": 0
+        },
+        "xss": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        }
+      },
+      "mode": {
+        "code-only": {
+          "duplicates": 0,
+          "false_negatives": 2,
+          "false_positives": 2,
+          "true_positives": 37
+        },
+        "context": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 6,
+          "true_positives": 6
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 2,
+          "false_positives": 0,
+          "true_positives": 37
+        },
+        "true": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 6
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 5,
+          "true_positives": 8
+        },
+        "auth-session-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "crypto-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 2
+        },
+        "dependency-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "error-logging-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 2,
+          "true_positives": 3
+        },
+        "file-handling-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "injection-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 9
+        },
+        "misconfiguration-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "secrets-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 6
+        },
+        "xss-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        }
+      }
+    },
+    "fixture_passes": 31,
+    "fixture_trials": 33,
+    "mean": {
+      "f1": 0.8964442815249267,
+      "precision": 0.8451797385620915,
+      "recall": 0.9555555555555556
+    },
+    "micro_counts": {
+      "duplicates": 0,
+      "false_negatives": 2,
+      "false_positives": 8,
+      "true_positives": 43
+    },
+    "micro_rates": {
+      "f1": 0.8958333333333333,
+      "precision": 0.8431372549019608,
+      "recall": 0.9555555555555556
+    },
+    "minimum": {
+      "f1": 0.8125,
+      "precision": 0.7647058823529411,
+      "recall": 0.8666666666666667
+    },
+    "per_run": {
+      "1": {
+        "f1": 0.967741935483871,
+        "precision": 0.9375,
+        "recall": 1.0
+      },
+      "2": {
+        "f1": 0.9090909090909091,
+        "precision": 0.8333333333333334,
+        "recall": 1.0
+      },
+      "3": {
+        "f1": 0.8125,
+        "precision": 0.7647058823529411,
+        "recall": 0.8666666666666667
+      }
+    },
+    "stable_recall": 0.8666666666666667,
+    "standard_deviation": {
+      "f1": 0.06400503899323912,
+      "precision": 0.07103850956107946,
+      "recall": 0.06285393610547088
+    }
+  },
+  "regression_reasons": [
+    "mean F1 dropped by 0.070, exceeding threshold 0.050"
+  ],
+  "replay": false,
+  "skipped_trials": [],
+  "tier": "fast",
+  "tokens": null,
+  "warnings": []
+}

@@ -1,0 +1,128 @@
+{
+  "duration_seconds": 26.892585412000017,
+  "false_negatives": [
+    {
+      "cwe": "CWE-862",
+      "description": "A caller-controlled account identifier is read without an authenticated actor or authorization decision.",
+      "evidence": "const account = await accounts.findById(request.params.userId);",
+      "id": "ACCESS-01",
+      "locations": [
+        {
+          "end_line": 9,
+          "file": "vulnerable/missing-authorization.ts",
+          "start_line": 6
+        }
+      ],
+      "requires_context": false,
+      "source": "Hand-made access-control-check fixture"
+    }
+  ],
+  "false_positives": [
+    {
+      "confidence": "medium",
+      "context_ref": null,
+      "cwe": "CWE-639",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 3,
+        "exploitability": 4,
+        "reproducibility": 5,
+        "score": 4.0
+      },
+      "end_line": 19,
+      "evidence": "const account = await accounts.findById(request.params.userId);\n  response.json(account);",
+      "file": "vulnerable/missing-authorization.ts",
+      "fix": "Require authentication, then compare the account's ownerId to request.user.id (or check an admin role) before responding, and return 403/404 otherwise, as safe/ownership-check.ts does.",
+      "id": "SEC-0001",
+      "line": 16,
+      "mode": "code-only",
+      "owasp": "A01:2021",
+      "skill": "access-control-check",
+      "title": "Account returned by caller-supplied ID without ownership check (IDOR)",
+      "trace": [
+        {
+          "file": "vulnerable/missing-authorization.ts",
+          "line": 16,
+          "note": "request.params.userId is attacker-controlled; the Request type has no authenticated user",
+          "step": "source"
+        },
+        {
+          "file": "vulnerable/missing-authorization.ts",
+          "line": 17,
+          "note": "accounts.findById(userId) is called with no owner or role filter",
+          "step": "lookup"
+        },
+        {
+          "file": "vulnerable/missing-authorization.ts",
+          "line": 18,
+          "note": "the full account record is returned with response.json",
+          "step": "sink"
+        }
+      ],
+      "why": "The handler looks up an account by the URL parameter and returns it without identifying the caller or comparing the account owner to the caller. Any requester who can reach the route can read any user's account by changing the ID."
+    }
+  ],
+  "id": "access-control-check-code-only-3",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 0
+        }
+      },
+      "mode": {
+        "code-only": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 0
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 0
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 1,
+      "false_positives": 1,
+      "true_positives": 0
+    },
+    "fixture_passed": false,
+    "matched_truth": [],
+    "rates": {
+      "f1": null,
+      "precision": 0.0,
+      "recall": 0.0
+    },
+    "run_id": 3,
+    "truth_entries": [
+      [
+        "access-control-check",
+        "ACCESS-01"
+      ]
+    ]
+  },
+  "mode": "code-only",
+  "replay": false,
+  "run": 3,
+  "status": "ok",
+  "target": "access-control-check"
+}

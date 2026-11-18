@@ -1,0 +1,72 @@
+{
+  "duration_seconds": 20.68895017,
+  "false_negatives": [],
+  "false_positives": [],
+  "id": "auth-session-check-code-only-2",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "auth-session": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      },
+      "mode": {
+        "code-only": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      },
+      "skill": {
+        "auth-session-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 0,
+      "false_positives": 0,
+      "true_positives": 1
+    },
+    "fixture_passed": true,
+    "matched_truth": [
+      [
+        "auth-session-check",
+        "AUTH-01"
+      ]
+    ],
+    "rates": {
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "run_id": 2,
+    "truth_entries": [
+      [
+        "auth-session-check",
+        "AUTH-01"
+      ]
+    ]
+  },
+  "mode": "code-only",
+  "replay": false,
+  "run": 2,
+  "status": "ok",
+  "target": "auth-session-check"
+}

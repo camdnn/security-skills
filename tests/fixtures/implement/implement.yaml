@@ -1,0 +1,12 @@
+# Implement-eval target (TICKET-001 §7.7). Not a detection fixture: discover_targets
+# skips any folder with this file.
+#
+# findings.json holds pre-recorded scan findings; the runner copies it into the trial as
+# docs/security/findings.json and asks `implement` to fix every one, unattended.
+findings: findings.json
+# The whole suite. A finding's own tests run with the same command plus their paths.
+test_command: [node, --experimental-strip-types, --test]
+test_glob: "test/**/*.test.ts"
+# Findings a TDD loop cannot verify locally (a dependency upgrade needs the network);
+# `implement` must log them as needs-human, never as fixed.
+expect_needs_human: [SEC-0005]

@@ -358,6 +358,52 @@ def test_usage_limit_reported_as_a_json_error_with_exit_zero_marks_incomplete(tm
     assert outcome.exit_code == 2
 
 
+def test_codex_out_of_credits_marks_incomplete_not_failed(tmp_path: Path):
+    """Codex reports an exhausted workspace as "out of credits"; that ends the run as incomplete (§4 Q10)."""
+
+    repo, _ = runner_repo(tmp_path)
+    calls = 0
+
+    def broke_agent(target: Path, agent: str, prompt: str) -> subprocess.CompletedProcess[str]:
+        nonlocal calls
+        calls += 1
+        message = "error: your workspace is out of credits. ask your workspace owner to refill in order to continue."
+        return subprocess.CompletedProcess([agent], 1, "", message)
+
+    results, outcome = run(
+        RunOptions(tier="fast", results_dir=tmp_path / "results", baseline_check=False),
+        agent_command=broke_agent,
+        repo_root=repo,
+    )
+
+    statuses = [json.loads(path.read_text())["status"] for path in (results / "trials").glob("*.json")]
+    assert outcome.exit_code == 2
+    assert calls == 1
+    assert statuses == ["skipped", "skipped"]
+
+
+def test_claude_json_usage_limit_with_underscores_marks_incomplete(tmp_path: Path):
+    """Claude Code 2.1.326 reports the 5-hour limit as JSON with underscored error codes (2026-11-17)."""
+
+    repo, _ = runner_repo(tmp_path)
+    stdout = json.dumps({
+        "type": "result", "is_error": True, "api_error_status": 429, "api_error_type": "rate_limit_error",
+        "api_error": "usage_limit_reached", "result": "You've hit your 5-hour limit · resets 7:40pm (America/Los_Angeles)",
+    })
+
+    def limited_agent(target: Path, agent: str, prompt: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.CompletedProcess([agent], 1, stdout, "")
+
+    results, outcome = run(
+        RunOptions(tier="fast", results_dir=tmp_path / "results", baseline_check=False),
+        agent_command=limited_agent,
+        repo_root=repo,
+    )
+
+    assert outcome.exit_code == 2
+    assert [json.loads(p.read_text())["status"] for p in (results / "trials").glob("*.json")] == ["skipped", "skipped"]
+
+
 def test_new_eval_run_refuses_a_folder_with_trial_records_and_writes_nothing(tmp_path: Path):
     repo, _ = runner_repo(tmp_path)
     results, _ = run(

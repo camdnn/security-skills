@@ -12,9 +12,11 @@ Report only evidenced flaws:
 - CWE-916 when passwords are stored or compared using a fast general-purpose hash, plaintext, or reversible encryption rather than a password-hashing function with a salt and work factor.
 - CWE-347 when JWT verification permits an unsafe algorithm, skips signature verification, accepts an untrusted key, or does not enforce intended issuer/audience where those claims are used for trust.
 - CWE-384 when authentication preserves a pre-login session identifier instead of rotating it.
+- CWE-307 when login, password reset or another credential check has no attempt limit, or its limit keys on a client-controlled value such as `X-Forwarded-For`.
+- CWE-620 when a password change does not require the current password (or skips the check when it is omitted).
 - CWE-352 when a cookie-authenticated, state-changing browser endpoint lacks a demonstrated CSRF defense and its cookie policy permits cross-site requests.
 
-Do not report password values merely because code handles passwords. Do not report a JWT merely because it exists; trace its verification path. Do not report CSRF when bearer authorization is required or same-site cookie policy and origin validation demonstrably prevent the attack. For incomplete framework configuration, state the missing evidence and use low confidence.
+Use only these CWE IDs. Do not report password values merely because code handles passwords. Do not report a JWT merely because it exists; trace its verification path. Do not report CSRF when bearer authorization is required or same-site cookie policy and origin validation demonstrably prevent the attack. For incomplete framework configuration, state the missing evidence and use low confidence.
 
 ## Finding format
 

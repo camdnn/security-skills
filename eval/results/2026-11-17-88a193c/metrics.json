@@ -1,0 +1,298 @@
+{
+  "agent": "claude",
+  "exit_code": 0,
+  "failed_trials": [
+    {
+      "duration_seconds": 0,
+      "id": "secrets-check-code-only-2",
+      "mode": "code-only",
+      "reason": "agent exited 1: imit\":0,\"concurrency_limit\":0,\"budget\":0},\"by_type\":{}},\"safety_stops\":0,\"is_error\":true,\"num_turns\":9,\"subtype\":\"success\",\"api_error_status\":429,\"api_error_type\":\"rate_limit_error\",\"api_error_origin\":\"first_party\",\"api_error\":\"usage_limit_reached\",\"result\":\"you've hit your 5-hour limit \u00b7 resets 7:40pm (america/los_angeles)\",\"type\":\"result\",\"duration_ms\":6304,\"uuid\":\"9681a475-112b-4a08-9e42-582a2cb0153c\",\"queued_turn_count\":0,\"result_index\":0,\"credential_expires_at\":\"2026-12-17t08:43:05.408z\"}\n\n",
+      "replay": false,
+      "run": 2,
+      "status": "failed",
+      "target": "secrets-check"
+    },
+    {
+      "duration_seconds": 0,
+      "id": "secrets-check-code-only-3",
+      "mode": "code-only",
+      "reason": "agent exited 1: limit\":0,\"concurrency_limit\":0,\"budget\":0},\"by_type\":{}},\"safety_stops\":0,\"is_error\":true,\"num_turns\":1,\"subtype\":\"success\",\"api_error_status\":429,\"api_error_type\":\"rate_limit_error\",\"api_error_origin\":\"first_party\",\"api_error\":\"usage_limit_reached\",\"result\":\"you've hit your 5-hour limit \u00b7 resets 7:40pm (america/los_angeles)\",\"type\":\"result\",\"duration_ms\":885,\"uuid\":\"f00bc80a-5a4b-4e18-a787-a19cde256ca8\",\"queued_turn_count\":0,\"result_index\":0,\"credential_expires_at\":\"2026-12-17t08:43:05.408z\"}\n\n",
+      "replay": false,
+      "run": 3,
+      "status": "failed",
+      "target": "secrets-check"
+    },
+    {
+      "duration_seconds": 0,
+      "id": "xss-check-code-only-1",
+      "mode": "code-only",
+      "reason": "agent exited 1: limit\":0,\"concurrency_limit\":0,\"budget\":0},\"by_type\":{}},\"safety_stops\":0,\"is_error\":true,\"num_turns\":1,\"subtype\":\"success\",\"api_error_status\":429,\"api_error_type\":\"rate_limit_error\",\"api_error_origin\":\"first_party\",\"api_error\":\"usage_limit_reached\",\"result\":\"you've hit your 5-hour limit \u00b7 resets 7:40pm (america/los_angeles)\",\"type\":\"result\",\"duration_ms\":725,\"uuid\":\"5d21ccd7-77d2-442c-ad38-fd4512419f9f\",\"queued_turn_count\":0,\"result_index\":0,\"credential_expires_at\":\"2026-12-17t08:43:05.408z\"}\n\n",
+      "replay": false,
+      "run": 1,
+      "status": "failed",
+      "target": "xss-check"
+    },
+    {
+      "duration_seconds": 0,
+      "id": "xss-check-code-only-2",
+      "mode": "code-only",
+      "reason": "agent exited 1: limit\":0,\"concurrency_limit\":0,\"budget\":0},\"by_type\":{}},\"safety_stops\":0,\"is_error\":true,\"num_turns\":1,\"subtype\":\"success\",\"api_error_status\":429,\"api_error_type\":\"rate_limit_error\",\"api_error_origin\":\"first_party\",\"api_error\":\"usage_limit_reached\",\"result\":\"you've hit your 5-hour limit \u00b7 resets 7:40pm (america/los_angeles)\",\"type\":\"result\",\"duration_ms\":782,\"uuid\":\"2abeba35-a178-4e22-a8c9-9146e6e14151\",\"queued_turn_count\":0,\"result_index\":0,\"credential_expires_at\":\"2026-12-17t08:43:05.408z\"}\n\n",
+      "replay": false,
+      "run": 2,
+      "status": "failed",
+      "target": "xss-check"
+    },
+    {
+      "duration_seconds": 0,
+      "id": "xss-check-code-only-3",
+      "mode": "code-only",
+      "reason": "agent exited 1: limit\":0,\"concurrency_limit\":0,\"budget\":0},\"by_type\":{}},\"safety_stops\":0,\"is_error\":true,\"num_turns\":1,\"subtype\":\"success\",\"api_error_status\":429,\"api_error_type\":\"rate_limit_error\",\"api_error_origin\":\"first_party\",\"api_error\":\"usage_limit_reached\",\"result\":\"you've hit your 5-hour limit \u00b7 resets 7:40pm (america/los_angeles)\",\"type\":\"result\",\"duration_ms\":788,\"uuid\":\"cf687133-3297-49cd-90f5-7a5c7ef86739\",\"queued_turn_count\":0,\"result_index\":0,\"credential_expires_at\":\"2026-12-17t08:43:05.408z\"}\n\n",
+      "replay": false,
+      "run": 3,
+      "status": "failed",
+      "target": "xss-check"
+    }
+  ],
+  "false_negatives": [],
+  "false_positives": [],
+  "fixture_passes": {
+    "access-control-check": {
+      "passed": 3,
+      "trials": 3
+    },
+    "auth-session-check": {
+      "passed": 3,
+      "trials": 3
+    },
+    "context": {
+      "passed": 3,
+      "trials": 3
+    },
+    "crypto-check": {
+      "passed": 3,
+      "trials": 3
+    },
+    "dependency-check": {
+      "passed": 3,
+      "trials": 3
+    },
+    "error-logging-check": {
+      "passed": 3,
+      "trials": 3
+    },
+    "file-handling-check": {
+      "passed": 3,
+      "trials": 3
+    },
+    "injection-check": {
+      "passed": 3,
+      "trials": 3
+    },
+    "misconfiguration-check": {
+      "passed": 3,
+      "trials": 3
+    },
+    "secrets-check": {
+      "passed": 1,
+      "trials": 1
+    }
+  },
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 9
+        },
+        "auth-session": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "crypto": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "dependency": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "error-logging": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "file-handling": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "injection": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 9
+        },
+        "misconfiguration": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "secrets": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        }
+      },
+      "mode": {
+        "code-only": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 32
+        },
+        "context": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 6
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 32
+        },
+        "true": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 6
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 9
+        },
+        "auth-session-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "crypto-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "dependency-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "error-logging-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "file-handling-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "injection-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 9
+        },
+        "misconfiguration-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "secrets-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        }
+      }
+    },
+    "fixture_passes": 28,
+    "fixture_trials": 28,
+    "mean": {
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "micro_counts": {
+      "duplicates": 0,
+      "false_negatives": 0,
+      "false_positives": 0,
+      "true_positives": 38
+    },
+    "micro_rates": {
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "minimum": {
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "per_run": {
+      "1": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "2": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "3": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      }
+    },
+    "stable_recall": 1.0,
+    "standard_deviation": {
+      "f1": 0.0,
+      "precision": 0.0,
+      "recall": 0.0
+    }
+  },
+  "regression_reasons": [
+    "no regression detected"
+  ],
+  "replay": false,
+  "skipped_trials": [],
+  "tier": "fast",
+  "tokens": null,
+  "warnings": []
+}
