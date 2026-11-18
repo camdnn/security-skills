@@ -217,7 +217,7 @@
       ],
       "evidence": "author: req.body.author",
       "requires_context": true,
-      "description": "New reviews take their author from the request body instead of the authenticated user, so users can post as someone else.",
+      "description": "New reviews take their author from the request body without binding it to a caller, so any caller, including an unauthenticated caller, can post as someone else.",
       "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
     },
     {
@@ -258,11 +258,16 @@
           "file": "routes/recycles.ts",
           "start_line": 12,
           "end_line": 15
+      },
+      {
+        "file": "server.ts",
+        "start_line": 420,
+        "end_line": 420
         }
       ],
       "evidence": "id: JSON.parse(req.params.id)",
       "requires_context": true,
-      "description": "GET /api/Recycles/:id is unauthenticated and parses the id as JSON, returning other users' recycle requests (with addresses).",
+      "description": "GET /api/Recycles/:id is unauthenticated and parses the id as JSON, returning other users' recycle requests and their address identifiers.",
       "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
     },
     {
@@ -277,7 +282,7 @@
       ],
       "evidence": "const users = await UserModel.findAll()",
       "requires_context": true,
-      "description": "Any authenticated user can list every user account with emails, roles and token timestamps; listing users is an admin function.",
+      "description": "Any authenticated user can list every user account with emails, roles, and derived token timestamps, exposing data beyond the caller's own account.",
       "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
     },
     {
@@ -301,13 +306,23 @@
       "locations": [
         {
           "file": "models/user.ts",
-          "start_line": 82,
+          "start_line": 76,
           "end_line": 94
+      },
+      {
+        "file": "server.ts",
+        "start_line": 440,
+        "end_line": 454
+      },
+      {
+        "file": "server.ts",
+        "start_line": 518,
+        "end_line": 546
         }
       ],
       "evidence": "this.setDataValue('role', role)",
       "requires_context": true,
-      "description": "The user model accepts any role from the request on registration, so a client can self-register as admin.",
+      "description": "The unauthenticated user-registration endpoint passes request fields to Finale's generated User resource, whose model accepts the admin role, so a client can self-register as admin.",
       "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
     },
     {
@@ -338,21 +353,6 @@
       "evidence": "const privateKey = '-----BEGIN RSA PRIVATE KEY-----",
       "requires_context": false,
       "description": "The RSA private key that signs every JWT is hard-coded in source.",
-      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
-    },
-    {
-      "id": "JS-COOKIE-SECRET",
-      "cwe": "CWE-798",
-      "locations": [
-        {
-          "file": "server.ts",
-          "start_line": 321,
-          "end_line": 321
-        }
-      ],
-      "evidence": "cookieParser('kekse')",
-      "requires_context": false,
-      "description": "The cookie-signing secret is hard-coded.",
       "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
     },
     {
@@ -421,13 +421,13 @@
       "locations": [
         {
           "file": "server.ts",
-          "start_line": 375,
+          "start_line": 374,
           "end_line": 378
         }
       ],
-      "evidence": "headers['X-Forwarded-For'] ?? ip",
+      "evidence": "app.enable('trust proxy')",
       "requires_context": false,
-      "description": "The password-reset rate limiter keys on the client-controlled X-Forwarded-For header, so rotating it bypasses the limit.",
+      "description": "The password-reset rate limiter enables Express trust proxy, so its fallback req.ip can be derived from proxy forwarding headers; an overly broad trust-proxy configuration lets a client vary the apparent IP and bypass the limit.",
       "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
     },
     {
@@ -457,7 +457,7 @@
       ],
       "evidence": "\"jsonwebtoken\": \"0.4.0\"",
       "requires_context": false,
-      "description": "jsonwebtoken 0.4.0 has known signature-verification bypasses (CVE-2015-9235).",
+      "description": "The application pins the outdated jsonwebtoken 0.4.0 dependency; the draft does not establish a specific advisory's reachability.",
       "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
     }
   ]
