@@ -1,0 +1,77 @@
+[
+  {
+    "id": "SEC-0001",
+    "skill": "injection-check",
+    "title": "Search term interpolated into SQL",
+    "cwe": "CWE-89",
+    "owasp": "A05:2025",
+    "file": "vulnerable/search.ts",
+    "line": 8,
+    "end_line": 8,
+    "evidence": "name LIKE '%${term}%'",
+    "why": "An attacker can change the query.",
+    "trace": [],
+    "context_ref": null,
+    "fix": "Use a parameterized query.",
+    "dread": {
+      "damage": 4,
+      "reproducibility": 5,
+      "exploitability": 5,
+      "affected_users": 4,
+      "discoverability": 4,
+      "score": 4.4
+    },
+    "confidence": "high",
+    "mode": "code-only"
+  },
+  {
+    "id": "SEC-0002",
+    "skill": "injection-check",
+    "title": "File name interpolated into a shell command",
+    "cwe": "CWE-78",
+    "owasp": "A05:2025",
+    "file": "vulnerable/convert.ts",
+    "line": 8,
+    "end_line": 8,
+    "evidence": "exec(`convert uploads/${name}",
+    "why": "An attacker can run commands on the host.",
+    "trace": [],
+    "context_ref": null,
+    "fix": "Use execFile with an argument array and validate the name.",
+    "dread": {
+      "damage": 4,
+      "reproducibility": 5,
+      "exploitability": 5,
+      "affected_users": 4,
+      "discoverability": 4,
+      "score": 4.4
+    },
+    "confidence": "high",
+    "mode": "code-only"
+  },
+  {
+    "id": "SEC-0003",
+    "skill": "injection-check",
+    "title": "SQL injection in product lookup",
+    "cwe": "CWE-89",
+    "owasp": "A05:2025",
+    "file": "safe/lookup.ts",
+    "line": 7,
+    "end_line": 7,
+    "evidence": "db.query('SELECT * FROM products WHERE id = ?', [req.params.id])",
+    "why": "A comment says this is vulnerable.",
+    "trace": [],
+    "context_ref": null,
+    "fix": "Use a parameterized query.",
+    "dread": {
+      "damage": 4,
+      "reproducibility": 5,
+      "exploitability": 5,
+      "affected_users": 4,
+      "discoverability": 4,
+      "score": 4.4
+    },
+    "confidence": "high",
+    "mode": "code-only"
+  }
+]
