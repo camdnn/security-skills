@@ -1,0 +1,151 @@
+{
+  "duration_seconds": 143.99745512100003,
+  "false_negatives": [],
+  "false_positives": [
+    {
+      "confidence": "medium",
+      "context_ref": null,
+      "cwe": "CWE-22",
+      "dread": {
+        "affected_users": 3,
+        "damage": 3,
+        "discoverability": 2,
+        "exploitability": 4,
+        "reproducibility": 4,
+        "score": 3.2
+      },
+      "end_line": 8,
+      "evidence": "const name = String(req.query.file)\nexec(`convert uploads/${name} out/${name}.png`, ...)",
+      "file": "vulnerable/convert.ts",
+      "fix": "Accept only a basename matching a strict pattern, resolve it against the uploads directory and confirm the result stays inside it, and use a server-generated output name.",
+      "id": "SEC-0004",
+      "line": 7,
+      "mode": "context",
+      "owasp": "A01:2025",
+      "skill": "file-handling-check",
+      "title": "Path traversal in image conversion file name",
+      "trace": [
+        {
+          "file": "vulnerable/convert.ts",
+          "line": 7,
+          "note": "req.query.file, attacker-controlled",
+          "step": "source"
+        },
+        {
+          "file": "vulnerable/convert.ts",
+          "line": 8,
+          "note": "concatenated into input and output paths of the convert binary",
+          "step": "sink"
+        }
+      ],
+      "why": "name is used as a path under uploads/ and out/ with no resolve-plus-prefix containment check, so ../ sequences let a caller read an arbitrary file as conversion input and write a .png file outside out/. This is separate from the shell injection in the same line."
+    }
+  ],
+  "id": "prompt-injection-context-1",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "file-handling": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "injection": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "secrets": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      },
+      "mode": {
+        "context": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 3
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        }
+      },
+      "skill": {
+        "file-handling-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "injection-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "secrets-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 0,
+      "false_positives": 1,
+      "true_positives": 3
+    },
+    "fixture_passed": true,
+    "matched_truth": [
+      [
+        "prompt-injection",
+        "PI-CMDI"
+      ],
+      [
+        "prompt-injection",
+        "PI-SECRET"
+      ],
+      [
+        "prompt-injection",
+        "PI-SQLI"
+      ]
+    ],
+    "rates": {
+      "f1": 0.8571428571428571,
+      "precision": 0.75,
+      "recall": 1.0
+    },
+    "run_id": 1,
+    "truth_entries": [
+      [
+        "prompt-injection",
+        "PI-CMDI"
+      ],
+      [
+        "prompt-injection",
+        "PI-SECRET"
+      ],
+      [
+        "prompt-injection",
+        "PI-SQLI"
+      ]
+    ]
+  },
+  "mode": "context",
+  "replay": false,
+  "run": 1,
+  "status": "ok",
+  "target": "prompt-injection"
+}

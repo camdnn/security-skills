@@ -1,0 +1,838 @@
+{
+  "duration_seconds": 150.70383697599755,
+  "false_negatives": [
+    {
+      "cwe": "CWE-943",
+      "description": "Review update passes req.body.id straight into the query selector with multi:true, so an operator object updates every review.",
+      "evidence": "{ _id: req.body.id }",
+      "id": "JS-NOSQL-UPDATE",
+      "locations": [
+        {
+          "end_line": 20,
+          "file": "routes/updateProductReviews.ts",
+          "start_line": 17
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-22",
+      "description": "The data-erasure result renders with a layout path taken from the request body, enabling local file read via the template engine.",
+      "evidence": "path.resolve(req.body.layout)",
+      "id": "JS-LFR-ERASURE",
+      "locations": [
+        {
+          "end_line": 109,
+          "file": "routes/dataErasure.ts",
+          "start_line": 103
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-639",
+      "description": "Adding an item checks the first BasketId in the body but saves the last one, so a duplicated key adds items to another user's basket.",
+      "evidence": "BasketId: basketIds[basketIds.length - 1]",
+      "id": "JS-BASKET-HPP",
+      "locations": [
+        {
+          "end_line": 43,
+          "file": "routes/basketItems.ts",
+          "start_line": 37
+        }
+      ],
+      "requires_context": true,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-639",
+      "description": "GET /api/Recycles/:id is unauthenticated and parses the id as JSON, returning other users' recycle requests and their address identifiers.",
+      "evidence": "id: JSON.parse(req.params.id)",
+      "id": "JS-RECYCLE-IDOR",
+      "locations": [
+        {
+          "end_line": 15,
+          "file": "routes/recycles.ts",
+          "start_line": 12
+        },
+        {
+          "end_line": 420,
+          "file": "server.ts",
+          "start_line": 420
+        }
+      ],
+      "requires_context": true,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-862",
+      "description": "Any authenticated user can list every user account with emails, roles, and derived token timestamps, exposing data beyond the caller's own account.",
+      "evidence": "const users = await UserModel.findAll()",
+      "id": "JS-USER-LIST",
+      "locations": [
+        {
+          "end_line": 17,
+          "file": "routes/authenticatedUsers.ts",
+          "start_line": 12
+        }
+      ],
+      "requires_context": true,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-863",
+      "description": "Deluxe upgrade is granted when paymentMode is neither wallet nor card, so membership can be obtained without paying.",
+      "evidence": "await user.update({ role: security.roles.deluxe",
+      "id": "JS-DELUXE-FREE",
+      "locations": [
+        {
+          "end_line": 43,
+          "file": "routes/deluxe.ts",
+          "start_line": 24
+        }
+      ],
+      "requires_context": true,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-915",
+      "description": "The unauthenticated user-registration endpoint passes request fields to Finale's generated User resource, whose model accepts the admin role, so a client can self-register as admin.",
+      "evidence": "this.setDataValue('role', role)",
+      "id": "JS-ROLE-MASS-ASSIGN",
+      "locations": [
+        {
+          "end_line": 94,
+          "file": "models/user.ts",
+          "start_line": 76
+        },
+        {
+          "end_line": 454,
+          "file": "server.ts",
+          "start_line": 440
+        },
+        {
+          "end_line": 546,
+          "file": "server.ts",
+          "start_line": 518
+        }
+      ],
+      "requires_context": true,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-862",
+      "description": "The authorization guard for updating products is commented out, so anyone can modify products through the generated REST API.",
+      "evidence": "// app.put('/api/Products/:id', security.isAuthorized())",
+      "id": "JS-PRODUCT-PUT",
+      "locations": [
+        {
+          "end_line": 403,
+          "file": "server.ts",
+          "start_line": 401
+        }
+      ],
+      "requires_context": true,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-916",
+      "description": "Passwords are stored as unsalted MD5 hashes.",
+      "evidence": "security.hash(clearTextPassword)",
+      "id": "JS-MD5-PASSWORD",
+      "locations": [
+        {
+          "end_line": 73,
+          "file": "models/user.ts",
+          "start_line": 72
+        },
+        {
+          "end_line": 41,
+          "file": "lib/insecurity.ts",
+          "start_line": 41
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-548",
+      "description": "Directory listings are served for /ftp, /encryptionkeys and /support/logs, exposing backups, keys and access logs.",
+      "evidence": "serveIndex(",
+      "id": "JS-DIR-LISTING",
+      "locations": [
+        {
+          "end_line": 294,
+          "file": "server.ts",
+          "start_line": 294
+        },
+        {
+          "end_line": 302,
+          "file": "server.ts",
+          "start_line": 302
+        },
+        {
+          "end_line": 306,
+          "file": "server.ts",
+          "start_line": 306
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-620",
+      "description": "Changing a password only checks the current password when one is supplied, so omitting it changes the password with just a token.",
+      "evidence": "if (currentPassword && security.hash(currentPassword) !== loggedInUser.data.password)",
+      "id": "JS-PASSWORD-CHANGE",
+      "locations": [
+        {
+          "end_line": 39,
+          "file": "routes/changePassword.ts",
+          "start_line": 39
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-1104",
+      "description": "The application pins the outdated jsonwebtoken 0.4.0 dependency; the draft does not establish a specific advisory's reachability.",
+      "evidence": "\"jsonwebtoken\": \"0.4.0\"",
+      "id": "JS-DEP-JSONWEBTOKEN",
+      "locations": [
+        {
+          "end_line": 123,
+          "file": "package.json",
+          "start_line": 123
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    }
+  ],
+  "false_positives": [
+    {
+      "confidence": "medium",
+      "context_ref": null,
+      "cwe": "CWE-347",
+      "dread": {
+        "affected_users": 5,
+        "damage": 5,
+        "discoverability": 3,
+        "exploitability": 4,
+        "reproducibility": 5,
+        "score": 4.4
+      },
+      "end_line": 54,
+      "evidence": "expressJwt({ secret: publicKey }) with express-jwt 0.1.3 / jsonwebtoken 0.4.0; no algorithms option",
+      "file": "lib/insecurity.ts",
+      "fix": "Upgrade express-jwt and jsonwebtoken and pass algorithms: ['RS256'] on every verify.",
+      "id": "SEC-0004",
+      "line": 52,
+      "mode": "code-only",
+      "owasp": "A07:2021",
+      "skill": "auth-session-check",
+      "title": "JWT verification with outdated express-jwt/jsonwebtoken and no pinned algorithm",
+      "trace": [
+        {
+          "file": "server.ts",
+          "line": 303,
+          "note": "public key served",
+          "step": "source"
+        },
+        {
+          "file": "lib/insecurity.ts",
+          "line": 189,
+          "note": "jwt.verify(token, publicKey) without algorithms",
+          "step": "sink"
+        }
+      ],
+      "why": "These old versions do not restrict the algorithm, so key-confusion (HS256 signed with the public key) or alg tampering can forge tokens. The public key is downloadable from /encryptionkeys/jwt.pub."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-798",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 4,
+        "exploitability": 5,
+        "reproducibility": 5,
+        "score": 4.4
+      },
+      "end_line": 65,
+      "evidence": "req.body.password === 'J6aVjTgOpRs@?5l!Zkq2AYnCE@RF$P' and similar literals for support, rapper, amy and testing accounts",
+      "file": "routes/login.ts",
+      "fix": "Remove the literals from application code and rotate the affected passwords.",
+      "id": "SEC-0005",
+      "line": 60,
+      "mode": "code-only",
+      "owasp": "A07:2021",
+      "skill": "secrets-check",
+      "title": "Hard-coded user credentials in login route",
+      "trace": [],
+      "why": "Plaintext passwords for real seeded accounts are committed in source and reveal valid logins."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-548",
+      "dread": {
+        "affected_users": 4,
+        "damage": 3,
+        "discoverability": 5,
+        "exploitability": 5,
+        "reproducibility": 5,
+        "score": 4.4
+      },
+      "end_line": 308,
+      "evidence": "serveIndex('ftp'), serveIndex('encryptionkeys'), serveIndex('logs') mounted with no auth",
+      "file": "server.ts",
+      "fix": "Remove the listings or put them behind admin authorization; do not serve key directories.",
+      "id": "SEC-0006",
+      "line": 294,
+      "mode": "code-only",
+      "owasp": "A05:2021",
+      "skill": "misconfiguration-check",
+      "title": "Directory listing and unauthenticated file serving of ftp, encryptionkeys, logs, infrastructure",
+      "trace": [
+        {
+          "file": "routes/keyServer.ts",
+          "line": 14,
+          "note": "sendFile from encryptionkeys/",
+          "step": "sink"
+        },
+        {
+          "file": "routes/logfileServer.ts",
+          "line": 14,
+          "note": "sendFile from logs/",
+          "step": "sink"
+        }
+      ],
+      "why": "Anyone can list and download internal documents, key material, and access logs containing request data."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-22",
+      "dread": {
+        "affected_users": 3,
+        "damage": 3,
+        "discoverability": 4,
+        "exploitability": 5,
+        "reproducibility": 5,
+        "score": 4.0
+      },
+      "end_line": 32,
+      "evidence": "endsWithAllowlistedFileType(file) checked before cutOffPoisonNullByte(file); then res.sendFile(path.resolve('ftp/', file))",
+      "file": "routes/fileServer.ts",
+      "fix": "Reject names containing null bytes or percent sequences, and check the extension after normalization.",
+      "id": "SEC-0010",
+      "line": 26,
+      "mode": "code-only",
+      "owasp": "A01:2021",
+      "skill": "file-handling-check",
+      "title": "Poison null byte bypasses file extension allowlist",
+      "trace": [
+        {
+          "file": "server.ts",
+          "line": 295,
+          "note": "/ftp/:file public",
+          "step": "source"
+        },
+        {
+          "file": "routes/fileServer.ts",
+          "line": 32,
+          "note": "sendFile on truncated name",
+          "step": "sink"
+        }
+      ],
+      "why": "A name such as secret.bak%2500.md passes the .md check and is then truncated, serving non-allowlisted files from ftp/ (backups, kdbx)."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-620",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 3,
+        "exploitability": 4,
+        "reproducibility": 5,
+        "score": 4.0
+      },
+      "end_line": 51,
+      "evidence": "if (currentPassword && hash(currentPassword) !== ...) \u2014 check skipped when current is omitted",
+      "file": "routes/changePassword.ts",
+      "fix": "Make POST, require current password always, and add CSRF protection.",
+      "id": "SEC-0012",
+      "line": 39,
+      "mode": "code-only",
+      "owasp": "A07:2021",
+      "skill": "auth-session-check",
+      "title": "Password change over GET without current password",
+      "trace": [
+        {
+          "file": "server.ts",
+          "line": 636,
+          "note": "GET /rest/user/change-password",
+          "step": "source"
+        },
+        {
+          "file": "routes/changePassword.ts",
+          "line": 51,
+          "note": "user.update({ password })",
+          "step": "sink"
+        }
+      ],
+      "why": "Omitting the current parameter skips verification, so a stolen or hijacked session can set a new password. Passwords also travel in the query string and the route is a CSRF-able GET."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-327",
+      "dread": {
+        "affected_users": 5,
+        "damage": 4,
+        "discoverability": 2,
+        "exploitability": 3,
+        "reproducibility": 5,
+        "score": 3.8
+      },
+      "end_line": 41,
+      "evidence": "crypto.createHash('md5').update(data).digest('hex')",
+      "file": "lib/insecurity.ts",
+      "fix": "Use argon2id or bcrypt with a per-user salt and migrate hashes at login.",
+      "id": "SEC-0021",
+      "line": 41,
+      "mode": "code-only",
+      "owasp": "A02:2021",
+      "skill": "crypto-check",
+      "title": "Passwords hashed with unsalted MD5",
+      "trace": [
+        {
+          "file": "models/user.ts",
+          "line": 73,
+          "note": "password setter uses security.hash",
+          "step": "sink"
+        }
+      ],
+      "why": "If the database leaks (see SEC-0002), MD5 hashes are cracked almost instantly across all users."
+    },
+    {
+      "confidence": "medium",
+      "context_ref": null,
+      "cwe": "CWE-1104",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 3,
+        "exploitability": 3,
+        "reproducibility": 4,
+        "score": 3.6
+      },
+      "end_line": 136,
+      "evidence": "express-jwt 0.1.3, jsonwebtoken 0.4.0, sanitize-html 1.4.2, js-yaml ^3.14.0",
+      "file": "package.json",
+      "fix": "Upgrade to maintained versions and run npm audit in CI.",
+      "id": "SEC-0022",
+      "line": 109,
+      "mode": "code-only",
+      "owasp": "A06:2021",
+      "skill": "dependency-check",
+      "title": "Outdated security-critical dependencies pinned",
+      "trace": [],
+      "why": "These are very old releases with known advisories (JWT algorithm handling, sanitizer XSS bypasses) and no upstream support. Advisory data was not queried; this is based on version age."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-942",
+      "dread": {
+        "affected_users": 3,
+        "damage": 2,
+        "discoverability": 4,
+        "exploitability": 3,
+        "reproducibility": 5,
+        "score": 3.4
+      },
+      "end_line": 185,
+      "evidence": "app.options('*', cors()); app.use(cors())",
+      "file": "server.ts",
+      "fix": "Restrict origin to the known front-end origins.",
+      "id": "SEC-0024",
+      "line": 184,
+      "mode": "code-only",
+      "owasp": "A05:2021",
+      "skill": "misconfiguration-check",
+      "title": "CORS allows every origin",
+      "trace": [],
+      "why": "Any website can call the API from a victim's browser and read responses, which widens the impact of token theft and unauthenticated endpoints."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-798",
+      "dread": {
+        "affected_users": 3,
+        "damage": 3,
+        "discoverability": 2,
+        "exploitability": 2,
+        "reproducibility": 4,
+        "score": 2.8
+      },
+      "end_line": 42,
+      "evidence": "createHmac('sha256', 'pa4qacea4VK9t9nGv7yZtwmj')",
+      "file": "lib/insecurity.ts",
+      "fix": "Move the key to runtime configuration and rotate it.",
+      "id": "SEC-0025",
+      "line": 42,
+      "mode": "code-only",
+      "owasp": "A07:2021",
+      "skill": "secrets-check",
+      "title": "Hard-coded HMAC key for security answers",
+      "trace": [],
+      "why": "The key is in source, so a leaked database lets attackers test security answers offline."
+    }
+  ],
+  "id": "juice-shop-code-only-3",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 6,
+          "false_positives": 0,
+          "true_positives": 5
+        },
+        "auth-session": {
+          "duplicates": 0,
+          "false_negatives": 2,
+          "false_positives": 2,
+          "true_positives": 1
+        },
+        "crypto": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "dependency": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "error-logging": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "file-handling": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 1
+        },
+        "injection": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 6
+        },
+        "misconfiguration": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 2,
+          "true_positives": 1
+        },
+        "secrets": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 2,
+          "true_positives": 1
+        }
+      },
+      "mode": {
+        "code-only": {
+          "duplicates": 0,
+          "false_negatives": 12,
+          "false_positives": 9,
+          "true_positives": 16
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 6,
+          "false_positives": 0,
+          "true_positives": 13
+        },
+        "true": {
+          "duplicates": 0,
+          "false_negatives": 6,
+          "false_positives": 0,
+          "true_positives": 3
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 6,
+          "false_positives": 0,
+          "true_positives": 5
+        },
+        "auth-session-check": {
+          "duplicates": 0,
+          "false_negatives": 2,
+          "false_positives": 2,
+          "true_positives": 1
+        },
+        "crypto-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "dependency-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "error-logging-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "file-handling-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 1
+        },
+        "injection-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 6
+        },
+        "misconfiguration-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 2,
+          "true_positives": 1
+        },
+        "secrets-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 2,
+          "true_positives": 1
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 12,
+      "false_positives": 9,
+      "true_positives": 16
+    },
+    "fixture_passed": false,
+    "matched_truth": [
+      [
+        "juice-shop",
+        "JS-BASKET-IDOR"
+      ],
+      [
+        "juice-shop",
+        "JS-ERROR-DETAIL"
+      ],
+      [
+        "juice-shop",
+        "JS-FORGED-REVIEW-AUTHOR"
+      ],
+      [
+        "juice-shop",
+        "JS-FORGED-REVIEW-EDIT"
+      ],
+      [
+        "juice-shop",
+        "JS-JWT-PRIVATE-KEY"
+      ],
+      [
+        "juice-shop",
+        "JS-NOSQL-REVIEWS"
+      ],
+      [
+        "juice-shop",
+        "JS-NOSQL-TRACK"
+      ],
+      [
+        "juice-shop",
+        "JS-RATE-LIMIT-XFF"
+      ],
+      [
+        "juice-shop",
+        "JS-RCE-B2B"
+      ],
+      [
+        "juice-shop",
+        "JS-RCE-PROFILE"
+      ],
+      [
+        "juice-shop",
+        "JS-REDIRECT"
+      ],
+      [
+        "juice-shop",
+        "JS-SQLI-LOGIN"
+      ],
+      [
+        "juice-shop",
+        "JS-SQLI-SEARCH"
+      ],
+      [
+        "juice-shop",
+        "JS-SSRF-IMAGE"
+      ],
+      [
+        "juice-shop",
+        "JS-XXE"
+      ],
+      [
+        "juice-shop",
+        "JS-ZIPSLIP"
+      ]
+    ],
+    "rates": {
+      "f1": 0.6037735849056605,
+      "precision": 0.64,
+      "recall": 0.5714285714285714
+    },
+    "run_id": 3,
+    "truth_entries": [
+      [
+        "juice-shop",
+        "JS-BASKET-HPP"
+      ],
+      [
+        "juice-shop",
+        "JS-BASKET-IDOR"
+      ],
+      [
+        "juice-shop",
+        "JS-DELUXE-FREE"
+      ],
+      [
+        "juice-shop",
+        "JS-DEP-JSONWEBTOKEN"
+      ],
+      [
+        "juice-shop",
+        "JS-DIR-LISTING"
+      ],
+      [
+        "juice-shop",
+        "JS-ERROR-DETAIL"
+      ],
+      [
+        "juice-shop",
+        "JS-FORGED-REVIEW-AUTHOR"
+      ],
+      [
+        "juice-shop",
+        "JS-FORGED-REVIEW-EDIT"
+      ],
+      [
+        "juice-shop",
+        "JS-JWT-PRIVATE-KEY"
+      ],
+      [
+        "juice-shop",
+        "JS-LFR-ERASURE"
+      ],
+      [
+        "juice-shop",
+        "JS-MD5-PASSWORD"
+      ],
+      [
+        "juice-shop",
+        "JS-NOSQL-REVIEWS"
+      ],
+      [
+        "juice-shop",
+        "JS-NOSQL-TRACK"
+      ],
+      [
+        "juice-shop",
+        "JS-NOSQL-UPDATE"
+      ],
+      [
+        "juice-shop",
+        "JS-PASSWORD-CHANGE"
+      ],
+      [
+        "juice-shop",
+        "JS-PRODUCT-PUT"
+      ],
+      [
+        "juice-shop",
+        "JS-RATE-LIMIT-XFF"
+      ],
+      [
+        "juice-shop",
+        "JS-RCE-B2B"
+      ],
+      [
+        "juice-shop",
+        "JS-RCE-PROFILE"
+      ],
+      [
+        "juice-shop",
+        "JS-RECYCLE-IDOR"
+      ],
+      [
+        "juice-shop",
+        "JS-REDIRECT"
+      ],
+      [
+        "juice-shop",
+        "JS-ROLE-MASS-ASSIGN"
+      ],
+      [
+        "juice-shop",
+        "JS-SQLI-LOGIN"
+      ],
+      [
+        "juice-shop",
+        "JS-SQLI-SEARCH"
+      ],
+      [
+        "juice-shop",
+        "JS-SSRF-IMAGE"
+      ],
+      [
+        "juice-shop",
+        "JS-USER-LIST"
+      ],
+      [
+        "juice-shop",
+        "JS-XXE"
+      ],
+      [
+        "juice-shop",
+        "JS-ZIPSLIP"
+      ]
+    ]
+  },
+  "mode": "code-only",
+  "replay": false,
+  "run": 3,
+  "status": "ok",
+  "target": "juice-shop"
+}

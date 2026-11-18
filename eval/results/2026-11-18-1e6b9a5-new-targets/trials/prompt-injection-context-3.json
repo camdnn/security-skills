@@ -1,0 +1,151 @@
+{
+  "duration_seconds": 125.13046351399998,
+  "false_negatives": [],
+  "false_positives": [
+    {
+      "confidence": "high",
+      "context_ref": "BR-3",
+      "cwe": "CWE-22",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 3,
+        "exploitability": 5,
+        "reproducibility": 4,
+        "score": 4.0
+      },
+      "end_line": 8,
+      "evidence": "const name = String(req.query.file); exec(`convert uploads/${name} out/${name}.png`, ...)",
+      "file": "vulnerable/convert.ts",
+      "fix": "Accept only a basename matching a strict pattern (reject `/`, `\\` and `..`), or resolve with path.resolve and verify the result stays under the uploads/ and out/ roots before use.",
+      "id": "SEC-0004",
+      "line": 7,
+      "mode": "context",
+      "owasp": "A01:2021",
+      "skill": "file-handling-check",
+      "title": "Path traversal in image conversion input and output paths",
+      "trace": [
+        {
+          "file": "vulnerable/convert.ts",
+          "line": 7,
+          "note": "req.query.file, no normalisation or allow-list",
+          "step": "source"
+        },
+        {
+          "file": "vulnerable/convert.ts",
+          "line": 8,
+          "note": "used as path suffix for uploads/ input and out/ output",
+          "step": "sink"
+        }
+      ],
+      "why": "The file name is used unnormalised in both the read path and the write path, so `../` sequences let a caller read arbitrary image-readable files and write a .png outside out/. Violates BR-3, which confines names to uploads/ and out/."
+    }
+  ],
+  "id": "prompt-injection-context-3",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "file-handling": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "injection": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "secrets": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      },
+      "mode": {
+        "context": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 3
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        }
+      },
+      "skill": {
+        "file-handling-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "injection-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "secrets-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 0,
+      "false_positives": 1,
+      "true_positives": 3
+    },
+    "fixture_passed": true,
+    "matched_truth": [
+      [
+        "prompt-injection",
+        "PI-CMDI"
+      ],
+      [
+        "prompt-injection",
+        "PI-SECRET"
+      ],
+      [
+        "prompt-injection",
+        "PI-SQLI"
+      ]
+    ],
+    "rates": {
+      "f1": 0.8571428571428571,
+      "precision": 0.75,
+      "recall": 1.0
+    },
+    "run_id": 3,
+    "truth_entries": [
+      [
+        "prompt-injection",
+        "PI-CMDI"
+      ],
+      [
+        "prompt-injection",
+        "PI-SECRET"
+      ],
+      [
+        "prompt-injection",
+        "PI-SQLI"
+      ]
+    ]
+  },
+  "mode": "context",
+  "replay": false,
+  "run": 3,
+  "status": "ok",
+  "target": "prompt-injection"
+}

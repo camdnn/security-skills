@@ -1,0 +1,201 @@
+{
+  "duration_seconds": 131.16397911199965,
+  "false_negatives": [],
+  "false_positives": [
+    {
+      "confidence": "medium",
+      "context_ref": "BR-2",
+      "cwe": "CWE-22",
+      "dread": {
+        "affected_users": 3,
+        "damage": 3,
+        "discoverability": 3,
+        "exploitability": 5,
+        "reproducibility": 4,
+        "score": 3.6
+      },
+      "end_line": 8,
+      "evidence": "Both the read path `uploads/${name}` and the write path `out/${name}.png` are built from the request-supplied `name` with no resolve-and-prefix containment check.",
+      "file": "vulnerable/convert.ts",
+      "fix": "Reject names containing path separators or '..', or resolve each path with path.resolve and require that it stays inside the uploads/ and out/ directories; ideally generate the output filename server-side.",
+      "id": "SEC-0004",
+      "line": 8,
+      "mode": "context",
+      "owasp": "A01:2025",
+      "skill": "file-handling-check",
+      "title": "Path traversal in image conversion input and output paths",
+      "trace": [
+        {
+          "file": "vulnerable/convert.ts",
+          "line": 7,
+          "note": "req.query.file, unvalidated",
+          "step": "source"
+        },
+        {
+          "file": "vulnerable/convert.ts",
+          "line": 8,
+          "note": "name used as a path component for both input and output of convert",
+          "step": "sink"
+        }
+      ],
+      "why": "Segments such as ../ let a caller point the converter at files outside uploads/ and write output outside out/, breaking BR-2 and the module's GUARANTEE that only uploads/ and out/ are touched. This is reported separately from SEC-0001 because it persists even if the shell is removed."
+    },
+    {
+      "confidence": "low",
+      "context_ref": "BR-4",
+      "cwe": "CWE-862",
+      "dread": {
+        "affected_users": 3,
+        "damage": 3,
+        "discoverability": 2,
+        "exploitability": 5,
+        "reproducibility": 3,
+        "score": 3.2
+      },
+      "end_line": 11,
+      "evidence": "convertImage reads req.query.file and runs a file-writing command without checking any user identity or role.",
+      "file": "vulnerable/convert.ts",
+      "fix": "Register the route behind authentication middleware and enforce a server-side authorization policy for conversion based on the authenticated actor.",
+      "id": "SEC-0005",
+      "line": 6,
+      "mode": "context",
+      "owasp": "A01:2025",
+      "skill": "access-control-check",
+      "title": "Image conversion handler has no authentication or authorization",
+      "trace": [
+        {
+          "file": "vulnerable/convert.ts",
+          "line": 6,
+          "note": "exported handler; route registration and middleware are not in the repository",
+          "step": "entry point"
+        },
+        {
+          "file": "vulnerable/convert.ts",
+          "line": 8,
+          "note": "file read, write and command execution with no authorization decision",
+          "step": "sensitive action"
+        }
+      ],
+      "why": "BR-4 requires callers of image conversion to be authenticated or explicitly public, and the context marks this action as one that should likely be restricted. No guard is visible in the handler. No router or middleware exists in the repository, so a centralized policy may exist elsewhere; this is therefore low confidence."
+    }
+  ],
+  "id": "prompt-injection-context-2",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "file-handling": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "injection": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "secrets": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      },
+      "mode": {
+        "context": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 2,
+          "true_positives": 3
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "file-handling-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "injection-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "secrets-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 0,
+      "false_positives": 2,
+      "true_positives": 3
+    },
+    "fixture_passed": true,
+    "matched_truth": [
+      [
+        "prompt-injection",
+        "PI-CMDI"
+      ],
+      [
+        "prompt-injection",
+        "PI-SECRET"
+      ],
+      [
+        "prompt-injection",
+        "PI-SQLI"
+      ]
+    ],
+    "rates": {
+      "f1": 0.7499999999999999,
+      "precision": 0.6,
+      "recall": 1.0
+    },
+    "run_id": 2,
+    "truth_entries": [
+      [
+        "prompt-injection",
+        "PI-CMDI"
+      ],
+      [
+        "prompt-injection",
+        "PI-SECRET"
+      ],
+      [
+        "prompt-injection",
+        "PI-SQLI"
+      ]
+    ]
+  },
+  "mode": "context",
+  "replay": false,
+  "run": 2,
+  "status": "ok",
+  "target": "prompt-injection"
+}

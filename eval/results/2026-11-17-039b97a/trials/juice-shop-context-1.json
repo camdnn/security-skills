@@ -1,0 +1,1015 @@
+{
+  "duration_seconds": 481.0073305440019,
+  "false_negatives": [
+    {
+      "cwe": "CWE-943",
+      "description": "Review listing concatenates the id route parameter into a $where expression.",
+      "evidence": "$where: 'this.product == ' + id",
+      "id": "JS-NOSQL-REVIEWS",
+      "locations": [
+        {
+          "end_line": 36,
+          "file": "routes/showProductReviews.ts",
+          "start_line": 36
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-94",
+      "description": "B2B orders evaluate client-supplied orderLinesData as code with notevil inside a vm context, which is not a security boundary.",
+      "evidence": "vm.runInContext('safeEval(orderLinesData)', sandbox, { timeout: 2000 })",
+      "id": "JS-RCE-B2B",
+      "locations": [
+        {
+          "end_line": 23,
+          "file": "routes/b2bOrder.ts",
+          "start_line": 21
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-22",
+      "description": "The data-erasure result renders with a layout path taken from the request body, enabling local file read via the template engine.",
+      "evidence": "path.resolve(req.body.layout)",
+      "id": "JS-LFR-ERASURE",
+      "locations": [
+        {
+          "end_line": 109,
+          "file": "routes/dataErasure.ts",
+          "start_line": 103
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-862",
+      "description": "Any authenticated user can list every user account with emails, roles, and derived token timestamps, exposing data beyond the caller's own account.",
+      "evidence": "const users = await UserModel.findAll()",
+      "id": "JS-USER-LIST",
+      "locations": [
+        {
+          "end_line": 17,
+          "file": "routes/authenticatedUsers.ts",
+          "start_line": 12
+        }
+      ],
+      "requires_context": true,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    }
+  ],
+  "false_positives": [
+    {
+      "confidence": "high",
+      "context_ref": "BR-1",
+      "cwe": "CWE-862",
+      "dread": {
+        "affected_users": 5,
+        "damage": 4,
+        "discoverability": 4,
+        "exploitability": 4,
+        "reproducibility": 5,
+        "score": 4.4
+      },
+      "end_line": 395,
+      "evidence": "app.get('/api/Users', security.isAuthorized()) is authentication only; no isAdmin helper exists in lib/insecurity.ts",
+      "file": "server.ts",
+      "fix": "Add an administrator role check after isAuthorized on GET /api/Users.",
+      "id": "SEC-0006",
+      "line": 395,
+      "mode": "context",
+      "owasp": "A01:2025",
+      "skill": "access-control-check",
+      "title": "Any logged-in user can list all user accounts",
+      "trace": [
+        {
+          "file": "server.ts",
+          "line": 395,
+          "note": "GET /api/Users guarded only by JWT validity",
+          "step": "entry"
+        },
+        {
+          "file": "server.ts",
+          "line": 523,
+          "note": "finale User resource lists all users (password and totpSecret excluded)",
+          "step": "sink"
+        }
+      ],
+      "why": "BR-1 says only administrators may list all accounts. Any self-registered customer receives every user's email, role and profile fields."
+    },
+    {
+      "confidence": "high",
+      "context_ref": "BR-1",
+      "cwe": "CWE-862",
+      "dread": {
+        "affected_users": 5,
+        "damage": 4,
+        "discoverability": 3,
+        "exploitability": 4,
+        "reproducibility": 5,
+        "score": 4.2
+      },
+      "end_line": 31,
+      "evidence": "UserModel.findAll() returned in full (password and totpSecret only masked with asterisks); route guarded only by isAuthorized (server.ts:430)",
+      "file": "routes/authenticatedUsers.ts",
+      "fix": "Require the administrator role and return only the fields an admin UI needs.",
+      "id": "SEC-0009",
+      "line": 12,
+      "mode": "context",
+      "owasp": "A01:2025",
+      "skill": "access-control-check",
+      "title": "Authentication-details endpoint returns every user to any logged-in user",
+      "trace": [
+        {
+          "file": "server.ts",
+          "line": 430,
+          "note": "/rest/user/authentication-details requires a JWT only",
+          "step": "entry"
+        },
+        {
+          "file": "routes/authenticatedUsers.ts",
+          "line": 12,
+          "note": "findAll with no role filter",
+          "step": "sink"
+        }
+      ],
+      "why": "BR-1 restricts account listing to administrators; this second route exposes emails, roles, last login and other profile data of all users to any customer."
+    },
+    {
+      "confidence": "medium",
+      "context_ref": null,
+      "cwe": "CWE-862",
+      "dread": {
+        "affected_users": 3,
+        "damage": 4,
+        "discoverability": 4,
+        "exploitability": 5,
+        "reproducibility": 5,
+        "score": 4.2
+      },
+      "end_line": 24,
+      "evidence": "MemoryModel.findAll({ include: [UserModel] }) on GET /rest/memories, which has no auth middleware; UserModel declares no default scope",
+      "file": "routes/memory.ts",
+      "fix": "Require authentication and restrict the include to non-sensitive attributes (id, username, profileImage).",
+      "id": "SEC-0010",
+      "line": 24,
+      "mode": "context",
+      "owasp": "A01:2025",
+      "skill": "access-control-check",
+      "title": "Public memories endpoint returns joined user records including password hashes",
+      "trace": [
+        {
+          "file": "server.ts",
+          "line": 670,
+          "note": "GET /rest/memories has no guard",
+          "step": "entry"
+        },
+        {
+          "file": "routes/memory.ts",
+          "line": 24,
+          "note": "eager-loads full User model and returns it as JSON",
+          "step": "sink"
+        }
+      ],
+      "why": "Unauthenticated callers receive the joined user rows (email, role, MD5 password hash, TOTP secret) of every user who posted a memory."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-307",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 4,
+        "exploitability": 4,
+        "reproducibility": 5,
+        "score": 4.2
+      },
+      "end_line": 635,
+      "evidence": "app.post('/rest/user/login', login()) has no rate limiter; rate limits exist only for reset-password and 2FA",
+      "file": "server.ts",
+      "fix": "Add a per-account and per-IP login limiter keyed on a trustworthy IP, with backoff or lockout.",
+      "id": "SEC-0012",
+      "line": 635,
+      "mode": "context",
+      "owasp": "A07:2025",
+      "skill": "auth-session-check",
+      "title": "No attempt limit on login",
+      "trace": [],
+      "why": "Passwords can be guessed without limit; passwords are fast unsalted MD5 and many accounts are likely weak."
+    },
+    {
+      "confidence": "medium",
+      "context_ref": null,
+      "cwe": "CWE-798",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 3,
+        "exploitability": 5,
+        "reproducibility": 5,
+        "score": 4.2
+      },
+      "end_line": 65,
+      "evidence": "solveIf comparisons of req.body.email and req.body.password against literal passwords for admin@, support@, mc.safesearch@, amy@, J12934@, testing@ (values redacted)",
+      "file": "routes/login.ts",
+      "fix": "Remove credential literals from application code, change the affected account passwords, and keep any fixture credentials in test-only data.",
+      "id": "SEC-0014",
+      "line": 59,
+      "mode": "context",
+      "owasp": "A07:2025",
+      "skill": "secrets-check",
+      "title": "Credentials of seeded accounts hard-coded in login handler",
+      "trace": [],
+      "why": "The literals reveal working passwords for real accounts (including admin) to anyone with source access. Medium confidence because the seed data that holds the accounts was out of scope."
+    },
+    {
+      "confidence": "high",
+      "context_ref": "BR-4",
+      "cwe": "CWE-639",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 3,
+        "exploitability": 4,
+        "reproducibility": 5,
+        "score": 4.0
+      },
+      "end_line": 35,
+      "evidence": "BasketModel.findOne({ where: { id: req.params.id } }) then the order is placed and basket items destroyed with no owner comparison",
+      "file": "routes/order.ts",
+      "fix": "Verify the basket belongs to the authenticated user before processing.",
+      "id": "SEC-0017",
+      "line": 34,
+      "mode": "context",
+      "owasp": "A01:2025",
+      "skill": "access-control-check",
+      "title": "Any logged-in user can check out another user's basket",
+      "trace": [
+        {
+          "file": "routes/order.ts",
+          "line": 34,
+          "note": "req.params.id from POST /rest/basket/:id/checkout",
+          "step": "source"
+        },
+        {
+          "file": "routes/order.ts",
+          "line": 51,
+          "note": "BasketItemModel.destroy for that basket id",
+          "step": "sink"
+        }
+      ],
+      "why": "BR-4: a customer may act only on their own basket. An attacker can trigger the checkout of a victim's basket, emptying it and generating an order."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-798",
+      "dread": {
+        "affected_users": 4,
+        "damage": 3,
+        "discoverability": 4,
+        "exploitability": 3,
+        "reproducibility": 5,
+        "score": 3.8
+      },
+      "end_line": 42,
+      "evidence": "createHmac('sha256', '[redacted literal]') in hmac()",
+      "file": "lib/insecurity.ts",
+      "fix": "Read the HMAC key from the environment or a secret manager and rotate it.",
+      "id": "SEC-0027",
+      "line": 42,
+      "mode": "context",
+      "owasp": "A07:2025",
+      "skill": "secrets-check",
+      "title": "HMAC key for security answers hard-coded",
+      "trace": [],
+      "why": "Anyone with source access plus a leaked answer table can test guesses offline; the key cannot be rotated without a code change."
+    },
+    {
+      "confidence": "high",
+      "context_ref": "BR-4",
+      "cwe": "CWE-639",
+      "dread": {
+        "affected_users": 4,
+        "damage": 3,
+        "discoverability": 3,
+        "exploitability": 4,
+        "reproducibility": 5,
+        "score": 3.8
+      },
+      "end_line": 24,
+      "evidence": "BasketModel.findByPk(params.id) then basket.update({ coupon }) with no owner comparison",
+      "file": "routes/coupon.ts",
+      "fix": "Verify the basket belongs to the authenticated user.",
+      "id": "SEC-0028",
+      "line": 18,
+      "mode": "context",
+      "owasp": "A01:2025",
+      "skill": "access-control-check",
+      "title": "Any logged-in user can apply a coupon to another user's basket",
+      "trace": [
+        {
+          "file": "routes/coupon.ts",
+          "line": 13,
+          "note": "params.id from PUT /rest/basket/:id/coupon/:coupon",
+          "step": "source"
+        },
+        {
+          "file": "routes/coupon.ts",
+          "line": 24,
+          "note": "basket.update with no ownership check",
+          "step": "sink"
+        }
+      ],
+      "why": "BR-4: only the owner may change a basket. An attacker can overwrite another user's coupon."
+    },
+    {
+      "confidence": "medium",
+      "context_ref": "BR-4",
+      "cwe": "CWE-639",
+      "dread": {
+        "affected_users": 4,
+        "damage": 3,
+        "discoverability": 3,
+        "exploitability": 4,
+        "reproducibility": 4,
+        "score": 3.6
+      },
+      "end_line": 85,
+      "evidence": "PUT /api/BasketItems/:id looks up the item by params.id for the stock check, then the finale resource updates it; no comparison with the session basket",
+      "file": "routes/basketItems.ts",
+      "fix": "Load the item with its basket and require it to belong to the authenticated user's basket.",
+      "id": "SEC-0030",
+      "line": 65,
+      "mode": "context",
+      "owasp": "A01:2025",
+      "skill": "access-control-check",
+      "title": "Basket items can be updated by id without ownership check",
+      "trace": [
+        {
+          "file": "routes/basketItems.ts",
+          "line": 68,
+          "note": "req.params.id",
+          "step": "source"
+        },
+        {
+          "file": "server.ts",
+          "line": 526,
+          "note": "finale BasketItem update runs after the stock check passes",
+          "step": "sink"
+        }
+      ],
+      "why": "BR-4: a logged-in user can change quantities in another user's basket by item id."
+    },
+    {
+      "confidence": "medium",
+      "context_ref": null,
+      "cwe": "CWE-347",
+      "dread": {
+        "affected_users": 5,
+        "damage": 5,
+        "discoverability": 2,
+        "exploitability": 3,
+        "reproducibility": 3,
+        "score": 3.6
+      },
+      "end_line": 56,
+      "evidence": "jws.verify(token, publicKey) and expressJwt({ secret: publicKey }) with no algorithms option; jwt.verify at :189 likewise",
+      "file": "lib/insecurity.ts",
+      "fix": "Pass algorithms: ['RS256'] to every verify call and upgrade express-jwt and jsonwebtoken.",
+      "id": "SEC-0032",
+      "line": 52,
+      "mode": "context",
+      "owasp": "A07:2025",
+      "skill": "auth-session-check",
+      "title": "JWT verification does not pin the algorithm",
+      "trace": [
+        {
+          "file": "lib/insecurity.ts",
+          "line": 55,
+          "note": "token from Authorization header or cookie",
+          "step": "source"
+        },
+        {
+          "file": "lib/insecurity.ts",
+          "line": 55,
+          "note": "verify without algorithm restriction; role taken from decoded payload at :157",
+          "step": "sink"
+        }
+      ],
+      "why": "If the libraries honor the token's alg header, an attacker can sign an HS256 token using the publicly downloadable RSA public key as the HMAC secret and forge any user or role, including accounting. Depends on library behavior (old pinned versions), so confidence is medium."
+    },
+    {
+      "confidence": "medium",
+      "context_ref": null,
+      "cwe": "CWE-862",
+      "dread": {
+        "affected_users": 3,
+        "damage": 2,
+        "discoverability": 3,
+        "exploitability": 5,
+        "reproducibility": 5,
+        "score": 3.6
+      },
+      "end_line": 646,
+      "evidence": "/rest/admin/application-version and /rest/admin/application-configuration registered with no middleware; handler returns the full config object",
+      "file": "server.ts",
+      "fix": "Require an administrator check and return only the values the UI needs.",
+      "id": "SEC-0034",
+      "line": 645,
+      "mode": "context",
+      "owasp": "A01:2025",
+      "skill": "access-control-check",
+      "title": "Admin-path routes have no authorization",
+      "trace": [
+        {
+          "file": "server.ts",
+          "line": 646,
+          "note": "no guard",
+          "step": "entry"
+        },
+        {
+          "file": "routes/appConfiguration.ts",
+          "line": 15,
+          "note": "res.json({ config }) with only llmApiUrl removed",
+          "step": "sink"
+        }
+      ],
+      "why": "Routes named admin are open to anonymous callers and disclose the whole application configuration."
+    },
+    {
+      "confidence": "medium",
+      "context_ref": null,
+      "cwe": "CWE-1104",
+      "dread": {
+        "affected_users": 5,
+        "damage": 4,
+        "discoverability": 3,
+        "exploitability": 3,
+        "reproducibility": 3,
+        "score": 3.6
+      },
+      "end_line": 109,
+      "evidence": "\"express-jwt\": \"0.1.3\" (exact pin)",
+      "file": "package.json",
+      "fix": "Upgrade to a maintained version and set algorithms explicitly.",
+      "id": "SEC-0035",
+      "line": 109,
+      "mode": "context",
+      "owasp": "A03:2025",
+      "skill": "dependency-check",
+      "title": "express-jwt 0.1.3 is a long-unsupported release",
+      "trace": [],
+      "why": "Versions before 6.0.0 are covered by the advisory for authorization bypass when the algorithm is not restricted (CVE-2020-15084). Verify against the advisory database; this check did not query registries."
+    },
+    {
+      "confidence": "medium",
+      "context_ref": null,
+      "cwe": "CWE-1104",
+      "dread": {
+        "affected_users": 4,
+        "damage": 3,
+        "discoverability": 3,
+        "exploitability": 4,
+        "reproducibility": 3,
+        "score": 3.4
+      },
+      "end_line": 136,
+      "evidence": "\"sanitize-html\": \"1.4.2\" (exact pin)",
+      "file": "package.json",
+      "fix": "Upgrade to a current sanitize-html release.",
+      "id": "SEC-0037",
+      "line": 136,
+      "mode": "context",
+      "owasp": "A03:2025",
+      "skill": "dependency-check",
+      "title": "sanitize-html 1.4.2 is outdated and has a known XSS advisory",
+      "trace": [],
+      "why": "Releases before 1.4.3 are covered by a public XSS advisory (CVE-2016-1000237). The library sanitizes user emails and similar fields. Verify against the advisory database."
+    },
+    {
+      "confidence": "medium",
+      "context_ref": null,
+      "cwe": "CWE-352",
+      "dread": {
+        "affected_users": 4,
+        "damage": 2,
+        "discoverability": 3,
+        "exploitability": 3,
+        "reproducibility": 4,
+        "score": 3.2
+      },
+      "end_line": 44,
+      "evidence": "POST /profile authenticates from req.cookies.token; no CSRF token or origin check; the token cookie is set with no SameSite attribute (insecurity.ts:192)",
+      "file": "routes/updateUserProfile.ts",
+      "fix": "Set SameSite=Strict/Lax explicitly on the token cookie and add a CSRF token or Origin validation.",
+      "id": "SEC-0038",
+      "line": 17,
+      "mode": "context",
+      "owasp": "A07:2025",
+      "skill": "auth-session-check",
+      "title": "Cookie-authenticated profile update has no CSRF defense",
+      "trace": [],
+      "why": "A third-party page can submit a form that changes the victim's username. Impact depends on browser SameSite defaults, so confidence is medium."
+    },
+    {
+      "confidence": "medium",
+      "context_ref": null,
+      "cwe": "CWE-311",
+      "dread": {
+        "affected_users": 3,
+        "damage": 4,
+        "discoverability": 2,
+        "exploitability": 3,
+        "reproducibility": 3,
+        "score": 3.0
+      },
+      "end_line": 38,
+      "evidence": "cardNum attribute defined with no encryption setter or getter; routes/payment.ts masks only on output",
+      "file": "models/card.ts",
+      "fix": "Store only a payment-provider token and last four digits, or encrypt the value with an authenticated cipher and a managed key.",
+      "id": "SEC-0039",
+      "line": 38,
+      "mode": "context",
+      "owasp": "A04:2025",
+      "skill": "crypto-check",
+      "title": "Full payment card numbers stored unencrypted",
+      "trace": [],
+      "why": "A database leak (see SEC-0002) exposes complete card numbers. Medium confidence because only the model definition line was inspected."
+    },
+    {
+      "confidence": "low",
+      "context_ref": null,
+      "cwe": "CWE-614",
+      "dread": {
+        "affected_users": 4,
+        "damage": 3,
+        "discoverability": 3,
+        "exploitability": 2,
+        "reproducibility": 3,
+        "score": 3.0
+      },
+      "end_line": 192,
+      "evidence": "res.cookie('token', token) with no options (also routes/updateUserProfile.ts:42)",
+      "file": "lib/insecurity.ts",
+      "fix": "Set secure: true, httpOnly: true and sameSite on the cookie.",
+      "id": "SEC-0040",
+      "line": 192,
+      "mode": "context",
+      "owasp": "A02:2025",
+      "skill": "misconfiguration-check",
+      "title": "Token cookie set without Secure flag",
+      "trace": [],
+      "why": "The session token cookie is also sent over plain HTTP. Whether the app is served over HTTPS depends on deployment, which was not visible, so confidence is low."
+    },
+    {
+      "confidence": "low",
+      "context_ref": null,
+      "cwe": "CWE-798",
+      "dread": {
+        "affected_users": 3,
+        "damage": 2,
+        "discoverability": 4,
+        "exploitability": 3,
+        "reproducibility": 3,
+        "score": 3.0
+      },
+      "end_line": 321,
+      "evidence": "app.use(cookieParser('[redacted literal]'))",
+      "file": "server.ts",
+      "fix": "Load the secret from the environment and rotate it.",
+      "id": "SEC-0041",
+      "line": 321,
+      "mode": "context",
+      "owasp": "A07:2025",
+      "skill": "secrets-check",
+      "title": "Cookie-parser secret hard-coded",
+      "trace": [],
+      "why": "The cookie signing secret is in source. Impact is limited because the token cookie is read unsigned, so confidence is low."
+    },
+    {
+      "confidence": "low",
+      "context_ref": null,
+      "cwe": "CWE-79",
+      "dread": {
+        "affected_users": 3,
+        "damage": 3,
+        "discoverability": 2,
+        "exploitability": 3,
+        "reproducibility": 3,
+        "score": 2.8
+      },
+      "end_line": 101,
+      "evidence": "template.replace(/_username_/g, username) then pug.compile(template) and res.send(fn(user)) when the challenge is enabled",
+      "file": "routes/userProfile.ts",
+      "fix": "Always render the username through the template's escaped interpolation (#{username}) and validate the profile image value before using it in the CSP.",
+      "id": "SEC-0042",
+      "line": 73,
+      "mode": "context",
+      "owasp": "A03:2025",
+      "skill": "xss-check",
+      "title": "Username inserted into profile template markup unescaped",
+      "trace": [
+        {
+          "file": "routes/updateUserProfile.ts",
+          "line": 38,
+          "note": "req.body.username stored",
+          "step": "source"
+        },
+        {
+          "file": "routes/userProfile.ts",
+          "line": 101,
+          "note": "compiled template sent as HTML",
+          "step": "sink"
+        }
+      ],
+      "why": "HTML in a stored username reaches the profile page unescaped. The page CSP (script-src 'self' 'unsafe-eval') limits script execution, but profileImage is concatenated into that CSP header (line 91), so confidence is low."
+    }
+  ],
+  "id": "juice-shop-context-1",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 7,
+          "true_positives": 10
+        },
+        "auth-session": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 3,
+          "true_positives": 3
+        },
+        "crypto": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "dependency": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 2,
+          "true_positives": 1
+        },
+        "error-logging": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "file-handling": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "injection": {
+          "duplicates": 0,
+          "false_negatives": 2,
+          "false_positives": 0,
+          "true_positives": 5
+        },
+        "misconfiguration": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 2
+        },
+        "secrets": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 3,
+          "true_positives": 1
+        },
+        "xss": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        }
+      },
+      "mode": {
+        "context": {
+          "duplicates": 0,
+          "false_negatives": 4,
+          "false_positives": 18,
+          "true_positives": 24
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 3,
+          "false_positives": 0,
+          "true_positives": 16
+        },
+        "true": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 8
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 7,
+          "true_positives": 10
+        },
+        "auth-session-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 3,
+          "true_positives": 3
+        },
+        "crypto-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "dependency-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 2,
+          "true_positives": 1
+        },
+        "error-logging-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "file-handling-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "injection-check": {
+          "duplicates": 0,
+          "false_negatives": 2,
+          "false_positives": 0,
+          "true_positives": 5
+        },
+        "misconfiguration-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 2
+        },
+        "secrets-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 3,
+          "true_positives": 1
+        },
+        "xss-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 4,
+      "false_positives": 18,
+      "true_positives": 24
+    },
+    "fixture_passed": false,
+    "matched_truth": [
+      [
+        "juice-shop",
+        "JS-BASKET-HPP"
+      ],
+      [
+        "juice-shop",
+        "JS-BASKET-IDOR"
+      ],
+      [
+        "juice-shop",
+        "JS-DELUXE-FREE"
+      ],
+      [
+        "juice-shop",
+        "JS-DEP-JSONWEBTOKEN"
+      ],
+      [
+        "juice-shop",
+        "JS-DIR-LISTING"
+      ],
+      [
+        "juice-shop",
+        "JS-ERROR-DETAIL"
+      ],
+      [
+        "juice-shop",
+        "JS-FORGED-REVIEW-AUTHOR"
+      ],
+      [
+        "juice-shop",
+        "JS-FORGED-REVIEW-EDIT"
+      ],
+      [
+        "juice-shop",
+        "JS-JWT-PRIVATE-KEY"
+      ],
+      [
+        "juice-shop",
+        "JS-MD5-PASSWORD"
+      ],
+      [
+        "juice-shop",
+        "JS-NOSQL-TRACK"
+      ],
+      [
+        "juice-shop",
+        "JS-NOSQL-UPDATE"
+      ],
+      [
+        "juice-shop",
+        "JS-PASSWORD-CHANGE"
+      ],
+      [
+        "juice-shop",
+        "JS-PRODUCT-PUT"
+      ],
+      [
+        "juice-shop",
+        "JS-RATE-LIMIT-XFF"
+      ],
+      [
+        "juice-shop",
+        "JS-RCE-PROFILE"
+      ],
+      [
+        "juice-shop",
+        "JS-RECYCLE-IDOR"
+      ],
+      [
+        "juice-shop",
+        "JS-REDIRECT"
+      ],
+      [
+        "juice-shop",
+        "JS-ROLE-MASS-ASSIGN"
+      ],
+      [
+        "juice-shop",
+        "JS-SQLI-LOGIN"
+      ],
+      [
+        "juice-shop",
+        "JS-SQLI-SEARCH"
+      ],
+      [
+        "juice-shop",
+        "JS-SSRF-IMAGE"
+      ],
+      [
+        "juice-shop",
+        "JS-XXE"
+      ],
+      [
+        "juice-shop",
+        "JS-ZIPSLIP"
+      ]
+    ],
+    "rates": {
+      "f1": 0.6857142857142857,
+      "precision": 0.5714285714285714,
+      "recall": 0.8571428571428571
+    },
+    "run_id": 1,
+    "truth_entries": [
+      [
+        "juice-shop",
+        "JS-BASKET-HPP"
+      ],
+      [
+        "juice-shop",
+        "JS-BASKET-IDOR"
+      ],
+      [
+        "juice-shop",
+        "JS-DELUXE-FREE"
+      ],
+      [
+        "juice-shop",
+        "JS-DEP-JSONWEBTOKEN"
+      ],
+      [
+        "juice-shop",
+        "JS-DIR-LISTING"
+      ],
+      [
+        "juice-shop",
+        "JS-ERROR-DETAIL"
+      ],
+      [
+        "juice-shop",
+        "JS-FORGED-REVIEW-AUTHOR"
+      ],
+      [
+        "juice-shop",
+        "JS-FORGED-REVIEW-EDIT"
+      ],
+      [
+        "juice-shop",
+        "JS-JWT-PRIVATE-KEY"
+      ],
+      [
+        "juice-shop",
+        "JS-LFR-ERASURE"
+      ],
+      [
+        "juice-shop",
+        "JS-MD5-PASSWORD"
+      ],
+      [
+        "juice-shop",
+        "JS-NOSQL-REVIEWS"
+      ],
+      [
+        "juice-shop",
+        "JS-NOSQL-TRACK"
+      ],
+      [
+        "juice-shop",
+        "JS-NOSQL-UPDATE"
+      ],
+      [
+        "juice-shop",
+        "JS-PASSWORD-CHANGE"
+      ],
+      [
+        "juice-shop",
+        "JS-PRODUCT-PUT"
+      ],
+      [
+        "juice-shop",
+        "JS-RATE-LIMIT-XFF"
+      ],
+      [
+        "juice-shop",
+        "JS-RCE-B2B"
+      ],
+      [
+        "juice-shop",
+        "JS-RCE-PROFILE"
+      ],
+      [
+        "juice-shop",
+        "JS-RECYCLE-IDOR"
+      ],
+      [
+        "juice-shop",
+        "JS-REDIRECT"
+      ],
+      [
+        "juice-shop",
+        "JS-ROLE-MASS-ASSIGN"
+      ],
+      [
+        "juice-shop",
+        "JS-SQLI-LOGIN"
+      ],
+      [
+        "juice-shop",
+        "JS-SQLI-SEARCH"
+      ],
+      [
+        "juice-shop",
+        "JS-SSRF-IMAGE"
+      ],
+      [
+        "juice-shop",
+        "JS-USER-LIST"
+      ],
+      [
+        "juice-shop",
+        "JS-XXE"
+      ],
+      [
+        "juice-shop",
+        "JS-ZIPSLIP"
+      ]
+    ]
+  },
+  "mode": "context",
+  "replay": false,
+  "run": 1,
+  "status": "ok",
+  "target": "juice-shop"
+}
