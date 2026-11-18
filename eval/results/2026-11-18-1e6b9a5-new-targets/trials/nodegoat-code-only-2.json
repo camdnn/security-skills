@@ -1,0 +1,10 @@
+{
+  "duration_seconds": 89.8133529939987,
+  "id": "nodegoat-code-only-2",
+  "mode": "code-only",
+  "reason": "[Errno 2] No such file or directory: '/tmp/eval-trial-bsp9pyqu/target/docs/security/findings.json'",
+  "replay": false,
+  "run": 2,
+  "status": "failed",
+  "target": "nodegoat"
+}

@@ -1,0 +1,462 @@
+{
+  "duration_seconds": 166.1395295320001,
+  "false_negatives": [
+    {
+      "cwe": "CWE-614",
+      "description": "The session cookie is configured without the secure flag and keeps the default connect.sid cookie name (express-session sets httpOnly by default).",
+      "evidence": "secret: cookieSecret,",
+      "id": "NG-SESSION-COOKIE",
+      "locations": [
+        {
+          "end_line": 102,
+          "file": "server.js",
+          "start_line": 78
+        }
+      ],
+      "requires_context": false,
+      "source": "NodeGoat c5cb68a code review"
+    }
+  ],
+  "false_positives": [
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-307",
+      "dread": {
+        "affected_users": 3,
+        "damage": 4,
+        "discoverability": 3,
+        "exploitability": 4,
+        "reproducibility": 5,
+        "score": 3.8
+      },
+      "end_line": 58,
+      "evidence": "handleLoginRequest calls userDAO.validateLogin with no throttling or lockout",
+      "file": "app/routes/session.js",
+      "fix": "Add per-account and per-IP rate limiting with lockout/backoff, and return one generic error for both failure cases.",
+      "id": "SEC-0008",
+      "line": 53,
+      "mode": "code-only",
+      "owasp": "A07:2025",
+      "skill": "auth-session-check",
+      "title": "No attempt limit on login",
+      "trace": [],
+      "why": "Nothing limits or slows repeated guesses per account or client, and the response distinguishes a bad username from a bad password, so accounts can be enumerated and brute-forced."
+    },
+    {
+      "confidence": "medium",
+      "context_ref": null,
+      "cwe": "CWE-79",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 3,
+        "exploitability": 3,
+        "reproducibility": 4,
+        "score": 3.6
+      },
+      "end_line": 27,
+      "evidence": "res.write(body) after fetching req.query.url",
+      "file": "app/routes/research.js",
+      "fix": "Remove the URL parameter (see SSRF finding); if proxying is needed, escape or sanitize the body and serve it as text/plain.",
+      "id": "SEC-0011",
+      "line": 22,
+      "mode": "code-only",
+      "owasp": "A03:2025",
+      "skill": "xss-check",
+      "title": "Reflected XSS: remote response body written as HTML in /research",
+      "trace": [
+        {
+          "file": "app/routes/research.js",
+          "line": 15,
+          "note": "req.query.url",
+          "step": "source"
+        },
+        {
+          "file": "app/routes/research.js",
+          "line": 25,
+          "note": "res.write(body) as text/html",
+          "step": "sink"
+        }
+      ],
+      "why": "The body fetched from a caller-chosen URL is written unescaped into the app's own response, so a link to /research?url=<attacker page> serves attacker HTML and script under the app's origin and a victim's session."
+    },
+    {
+      "confidence": "low",
+      "context_ref": null,
+      "cwe": "CWE-209",
+      "dread": {
+        "affected_users": 2,
+        "damage": 2,
+        "discoverability": 3,
+        "exploitability": 4,
+        "reproducibility": 4,
+        "score": 3.0
+      },
+      "end_line": 12,
+      "evidence": "res.render(\"error-template\", { error: err })",
+      "file": "app/routes/error.js",
+      "fix": "Render a generic message and a correlation ID; keep message and stack in server logs only.",
+      "id": "SEC-0015",
+      "line": 10,
+      "mode": "code-only",
+      "owasp": "A10:2025",
+      "skill": "error-logging-check",
+      "title": "Error object passed to the error template",
+      "trace": [],
+      "why": "The full Error (message and stack) is handed to the view. If the template prints it, clients see stack traces and internal paths. The template is not in the repository, so this could not be confirmed."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-798",
+      "dread": {
+        "affected_users": 2,
+        "damage": 2,
+        "discoverability": 5,
+        "exploitability": 2,
+        "reproducibility": 3,
+        "score": 2.8
+      },
+      "end_line": 6,
+      "evidence": "zapApiKey: \"v9dn0b...\" (redacted)",
+      "file": "config/env/development.js",
+      "fix": "Inject it from the environment and rotate it.",
+      "id": "SEC-0018",
+      "line": 6,
+      "mode": "code-only",
+      "owasp": "A07:2025",
+      "skill": "secrets-check",
+      "title": "Hard-coded ZAP API key in development config",
+      "trace": [],
+      "why": "A scanner API key is committed in source. It targets an internal ZAP host, so impact is limited, but it should not live in the repository."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-798",
+      "dread": {
+        "affected_users": 2,
+        "damage": 2,
+        "discoverability": 5,
+        "exploitability": 2,
+        "reproducibility": 3,
+        "score": 2.8
+      },
+      "end_line": 6,
+      "evidence": "zapApiKey: \"v9dn0b...\" (redacted; same value as development.js)",
+      "file": "config/env/test.js",
+      "fix": "Inject it from the environment and rotate it.",
+      "id": "SEC-0019",
+      "line": 6,
+      "mode": "code-only",
+      "owasp": "A07:2025",
+      "skill": "secrets-check",
+      "title": "Hard-coded ZAP API key in test config",
+      "trace": [],
+      "why": "The same scanner API key is committed in the test configuration."
+    },
+    {
+      "confidence": "medium",
+      "context_ref": null,
+      "cwe": "CWE-1104",
+      "dread": {
+        "affected_users": 3,
+        "damage": 2,
+        "discoverability": 3,
+        "exploitability": 2,
+        "reproducibility": 2,
+        "score": 2.4
+      },
+      "end_line": 8,
+      "evidence": "\"bcrypt-nodejs\": \"0.0.3\"",
+      "file": "package.json",
+      "fix": "Replace with bcrypt, bcryptjs or argon2 and use it for password storage.",
+      "id": "SEC-0020",
+      "line": 8,
+      "mode": "code-only",
+      "owasp": "A03:2025",
+      "skill": "dependency-check",
+      "title": "bcrypt-nodejs is deprecated and unmaintained",
+      "trace": [],
+      "why": "The package is marked deprecated on npm as no longer maintained (from my knowledge; registry not queried). It is also not used for password handling."
+    }
+  ],
+  "id": "nodegoat-code-only-1",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 4
+        },
+        "auth-session": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 3
+        },
+        "crypto": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "dependency": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 1
+        },
+        "error-logging": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 1
+        },
+        "injection": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "misconfiguration": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        },
+        "secrets": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 2,
+          "true_positives": 1
+        },
+        "xss": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 1
+        }
+      },
+      "mode": {
+        "code-only": {
+          "duplicates": 1,
+          "false_negatives": 1,
+          "false_positives": 6,
+          "true_positives": 14
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 12
+        },
+        "true": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 4
+        },
+        "auth-session-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 3
+        },
+        "crypto-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "dependency-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 1
+        },
+        "error-logging-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 1
+        },
+        "injection-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "misconfiguration-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        },
+        "secrets-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 2,
+          "true_positives": 1
+        },
+        "xss-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 1
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 1,
+      "false_negatives": 1,
+      "false_positives": 6,
+      "true_positives": 14
+    },
+    "fixture_passed": false,
+    "matched_truth": [
+      [
+        "nodegoat",
+        "NG-BENEFITS-ADMIN"
+      ],
+      [
+        "nodegoat",
+        "NG-DEP-MARKED"
+      ],
+      [
+        "nodegoat",
+        "NG-HARDCODED-SECRETS"
+      ],
+      [
+        "nodegoat",
+        "NG-IDOR-ALLOCATIONS"
+      ],
+      [
+        "nodegoat",
+        "NG-LOG-INJECTION"
+      ],
+      [
+        "nodegoat",
+        "NG-NO-CSRF"
+      ],
+      [
+        "nodegoat",
+        "NG-NOSQL-WHERE"
+      ],
+      [
+        "nodegoat",
+        "NG-OPEN-REDIRECT"
+      ],
+      [
+        "nodegoat",
+        "NG-PLAINTEXT-PASSWORD"
+      ],
+      [
+        "nodegoat",
+        "NG-SESSION-FIXATION"
+      ],
+      [
+        "nodegoat",
+        "NG-SSJS-EVAL"
+      ],
+      [
+        "nodegoat",
+        "NG-SSN-CLEARTEXT"
+      ],
+      [
+        "nodegoat",
+        "NG-SSRF"
+      ],
+      [
+        "nodegoat",
+        "NG-XSS-AUTOESCAPE"
+      ]
+    ],
+    "rates": {
+      "f1": 0.8,
+      "precision": 0.7,
+      "recall": 0.9333333333333333
+    },
+    "run_id": 1,
+    "truth_entries": [
+      [
+        "nodegoat",
+        "NG-BENEFITS-ADMIN"
+      ],
+      [
+        "nodegoat",
+        "NG-DEP-MARKED"
+      ],
+      [
+        "nodegoat",
+        "NG-HARDCODED-SECRETS"
+      ],
+      [
+        "nodegoat",
+        "NG-IDOR-ALLOCATIONS"
+      ],
+      [
+        "nodegoat",
+        "NG-LOG-INJECTION"
+      ],
+      [
+        "nodegoat",
+        "NG-NO-CSRF"
+      ],
+      [
+        "nodegoat",
+        "NG-NOSQL-WHERE"
+      ],
+      [
+        "nodegoat",
+        "NG-OPEN-REDIRECT"
+      ],
+      [
+        "nodegoat",
+        "NG-PLAINTEXT-PASSWORD"
+      ],
+      [
+        "nodegoat",
+        "NG-SESSION-COOKIE"
+      ],
+      [
+        "nodegoat",
+        "NG-SESSION-FIXATION"
+      ],
+      [
+        "nodegoat",
+        "NG-SSJS-EVAL"
+      ],
+      [
+        "nodegoat",
+        "NG-SSN-CLEARTEXT"
+      ],
+      [
+        "nodegoat",
+        "NG-SSRF"
+      ],
+      [
+        "nodegoat",
+        "NG-XSS-AUTOESCAPE"
+      ]
+    ]
+  },
+  "mode": "code-only",
+  "replay": false,
+  "run": 1,
+  "status": "ok",
+  "target": "nodegoat"
+}

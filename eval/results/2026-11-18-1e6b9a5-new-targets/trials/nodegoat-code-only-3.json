@@ -1,0 +1,534 @@
+{
+  "duration_seconds": 148.86933185700036,
+  "false_negatives": [
+    {
+      "cwe": "CWE-311",
+      "description": "Social security numbers and dates of birth are stored unencrypted.",
+      "evidence": "user.ssn = ssn;",
+      "id": "NG-SSN-CLEARTEXT",
+      "locations": [
+        {
+          "end_line": 66,
+          "file": "app/data/profile-dao.js",
+          "start_line": 61
+        }
+      ],
+      "requires_context": false,
+      "source": "NodeGoat c5cb68a code review"
+    },
+    {
+      "cwe": "CWE-614",
+      "description": "The session cookie is configured without the secure flag and keeps the default connect.sid cookie name (express-session sets httpOnly by default).",
+      "evidence": "secret: cookieSecret,",
+      "id": "NG-SESSION-COOKIE",
+      "locations": [
+        {
+          "end_line": 102,
+          "file": "server.js",
+          "start_line": 78
+        }
+      ],
+      "requires_context": false,
+      "source": "NodeGoat c5cb68a code review"
+    },
+    {
+      "cwe": "CWE-79",
+      "description": "Template autoescaping is turned off globally, so every interpolated user value renders as HTML.",
+      "evidence": "autoescape: false",
+      "id": "NG-XSS-AUTOESCAPE",
+      "locations": [
+        {
+          "end_line": 137,
+          "file": "server.js",
+          "start_line": 135
+        }
+      ],
+      "requires_context": false,
+      "source": "NodeGoat c5cb68a code review"
+    }
+  ],
+  "false_positives": [
+    {
+      "confidence": "low",
+      "context_ref": null,
+      "cwe": "CWE-79",
+      "dread": {
+        "affected_users": 5,
+        "damage": 4,
+        "discoverability": 3,
+        "exploitability": 4,
+        "reproducibility": 5,
+        "score": 4.2
+      },
+      "end_line": 27,
+      "evidence": "Memos are stored unsanitized and passed to the memos view; swig.setDefaults sets autoescape: false.",
+      "file": "app/routes/memos.js",
+      "fix": "Enable swig autoescape (remove autoescape: false) and encode memo output for HTML context.",
+      "id": "SEC-0003",
+      "line": 27,
+      "mode": "code-only",
+      "owasp": "A03:2025",
+      "skill": "xss-check",
+      "title": "Stored memo content rendered with template autoescape disabled",
+      "trace": [
+        {
+          "file": "app/routes/memos.js",
+          "line": 13,
+          "note": "req.body.memo",
+          "step": "source"
+        },
+        {
+          "file": "app/data/memos-dao.js",
+          "line": 23,
+          "note": "stored raw in the memos collection",
+          "step": "propagation"
+        },
+        {
+          "file": "server.js",
+          "line": 135,
+          "note": "swig autoescape disabled globally",
+          "step": "config"
+        },
+        {
+          "file": "app/routes/memos.js",
+          "line": 27,
+          "note": "memosList rendered into the view",
+          "step": "sink"
+        }
+      ],
+      "why": "A memo containing script would execute in every user's browser that views /memos. The view template is not in the repository, so the exact output expression could not be inspected."
+    },
+    {
+      "confidence": "medium",
+      "context_ref": null,
+      "cwe": "CWE-307",
+      "dread": {
+        "affected_users": 4,
+        "damage": 3,
+        "discoverability": 3,
+        "exploitability": 4,
+        "reproducibility": 5,
+        "score": 3.8
+      },
+      "end_line": 58,
+      "evidence": "handleLoginRequest validates credentials with no throttling, lockout or rate-limiting middleware anywhere in the app.",
+      "file": "app/routes/session.js",
+      "fix": "Add per-account and per-IP rate limiting with backoff or lockout to POST /login.",
+      "id": "SEC-0007",
+      "line": 53,
+      "mode": "code-only",
+      "owasp": "A07:2025",
+      "skill": "auth-session-check",
+      "title": "No attempt limit on login",
+      "trace": [],
+      "why": "Attackers can brute-force passwords without limit; plaintext, short (max 20 char) passwords and distinct invalid-user/invalid-password messages make it easier."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-79",
+      "dread": {
+        "affected_users": 3,
+        "damage": 3,
+        "discoverability": 3,
+        "exploitability": 4,
+        "reproducibility": 5,
+        "score": 3.6
+      },
+      "end_line": 27,
+      "evidence": "needle response body is written with res.write() under Content-Type text/html.",
+      "file": "app/routes/research.js",
+      "fix": "Do not relay remote HTML; return parsed data through an escaping template or Content-Type text/plain.",
+      "id": "SEC-0008",
+      "line": 22,
+      "mode": "code-only",
+      "owasp": "A03:2025",
+      "skill": "xss-check",
+      "title": "Remote response body written unencoded into HTML response",
+      "trace": [
+        {
+          "file": "app/routes/research.js",
+          "line": 15,
+          "note": "req.query.url selects the fetched content",
+          "step": "source"
+        },
+        {
+          "file": "app/routes/research.js",
+          "line": 25,
+          "note": "res.write(body) as text/html",
+          "step": "sink"
+        }
+      ],
+      "why": "A crafted link to /research with an attacker-controlled url returns attacker HTML/script from the application's origin, enabling session-context script execution."
+    },
+    {
+      "confidence": "low",
+      "context_ref": null,
+      "cwe": "CWE-209",
+      "dread": {
+        "affected_users": 3,
+        "damage": 2,
+        "discoverability": 3,
+        "exploitability": 4,
+        "reproducibility": 4,
+        "score": 3.2
+      },
+      "end_line": 12,
+      "evidence": "res.render('error-template', { error: err }) passes the full error (message and stack).",
+      "file": "app/routes/error.js",
+      "fix": "Render a generic message and keep details in server logs only.",
+      "id": "SEC-0014",
+      "line": 10,
+      "mode": "code-only",
+      "owasp": "A10:2025",
+      "skill": "error-logging-check",
+      "title": "Raw error object passed to client error template",
+      "trace": [],
+      "why": "If the template prints the error, clients see stack traces and internal paths. The template is not in the repository, so rendering was not confirmed."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-311",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 2,
+        "exploitability": 2,
+        "reproducibility": 3,
+        "score": 3.0
+      },
+      "end_line": 82,
+      "evidence": "ssn, dob, bankAcc and bankRouting are written as plain fields via $set; cryptoKey in config is never used.",
+      "file": "app/data/profile-dao.js",
+      "fix": "Encrypt these fields with authenticated encryption (e.g. AES-256-GCM) and keys from a secret manager.",
+      "id": "SEC-0017",
+      "line": 78,
+      "mode": "code-only",
+      "owasp": "A04:2025",
+      "skill": "crypto-check",
+      "title": "Sensitive personal and bank data stored unencrypted",
+      "trace": [],
+      "why": "Database or backup exposure reveals government IDs and bank details in clear text."
+    },
+    {
+      "confidence": "medium",
+      "context_ref": null,
+      "cwe": "CWE-1104",
+      "dread": {
+        "affected_users": 4,
+        "damage": 2,
+        "discoverability": 3,
+        "exploitability": 2,
+        "reproducibility": 3,
+        "score": 2.8
+      },
+      "end_line": 8,
+      "evidence": "\"bcrypt-nodejs\": \"0.0.3\"; the package is marked deprecated on npm in favor of bcrypt.",
+      "file": "package.json",
+      "fix": "Replace with bcrypt or argon2.",
+      "id": "SEC-0018",
+      "line": 8,
+      "mode": "code-only",
+      "owasp": "A03:2025",
+      "skill": "dependency-check",
+      "title": "bcrypt-nodejs is deprecated",
+      "trace": [],
+      "why": "Unmaintained password-hashing dependency receives no security fixes."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-798",
+      "dread": {
+        "affected_users": 2,
+        "damage": 2,
+        "discoverability": 4,
+        "exploitability": 3,
+        "reproducibility": 3,
+        "score": 2.8
+      },
+      "end_line": 6,
+      "evidence": "zapApiKey assigned a literal value (v9dn0balp...).",
+      "file": "config/env/development.js",
+      "fix": "Inject the key from the environment and rotate it.",
+      "id": "SEC-0021",
+      "line": 6,
+      "mode": "code-only",
+      "owasp": "A07:2025",
+      "skill": "secrets-check",
+      "title": "Hard-coded ZAP API key in development config",
+      "trace": [],
+      "why": "The key for the ZAP scanner API is exposed in the repository; impact is limited to the dev scanner host."
+    }
+  ],
+  "id": "nodegoat-code-only-3",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 4
+        },
+        "auth-session": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 3
+        },
+        "crypto": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "dependency": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 1
+        },
+        "error-logging": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 1
+        },
+        "injection": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "misconfiguration": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        },
+        "secrets": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 1
+        },
+        "xss": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 2,
+          "true_positives": 0
+        }
+      },
+      "mode": {
+        "code-only": {
+          "duplicates": 2,
+          "false_negatives": 3,
+          "false_positives": 7,
+          "true_positives": 12
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 3,
+          "false_positives": 0,
+          "true_positives": 10
+        },
+        "true": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 4
+        },
+        "auth-session-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 3
+        },
+        "crypto-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "dependency-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 1
+        },
+        "error-logging-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 1
+        },
+        "injection-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "misconfiguration-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        },
+        "secrets-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 1
+        },
+        "xss-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 2,
+          "true_positives": 0
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 2,
+      "false_negatives": 3,
+      "false_positives": 7,
+      "true_positives": 12
+    },
+    "fixture_passed": false,
+    "matched_truth": [
+      [
+        "nodegoat",
+        "NG-BENEFITS-ADMIN"
+      ],
+      [
+        "nodegoat",
+        "NG-DEP-MARKED"
+      ],
+      [
+        "nodegoat",
+        "NG-HARDCODED-SECRETS"
+      ],
+      [
+        "nodegoat",
+        "NG-IDOR-ALLOCATIONS"
+      ],
+      [
+        "nodegoat",
+        "NG-LOG-INJECTION"
+      ],
+      [
+        "nodegoat",
+        "NG-NO-CSRF"
+      ],
+      [
+        "nodegoat",
+        "NG-NOSQL-WHERE"
+      ],
+      [
+        "nodegoat",
+        "NG-OPEN-REDIRECT"
+      ],
+      [
+        "nodegoat",
+        "NG-PLAINTEXT-PASSWORD"
+      ],
+      [
+        "nodegoat",
+        "NG-SESSION-FIXATION"
+      ],
+      [
+        "nodegoat",
+        "NG-SSJS-EVAL"
+      ],
+      [
+        "nodegoat",
+        "NG-SSRF"
+      ]
+    ],
+    "rates": {
+      "f1": 0.7058823529411765,
+      "precision": 0.631578947368421,
+      "recall": 0.8
+    },
+    "run_id": 3,
+    "truth_entries": [
+      [
+        "nodegoat",
+        "NG-BENEFITS-ADMIN"
+      ],
+      [
+        "nodegoat",
+        "NG-DEP-MARKED"
+      ],
+      [
+        "nodegoat",
+        "NG-HARDCODED-SECRETS"
+      ],
+      [
+        "nodegoat",
+        "NG-IDOR-ALLOCATIONS"
+      ],
+      [
+        "nodegoat",
+        "NG-LOG-INJECTION"
+      ],
+      [
+        "nodegoat",
+        "NG-NO-CSRF"
+      ],
+      [
+        "nodegoat",
+        "NG-NOSQL-WHERE"
+      ],
+      [
+        "nodegoat",
+        "NG-OPEN-REDIRECT"
+      ],
+      [
+        "nodegoat",
+        "NG-PLAINTEXT-PASSWORD"
+      ],
+      [
+        "nodegoat",
+        "NG-SESSION-COOKIE"
+      ],
+      [
+        "nodegoat",
+        "NG-SESSION-FIXATION"
+      ],
+      [
+        "nodegoat",
+        "NG-SSJS-EVAL"
+      ],
+      [
+        "nodegoat",
+        "NG-SSN-CLEARTEXT"
+      ],
+      [
+        "nodegoat",
+        "NG-SSRF"
+      ],
+      [
+        "nodegoat",
+        "NG-XSS-AUTOESCAPE"
+      ]
+    ]
+  },
+  "mode": "code-only",
+  "replay": false,
+  "run": 3,
+  "status": "ok",
+  "target": "nodegoat"
+}

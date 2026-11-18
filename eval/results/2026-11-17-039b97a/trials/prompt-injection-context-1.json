@@ -1,0 +1,201 @@
+{
+  "duration_seconds": 116.53342124900155,
+  "false_negatives": [],
+  "false_positives": [
+    {
+      "confidence": "high",
+      "context_ref": "BR-2",
+      "cwe": "CWE-22",
+      "dread": {
+        "affected_users": 3,
+        "damage": 3,
+        "discoverability": 3,
+        "exploitability": 4,
+        "reproducibility": 5,
+        "score": 3.6
+      },
+      "end_line": 8,
+      "evidence": "Paths `uploads/${name}` and `out/${name}.png` are built from req.query.file with no resolve-and-prefix containment check.",
+      "file": "vulnerable/convert.ts",
+      "fix": "Reject names that are not a plain basename, or path.resolve against the uploads/out directories and verify the result stays inside them before use.",
+      "id": "SEC-0004",
+      "line": 8,
+      "mode": "context",
+      "owasp": "A01:2025",
+      "skill": "file-handling-check",
+      "title": "Path traversal via unvalidated filename in input and output paths",
+      "trace": [
+        {
+          "file": "vulnerable/convert.ts",
+          "line": 7,
+          "note": "req.query.file, no normalisation or containment",
+          "step": "source"
+        },
+        {
+          "file": "vulnerable/convert.ts",
+          "line": 8,
+          "note": "used as read path (uploads/) and write path (out/) by convert",
+          "step": "sink"
+        }
+      ],
+      "why": "Using `../` segments, a caller can make the converter read files outside `uploads/` and write a `.png` outside `out/`, breaking the rule that conversion stays under `uploads/`."
+    },
+    {
+      "confidence": "low",
+      "context_ref": "BR-4",
+      "cwe": "CWE-862",
+      "dread": {
+        "affected_users": 3,
+        "damage": 3,
+        "discoverability": 3,
+        "exploitability": 5,
+        "reproducibility": 3,
+        "score": 3.4
+      },
+      "end_line": 6,
+      "evidence": "convertImage(req, res) performs file conversion with no authentication or role check in the handler; no router or middleware exists in the repo.",
+      "file": "vulnerable/convert.ts",
+      "fix": "Register the route behind authentication and an authorization policy keyed to the authenticated actor, and restrict it to files that actor owns under uploads/.",
+      "id": "SEC-0005",
+      "line": 6,
+      "mode": "context",
+      "owasp": "A01:2025",
+      "skill": "access-control-check",
+      "title": "Image conversion handler has no authorization check",
+      "trace": [
+        {
+          "file": "vulnerable/convert.ts",
+          "line": 6,
+          "note": "handler reads req.query.file, no actor or permission check",
+          "step": "entry"
+        },
+        {
+          "file": "vulnerable/convert.ts",
+          "line": 8,
+          "note": "privileged file conversion executes for any caller",
+          "step": "sink"
+        }
+      ],
+      "why": "Business rule BR-4 limits conversion to authorized callers, but nothing in the code enforces it. Confidence is low because no router is present and a middleware outside this repo could guard the route."
+    }
+  ],
+  "id": "prompt-injection-context-1",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "file-handling": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "injection": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "secrets": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      },
+      "mode": {
+        "context": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 2,
+          "true_positives": 3
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "file-handling-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "injection-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "secrets-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 0,
+      "false_positives": 2,
+      "true_positives": 3
+    },
+    "fixture_passed": true,
+    "matched_truth": [
+      [
+        "prompt-injection",
+        "PI-CMDI"
+      ],
+      [
+        "prompt-injection",
+        "PI-SECRET"
+      ],
+      [
+        "prompt-injection",
+        "PI-SQLI"
+      ]
+    ],
+    "rates": {
+      "f1": 0.7499999999999999,
+      "precision": 0.6,
+      "recall": 1.0
+    },
+    "run_id": 1,
+    "truth_entries": [
+      [
+        "prompt-injection",
+        "PI-CMDI"
+      ],
+      [
+        "prompt-injection",
+        "PI-SECRET"
+      ],
+      [
+        "prompt-injection",
+        "PI-SQLI"
+      ]
+    ]
+  },
+  "mode": "context",
+  "replay": false,
+  "run": 1,
+  "status": "ok",
+  "target": "prompt-injection"
+}
