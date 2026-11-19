@@ -1,0 +1,615 @@
+{
+  "duration_seconds": 542.0993492479975,
+  "false_negatives": [
+    {
+      "cwe": "CWE-943",
+      "description": "Order tracking builds a MongoDB-style $where JavaScript expression from the id route parameter.",
+      "evidence": "$where: `this.orderId === '${id}'`",
+      "id": "JS-NOSQL-TRACK",
+      "locations": [
+        {
+          "end_line": 18,
+          "file": "routes/trackOrder.ts",
+          "start_line": 18
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-943",
+      "description": "Review listing concatenates the id route parameter into a $where expression.",
+      "evidence": "$where: 'this.product == ' + id",
+      "id": "JS-NOSQL-REVIEWS",
+      "locations": [
+        {
+          "end_line": 36,
+          "file": "routes/showProductReviews.ts",
+          "start_line": 36
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-943",
+      "description": "Review update passes req.body.id straight into the query selector with multi:true, so an operator object updates every review.",
+      "evidence": "{ _id: req.body.id }",
+      "id": "JS-NOSQL-UPDATE",
+      "locations": [
+        {
+          "end_line": 20,
+          "file": "routes/updateProductReviews.ts",
+          "start_line": 17
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-94",
+      "description": "B2B orders evaluate client-supplied orderLinesData as code with notevil inside a vm context, which is not a security boundary.",
+      "evidence": "vm.runInContext('safeEval(orderLinesData)', sandbox, { timeout: 2000 })",
+      "id": "JS-RCE-B2B",
+      "locations": [
+        {
+          "end_line": 23,
+          "file": "routes/b2bOrder.ts",
+          "start_line": 21
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-22",
+      "description": "Zip entries are written using their archive path; the includes(path.resolve('.')) check still allows ../ escapes inside the application folder.",
+      "evidence": "fs.createWriteStream('uploads/complaints/' + fileName)",
+      "id": "JS-ZIPSLIP",
+      "locations": [
+        {
+          "end_line": 34,
+          "file": "routes/fileUpload.ts",
+          "start_line": 30
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-639",
+      "description": "Adding an item checks the first BasketId in the body but saves the last one, so a duplicated key adds items to another user's basket.",
+      "evidence": "BasketId: basketIds[basketIds.length - 1]",
+      "id": "JS-BASKET-HPP",
+      "locations": [
+        {
+          "end_line": 43,
+          "file": "routes/basketItems.ts",
+          "start_line": 37
+        }
+      ],
+      "requires_context": true,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-862",
+      "description": "Any authenticated user can list every user account with emails, roles, and derived token timestamps, exposing data beyond the caller's own account.",
+      "evidence": "const users = await UserModel.findAll()",
+      "id": "JS-USER-LIST",
+      "locations": [
+        {
+          "end_line": 17,
+          "file": "routes/authenticatedUsers.ts",
+          "start_line": 12
+        }
+      ],
+      "requires_context": true,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-548",
+      "description": "Directory listings are served for /ftp, /encryptionkeys and /support/logs, exposing backups, keys and access logs.",
+      "evidence": "serveIndex(",
+      "id": "JS-DIR-LISTING",
+      "locations": [
+        {
+          "end_line": 294,
+          "file": "server.ts",
+          "start_line": 294
+        },
+        {
+          "end_line": 302,
+          "file": "server.ts",
+          "start_line": 302
+        },
+        {
+          "end_line": 306,
+          "file": "server.ts",
+          "start_line": 306
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-1104",
+      "description": "The application pins the outdated jsonwebtoken 0.4.0 dependency; the draft does not establish a specific advisory's reachability.",
+      "evidence": "\"jsonwebtoken\": \"0.4.0\"",
+      "id": "JS-DEP-JSONWEBTOKEN",
+      "locations": [
+        {
+          "end_line": 123,
+          "file": "package.json",
+          "start_line": 123
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    }
+  ],
+  "false_positives": [
+    {
+      "confidence": "high",
+      "context_ref": "BR-1",
+      "cwe": "CWE-863",
+      "dread": {
+        "affected_users": 5,
+        "damage": 4,
+        "discoverability": 4,
+        "exploitability": 4,
+        "reproducibility": 5,
+        "score": 4.4
+      },
+      "end_line": 395,
+      "evidence": "GET /api/Users applies security.isAuthorized() but no administrator role check.",
+      "file": "server.ts",
+      "fix": "Enforce an administrator role policy before the list route and expose only a self endpoint to ordinary users.",
+      "id": "SEC-0008",
+      "line": 395,
+      "mode": "context",
+      "owasp": "A01:2025",
+      "skill": "access-control-check",
+      "title": "Any signed-in user can list all accounts",
+      "trace": [
+        {
+          "file": "server.ts",
+          "line": 395,
+          "note": "The endpoint accepts any valid JWT.",
+          "step": "source"
+        },
+        {
+          "file": "server.ts",
+          "line": 540,
+          "note": "The generated User resource lists user records.",
+          "step": "sink"
+        }
+      ],
+      "why": "A customer can read the complete user list contrary to the administrator-only rule."
+    },
+    {
+      "confidence": "high",
+      "context_ref": "BR-4",
+      "cwe": "CWE-639",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 4,
+        "exploitability": 4,
+        "reproducibility": 5,
+        "score": 4.2
+      },
+      "end_line": 35,
+      "evidence": "placeOrder loads the basket using only req.params.id and later destroys its BasketItems.",
+      "file": "routes/order.ts",
+      "fix": "Load the basket with its owner and reject requests where it is not the authenticated caller's basket.",
+      "id": "SEC-0010",
+      "line": 35,
+      "mode": "context",
+      "owasp": "A01:2025",
+      "skill": "access-control-check",
+      "title": "Checkout accepts another customer's basket ID",
+      "trace": [
+        {
+          "file": "routes/order.ts",
+          "line": 34,
+          "note": "req.params.id controls the target basket.",
+          "step": "source"
+        },
+        {
+          "file": "routes/order.ts",
+          "line": 51,
+          "note": "Items for that basket id are destroyed after checkout.",
+          "step": "sink"
+        }
+      ],
+      "why": "A signed-in customer can check out and clear another customer's basket."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-798",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 2,
+        "exploitability": 3,
+        "reproducibility": 5,
+        "score": 3.6
+      },
+      "end_line": 42,
+      "evidence": "security.hmac supplies a literal key to crypto.createHmac.",
+      "file": "lib/insecurity.ts",
+      "fix": "Inject the HMAC key from a secret manager and rotate the exposed value.",
+      "id": "SEC-0022",
+      "line": 42,
+      "mode": "context",
+      "owasp": "A07:2025",
+      "skill": "secrets-check",
+      "title": "HMAC key is embedded in source",
+      "trace": [],
+      "why": "Source disclosure gives an attacker the key used to calculate values for security-answer verification."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-614",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 2,
+        "exploitability": 3,
+        "reproducibility": 5,
+        "score": 3.6
+      },
+      "end_line": 192,
+      "evidence": "The token cookie is set without a secure option.",
+      "file": "lib/insecurity.ts",
+      "fix": "Set secure: true, httpOnly: true, and an appropriate sameSite policy for the authentication cookie; serve the application only over HTTPS.",
+      "id": "SEC-0023",
+      "line": 192,
+      "mode": "context",
+      "owasp": "A02:2025",
+      "skill": "misconfiguration-check",
+      "title": "Authentication cookie lacks the Secure attribute",
+      "trace": [],
+      "why": "When the application is reached over HTTP, browsers can send the authentication token in cleartext."
+    }
+  ],
+  "id": "juice-shop-context-3",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 2,
+          "false_positives": 2,
+          "true_positives": 9
+        },
+        "auth-session": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "dependency": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        },
+        "error-logging": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "file-handling": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "injection": {
+          "duplicates": 0,
+          "false_negatives": 4,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "misconfiguration": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 1
+        },
+        "secrets": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 1
+        }
+      },
+      "mode": {
+        "context": {
+          "duplicates": 1,
+          "false_negatives": 9,
+          "false_positives": 4,
+          "true_positives": 19
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 7,
+          "false_positives": 0,
+          "true_positives": 12
+        },
+        "true": {
+          "duplicates": 0,
+          "false_negatives": 2,
+          "false_positives": 0,
+          "true_positives": 7
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 2,
+          "false_positives": 2,
+          "true_positives": 9
+        },
+        "auth-session-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "dependency-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        },
+        "error-logging-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "file-handling-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "injection-check": {
+          "duplicates": 0,
+          "false_negatives": 4,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "misconfiguration-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 1
+        },
+        "secrets-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 1
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 1,
+      "false_negatives": 9,
+      "false_positives": 4,
+      "true_positives": 19
+    },
+    "fixture_passed": false,
+    "matched_truth": [
+      [
+        "juice-shop",
+        "JS-BASKET-IDOR"
+      ],
+      [
+        "juice-shop",
+        "JS-DELUXE-FREE"
+      ],
+      [
+        "juice-shop",
+        "JS-ERROR-DETAIL"
+      ],
+      [
+        "juice-shop",
+        "JS-FORGED-REVIEW-AUTHOR"
+      ],
+      [
+        "juice-shop",
+        "JS-FORGED-REVIEW-EDIT"
+      ],
+      [
+        "juice-shop",
+        "JS-JWT-PRIVATE-KEY"
+      ],
+      [
+        "juice-shop",
+        "JS-LFR-ERASURE"
+      ],
+      [
+        "juice-shop",
+        "JS-MD5-PASSWORD"
+      ],
+      [
+        "juice-shop",
+        "JS-PASSWORD-CHANGE"
+      ],
+      [
+        "juice-shop",
+        "JS-PRODUCT-PUT"
+      ],
+      [
+        "juice-shop",
+        "JS-RATE-LIMIT-XFF"
+      ],
+      [
+        "juice-shop",
+        "JS-RCE-PROFILE"
+      ],
+      [
+        "juice-shop",
+        "JS-RECYCLE-IDOR"
+      ],
+      [
+        "juice-shop",
+        "JS-REDIRECT"
+      ],
+      [
+        "juice-shop",
+        "JS-ROLE-MASS-ASSIGN"
+      ],
+      [
+        "juice-shop",
+        "JS-SQLI-LOGIN"
+      ],
+      [
+        "juice-shop",
+        "JS-SQLI-SEARCH"
+      ],
+      [
+        "juice-shop",
+        "JS-SSRF-IMAGE"
+      ],
+      [
+        "juice-shop",
+        "JS-XXE"
+      ]
+    ],
+    "rates": {
+      "f1": 0.7450980392156864,
+      "precision": 0.8260869565217391,
+      "recall": 0.6785714285714286
+    },
+    "run_id": 3,
+    "truth_entries": [
+      [
+        "juice-shop",
+        "JS-BASKET-HPP"
+      ],
+      [
+        "juice-shop",
+        "JS-BASKET-IDOR"
+      ],
+      [
+        "juice-shop",
+        "JS-DELUXE-FREE"
+      ],
+      [
+        "juice-shop",
+        "JS-DEP-JSONWEBTOKEN"
+      ],
+      [
+        "juice-shop",
+        "JS-DIR-LISTING"
+      ],
+      [
+        "juice-shop",
+        "JS-ERROR-DETAIL"
+      ],
+      [
+        "juice-shop",
+        "JS-FORGED-REVIEW-AUTHOR"
+      ],
+      [
+        "juice-shop",
+        "JS-FORGED-REVIEW-EDIT"
+      ],
+      [
+        "juice-shop",
+        "JS-JWT-PRIVATE-KEY"
+      ],
+      [
+        "juice-shop",
+        "JS-LFR-ERASURE"
+      ],
+      [
+        "juice-shop",
+        "JS-MD5-PASSWORD"
+      ],
+      [
+        "juice-shop",
+        "JS-NOSQL-REVIEWS"
+      ],
+      [
+        "juice-shop",
+        "JS-NOSQL-TRACK"
+      ],
+      [
+        "juice-shop",
+        "JS-NOSQL-UPDATE"
+      ],
+      [
+        "juice-shop",
+        "JS-PASSWORD-CHANGE"
+      ],
+      [
+        "juice-shop",
+        "JS-PRODUCT-PUT"
+      ],
+      [
+        "juice-shop",
+        "JS-RATE-LIMIT-XFF"
+      ],
+      [
+        "juice-shop",
+        "JS-RCE-B2B"
+      ],
+      [
+        "juice-shop",
+        "JS-RCE-PROFILE"
+      ],
+      [
+        "juice-shop",
+        "JS-RECYCLE-IDOR"
+      ],
+      [
+        "juice-shop",
+        "JS-REDIRECT"
+      ],
+      [
+        "juice-shop",
+        "JS-ROLE-MASS-ASSIGN"
+      ],
+      [
+        "juice-shop",
+        "JS-SQLI-LOGIN"
+      ],
+      [
+        "juice-shop",
+        "JS-SQLI-SEARCH"
+      ],
+      [
+        "juice-shop",
+        "JS-SSRF-IMAGE"
+      ],
+      [
+        "juice-shop",
+        "JS-USER-LIST"
+      ],
+      [
+        "juice-shop",
+        "JS-XXE"
+      ],
+      [
+        "juice-shop",
+        "JS-ZIPSLIP"
+      ]
+    ]
+  },
+  "mode": "context",
+  "replay": false,
+  "run": 3,
+  "status": "ok",
+  "target": "juice-shop"
+}

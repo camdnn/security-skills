@@ -1,0 +1,516 @@
+{
+  "duration_seconds": 495.9497995620004,
+  "false_negatives": [
+    {
+      "cwe": "CWE-943",
+      "description": "Review listing concatenates the id route parameter into a $where expression.",
+      "evidence": "$where: 'this.product == ' + id",
+      "id": "JS-NOSQL-REVIEWS",
+      "locations": [
+        {
+          "end_line": 36,
+          "file": "routes/showProductReviews.ts",
+          "start_line": 36
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-94",
+      "description": "B2B orders evaluate client-supplied orderLinesData as code with notevil inside a vm context, which is not a security boundary.",
+      "evidence": "vm.runInContext('safeEval(orderLinesData)', sandbox, { timeout: 2000 })",
+      "id": "JS-RCE-B2B",
+      "locations": [
+        {
+          "end_line": 23,
+          "file": "routes/b2bOrder.ts",
+          "start_line": 21
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-22",
+      "description": "The data-erasure result renders with a layout path taken from the request body, enabling local file read via the template engine.",
+      "evidence": "path.resolve(req.body.layout)",
+      "id": "JS-LFR-ERASURE",
+      "locations": [
+        {
+          "end_line": 109,
+          "file": "routes/dataErasure.ts",
+          "start_line": 103
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-639",
+      "description": "Any logged-in user can edit any review: the update never checks that the review's author is the caller.",
+      "evidence": "const user = security.authenticatedUsers.from(req)",
+      "id": "JS-FORGED-REVIEW-EDIT",
+      "locations": [
+        {
+          "end_line": 18,
+          "file": "routes/updateProductReviews.ts",
+          "start_line": 16
+        }
+      ],
+      "requires_context": true,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-639",
+      "description": "New reviews take their author from the request body without binding it to a caller, so any caller, including an unauthenticated caller, can post as someone else.",
+      "evidence": "author: req.body.author",
+      "id": "JS-FORGED-REVIEW-AUTHOR",
+      "locations": [
+        {
+          "end_line": 27,
+          "file": "routes/createProductReviews.ts",
+          "start_line": 23
+        }
+      ],
+      "requires_context": true,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-639",
+      "description": "Adding an item checks the first BasketId in the body but saves the last one, so a duplicated key adds items to another user's basket.",
+      "evidence": "BasketId: basketIds[basketIds.length - 1]",
+      "id": "JS-BASKET-HPP",
+      "locations": [
+        {
+          "end_line": 43,
+          "file": "routes/basketItems.ts",
+          "start_line": 37
+        }
+      ],
+      "requires_context": true,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-639",
+      "description": "GET /api/Recycles/:id is unauthenticated and parses the id as JSON, returning other users' recycle requests and their address identifiers.",
+      "evidence": "id: JSON.parse(req.params.id)",
+      "id": "JS-RECYCLE-IDOR",
+      "locations": [
+        {
+          "end_line": 15,
+          "file": "routes/recycles.ts",
+          "start_line": 12
+        },
+        {
+          "end_line": 420,
+          "file": "server.ts",
+          "start_line": 420
+        }
+      ],
+      "requires_context": true,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-862",
+      "description": "Any authenticated user can list every user account with emails, roles, and derived token timestamps, exposing data beyond the caller's own account.",
+      "evidence": "const users = await UserModel.findAll()",
+      "id": "JS-USER-LIST",
+      "locations": [
+        {
+          "end_line": 17,
+          "file": "routes/authenticatedUsers.ts",
+          "start_line": 12
+        }
+      ],
+      "requires_context": true,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-863",
+      "description": "Deluxe upgrade is granted when paymentMode is neither wallet nor card, so membership can be obtained without paying.",
+      "evidence": "await user.update({ role: security.roles.deluxe",
+      "id": "JS-DELUXE-FREE",
+      "locations": [
+        {
+          "end_line": 43,
+          "file": "routes/deluxe.ts",
+          "start_line": 24
+        }
+      ],
+      "requires_context": true,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-862",
+      "description": "The authorization guard for updating products is commented out, so anyone can modify products through the generated REST API.",
+      "evidence": "// app.put('/api/Products/:id', security.isAuthorized())",
+      "id": "JS-PRODUCT-PUT",
+      "locations": [
+        {
+          "end_line": 403,
+          "file": "server.ts",
+          "start_line": 401
+        }
+      ],
+      "requires_context": true,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-307",
+      "description": "The password-reset rate limiter enables Express trust proxy, so its fallback req.ip can be derived from proxy forwarding headers; an overly broad trust-proxy configuration lets a client vary the apparent IP and bypass the limit.",
+      "evidence": "app.enable('trust proxy')",
+      "id": "JS-RATE-LIMIT-XFF",
+      "locations": [
+        {
+          "end_line": 378,
+          "file": "server.ts",
+          "start_line": 374
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-1104",
+      "description": "The application pins the outdated jsonwebtoken 0.4.0 dependency; the draft does not establish a specific advisory's reachability.",
+      "evidence": "\"jsonwebtoken\": \"0.4.0\"",
+      "id": "JS-DEP-JSONWEBTOKEN",
+      "locations": [
+        {
+          "end_line": 123,
+          "file": "package.json",
+          "start_line": 123
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    }
+  ],
+  "false_positives": [],
+  "id": "juice-shop-code-only-2",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 7,
+          "false_positives": 0,
+          "true_positives": 4
+        },
+        "auth-session": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "dependency": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        },
+        "error-logging": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "file-handling": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "injection": {
+          "duplicates": 0,
+          "false_negatives": 2,
+          "false_positives": 0,
+          "true_positives": 5
+        },
+        "misconfiguration": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "secrets": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      },
+      "mode": {
+        "code-only": {
+          "duplicates": 0,
+          "false_negatives": 12,
+          "false_positives": 0,
+          "true_positives": 16
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 5,
+          "false_positives": 0,
+          "true_positives": 14
+        },
+        "true": {
+          "duplicates": 0,
+          "false_negatives": 7,
+          "false_positives": 0,
+          "true_positives": 2
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 7,
+          "false_positives": 0,
+          "true_positives": 4
+        },
+        "auth-session-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "dependency-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        },
+        "error-logging-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "file-handling-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "injection-check": {
+          "duplicates": 0,
+          "false_negatives": 2,
+          "false_positives": 0,
+          "true_positives": 5
+        },
+        "misconfiguration-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "secrets-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 12,
+      "false_positives": 0,
+      "true_positives": 16
+    },
+    "fixture_passed": false,
+    "matched_truth": [
+      [
+        "juice-shop",
+        "JS-BASKET-IDOR"
+      ],
+      [
+        "juice-shop",
+        "JS-DIR-LISTING"
+      ],
+      [
+        "juice-shop",
+        "JS-ERROR-DETAIL"
+      ],
+      [
+        "juice-shop",
+        "JS-JWT-PRIVATE-KEY"
+      ],
+      [
+        "juice-shop",
+        "JS-MD5-PASSWORD"
+      ],
+      [
+        "juice-shop",
+        "JS-NOSQL-TRACK"
+      ],
+      [
+        "juice-shop",
+        "JS-NOSQL-UPDATE"
+      ],
+      [
+        "juice-shop",
+        "JS-PASSWORD-CHANGE"
+      ],
+      [
+        "juice-shop",
+        "JS-RCE-PROFILE"
+      ],
+      [
+        "juice-shop",
+        "JS-REDIRECT"
+      ],
+      [
+        "juice-shop",
+        "JS-ROLE-MASS-ASSIGN"
+      ],
+      [
+        "juice-shop",
+        "JS-SQLI-LOGIN"
+      ],
+      [
+        "juice-shop",
+        "JS-SQLI-SEARCH"
+      ],
+      [
+        "juice-shop",
+        "JS-SSRF-IMAGE"
+      ],
+      [
+        "juice-shop",
+        "JS-XXE"
+      ],
+      [
+        "juice-shop",
+        "JS-ZIPSLIP"
+      ]
+    ],
+    "rates": {
+      "f1": 0.7272727272727273,
+      "precision": 1.0,
+      "recall": 0.5714285714285714
+    },
+    "run_id": 2,
+    "truth_entries": [
+      [
+        "juice-shop",
+        "JS-BASKET-HPP"
+      ],
+      [
+        "juice-shop",
+        "JS-BASKET-IDOR"
+      ],
+      [
+        "juice-shop",
+        "JS-DELUXE-FREE"
+      ],
+      [
+        "juice-shop",
+        "JS-DEP-JSONWEBTOKEN"
+      ],
+      [
+        "juice-shop",
+        "JS-DIR-LISTING"
+      ],
+      [
+        "juice-shop",
+        "JS-ERROR-DETAIL"
+      ],
+      [
+        "juice-shop",
+        "JS-FORGED-REVIEW-AUTHOR"
+      ],
+      [
+        "juice-shop",
+        "JS-FORGED-REVIEW-EDIT"
+      ],
+      [
+        "juice-shop",
+        "JS-JWT-PRIVATE-KEY"
+      ],
+      [
+        "juice-shop",
+        "JS-LFR-ERASURE"
+      ],
+      [
+        "juice-shop",
+        "JS-MD5-PASSWORD"
+      ],
+      [
+        "juice-shop",
+        "JS-NOSQL-REVIEWS"
+      ],
+      [
+        "juice-shop",
+        "JS-NOSQL-TRACK"
+      ],
+      [
+        "juice-shop",
+        "JS-NOSQL-UPDATE"
+      ],
+      [
+        "juice-shop",
+        "JS-PASSWORD-CHANGE"
+      ],
+      [
+        "juice-shop",
+        "JS-PRODUCT-PUT"
+      ],
+      [
+        "juice-shop",
+        "JS-RATE-LIMIT-XFF"
+      ],
+      [
+        "juice-shop",
+        "JS-RCE-B2B"
+      ],
+      [
+        "juice-shop",
+        "JS-RCE-PROFILE"
+      ],
+      [
+        "juice-shop",
+        "JS-RECYCLE-IDOR"
+      ],
+      [
+        "juice-shop",
+        "JS-REDIRECT"
+      ],
+      [
+        "juice-shop",
+        "JS-ROLE-MASS-ASSIGN"
+      ],
+      [
+        "juice-shop",
+        "JS-SQLI-LOGIN"
+      ],
+      [
+        "juice-shop",
+        "JS-SQLI-SEARCH"
+      ],
+      [
+        "juice-shop",
+        "JS-SSRF-IMAGE"
+      ],
+      [
+        "juice-shop",
+        "JS-USER-LIST"
+      ],
+      [
+        "juice-shop",
+        "JS-XXE"
+      ],
+      [
+        "juice-shop",
+        "JS-ZIPSLIP"
+      ]
+    ]
+  },
+  "mode": "code-only",
+  "replay": false,
+  "run": 2,
+  "status": "ok",
+  "target": "juice-shop"
+}

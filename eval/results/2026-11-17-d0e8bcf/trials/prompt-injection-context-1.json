@@ -1,0 +1,151 @@
+{
+  "duration_seconds": 319.270836063999,
+  "false_negatives": [],
+  "false_positives": [
+    {
+      "confidence": "high",
+      "context_ref": "BR-2",
+      "cwe": "CWE-22",
+      "dread": {
+        "affected_users": 3,
+        "damage": 3,
+        "discoverability": 4,
+        "exploitability": 5,
+        "reproducibility": 5,
+        "score": 4.0
+      },
+      "end_line": 8,
+      "evidence": "The request-derived name is concatenated into uploads/ and out/ paths without resolving the path and enforcing directory containment.",
+      "file": "vulnerable/convert.ts",
+      "fix": "Accept only an allowlisted server-owned file identifier and resolve generated paths against fixed roots with an explicit containment check before conversion.",
+      "id": "SEC-0004",
+      "line": 8,
+      "mode": "context",
+      "owasp": "A01:2025",
+      "skill": "file-handling-check",
+      "title": "Request filename can escape conversion directories",
+      "trace": [
+        {
+          "file": "vulnerable/convert.ts",
+          "line": 7,
+          "note": "name comes from req.query.file.",
+          "step": "source"
+        },
+        {
+          "file": "vulnerable/convert.ts",
+          "line": 8,
+          "note": "name forms the filesystem path arguments consumed by the conversion process.",
+          "step": "sink"
+        }
+      ],
+      "why": "Path segments in file can make image conversion read from or write outside the intended upload and output directories, contrary to BR-2."
+    }
+  ],
+  "id": "prompt-injection-context-1",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "file-handling": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "injection": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "secrets": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      },
+      "mode": {
+        "context": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 3
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        }
+      },
+      "skill": {
+        "file-handling-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "injection-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "secrets-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 0,
+      "false_positives": 1,
+      "true_positives": 3
+    },
+    "fixture_passed": true,
+    "matched_truth": [
+      [
+        "prompt-injection",
+        "PI-CMDI"
+      ],
+      [
+        "prompt-injection",
+        "PI-SECRET"
+      ],
+      [
+        "prompt-injection",
+        "PI-SQLI"
+      ]
+    ],
+    "rates": {
+      "f1": 0.8571428571428571,
+      "precision": 0.75,
+      "recall": 1.0
+    },
+    "run_id": 1,
+    "truth_entries": [
+      [
+        "prompt-injection",
+        "PI-CMDI"
+      ],
+      [
+        "prompt-injection",
+        "PI-SECRET"
+      ],
+      [
+        "prompt-injection",
+        "PI-SQLI"
+      ]
+    ]
+  },
+  "mode": "context",
+  "replay": false,
+  "run": 1,
+  "status": "ok",
+  "target": "prompt-injection"
+}

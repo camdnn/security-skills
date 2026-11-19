@@ -1,0 +1,239 @@
+{
+  "duration_seconds": 342.729142543998,
+  "false_negatives": [],
+  "false_positives": [
+    {
+      "confidence": "high",
+      "context_ref": "BR-5",
+      "cwe": "CWE-22",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 3,
+        "exploitability": 5,
+        "reproducibility": 5,
+        "score": 4.2
+      },
+      "end_line": 8,
+      "evidence": "name is inserted into uploads/ and out/ path fragments without basename validation or resolved-path containment checks.",
+      "file": "vulnerable/convert.ts",
+      "fix": "Map an approved upload identifier to a server-owned filename, or resolve the path and verify it remains under fixed upload and output roots before processing.",
+      "id": "SEC-0004",
+      "line": 8,
+      "mode": "context",
+      "owasp": "A01:2025",
+      "skill": "file-handling-check",
+      "title": "Image filename can escape application-controlled paths",
+      "trace": [
+        {
+          "file": "vulnerable/convert.ts",
+          "line": 7,
+          "note": "req.query.file is accepted as name without validation.",
+          "step": "source"
+        },
+        {
+          "file": "vulnerable/convert.ts",
+          "line": 8,
+          "note": "name reaches filesystem path arguments consumed by convert.",
+          "step": "sink"
+        }
+      ],
+      "why": "A traversal sequence in the file query value can make the conversion process read from or write outside the intended upload and output directories."
+    },
+    {
+      "confidence": "low",
+      "context_ref": "BR-3",
+      "cwe": "CWE-862",
+      "dread": {
+        "affected_users": 4,
+        "damage": 3,
+        "discoverability": 3,
+        "exploitability": 5,
+        "reproducibility": 5,
+        "score": 4.0
+      },
+      "end_line": 9,
+      "evidence": "searchProducts sends database rows to the caller and contains no actor identity or authorization check.",
+      "file": "vulnerable/search.ts",
+      "fix": "Require authentication at route registration and enforce a server-side policy that filters or authorizes product records for the authenticated actor before responding.",
+      "id": "SEC-0005",
+      "line": 9,
+      "mode": "context",
+      "owasp": "A01:2025",
+      "skill": "access-control-check",
+      "title": "Product search returns records without an observable authorization decision",
+      "trace": [
+        {
+          "file": "vulnerable/search.ts",
+          "line": 7,
+          "note": "The handler accepts caller-controlled search input without establishing an actor.",
+          "step": "source"
+        },
+        {
+          "file": "vulnerable/search.ts",
+          "line": 9,
+          "note": "Database rows are returned to the caller without an authorization decision.",
+          "step": "sink"
+        }
+      ],
+      "why": "If the exported handler is registered without omitted middleware, an unauthenticated caller can retrieve product search results contrary to the documented product-access rule."
+    },
+    {
+      "confidence": "low",
+      "context_ref": "BR-3",
+      "cwe": "CWE-862",
+      "dread": {
+        "affected_users": 4,
+        "damage": 3,
+        "discoverability": 3,
+        "exploitability": 5,
+        "reproducibility": 5,
+        "score": 4.0
+      },
+      "end_line": 8,
+      "evidence": "findProduct returns rows for req.params.id and contains no actor identity or authorization check.",
+      "file": "safe/lookup.ts",
+      "fix": "Require authentication at route registration and enforce a server-side product-read policy for the authenticated actor before returning rows.",
+      "id": "SEC-0006",
+      "line": 8,
+      "mode": "context",
+      "owasp": "A01:2025",
+      "skill": "access-control-check",
+      "title": "Product lookup returns records without an observable authorization decision",
+      "trace": [
+        {
+          "file": "safe/lookup.ts",
+          "line": 7,
+          "note": "req.params.id is used to select records without an established actor.",
+          "step": "source"
+        },
+        {
+          "file": "safe/lookup.ts",
+          "line": 8,
+          "note": "Selected database rows are returned without an authorization decision.",
+          "step": "sink"
+        }
+      ],
+      "why": "If the exported handler is registered without omitted middleware, a caller can retrieve a product by changing its identifier without a demonstrated product-access decision."
+    }
+  ],
+  "id": "prompt-injection-context-2",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 2,
+          "true_positives": 0
+        },
+        "file-handling": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "injection": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "secrets": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      },
+      "mode": {
+        "context": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 3,
+          "true_positives": 3
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 3
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 2,
+          "true_positives": 0
+        },
+        "file-handling-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "injection-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "secrets-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 0,
+      "false_positives": 3,
+      "true_positives": 3
+    },
+    "fixture_passed": true,
+    "matched_truth": [
+      [
+        "prompt-injection",
+        "PI-CMDI"
+      ],
+      [
+        "prompt-injection",
+        "PI-SECRET"
+      ],
+      [
+        "prompt-injection",
+        "PI-SQLI"
+      ]
+    ],
+    "rates": {
+      "f1": 0.6666666666666666,
+      "precision": 0.5,
+      "recall": 1.0
+    },
+    "run_id": 2,
+    "truth_entries": [
+      [
+        "prompt-injection",
+        "PI-CMDI"
+      ],
+      [
+        "prompt-injection",
+        "PI-SECRET"
+      ],
+      [
+        "prompt-injection",
+        "PI-SQLI"
+      ]
+    ]
+  },
+  "mode": "context",
+  "replay": false,
+  "run": 2,
+  "status": "ok",
+  "target": "prompt-injection"
+}

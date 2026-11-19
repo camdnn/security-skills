@@ -1,0 +1,544 @@
+{
+  "duration_seconds": 568.214388057997,
+  "false_negatives": [
+    {
+      "cwe": "CWE-311",
+      "description": "Social security numbers and dates of birth are stored unencrypted.",
+      "evidence": "user.ssn = ssn;",
+      "id": "NG-SSN-CLEARTEXT",
+      "locations": [
+        {
+          "end_line": 66,
+          "file": "app/data/profile-dao.js",
+          "start_line": 61
+        }
+      ],
+      "requires_context": false,
+      "source": "NodeGoat c5cb68a code review"
+    },
+    {
+      "cwe": "CWE-79",
+      "description": "Template autoescaping is turned off globally, so every interpolated user value renders as HTML.",
+      "evidence": "autoescape: false",
+      "id": "NG-XSS-AUTOESCAPE",
+      "locations": [
+        {
+          "end_line": 137,
+          "file": "server.js",
+          "start_line": 135
+        }
+      ],
+      "requires_context": false,
+      "source": "NodeGoat c5cb68a code review"
+    },
+    {
+      "cwe": "CWE-384",
+      "description": "Login reuses the existing session ID instead of regenerating it (session fixation).",
+      "evidence": "req.session.userId = user._id;",
+      "id": "NG-SESSION-FIXATION",
+      "locations": [
+        {
+          "end_line": 116,
+          "file": "app/routes/session.js",
+          "start_line": 116
+        }
+      ],
+      "requires_context": false,
+      "source": "NodeGoat c5cb68a code review"
+    },
+    {
+      "cwe": "CWE-117",
+      "description": "Failed logins log the raw user name, allowing forged log lines.",
+      "evidence": "console.log(\"Error: attempt to login with invalid user: \", userName);",
+      "id": "NG-LOG-INJECTION",
+      "locations": [
+        {
+          "end_line": 64,
+          "file": "app/routes/session.js",
+          "start_line": 64
+        }
+      ],
+      "requires_context": false,
+      "source": "NodeGoat c5cb68a code review"
+    },
+    {
+      "cwe": "CWE-1104",
+      "description": "marked 0.3.5 has known sanitizer bypasses leading to XSS.",
+      "evidence": "\"marked\": \"0.3.5\"",
+      "id": "NG-DEP-MARKED",
+      "locations": [
+        {
+          "end_line": 17,
+          "file": "package.json",
+          "start_line": 17
+        }
+      ],
+      "requires_context": false,
+      "source": "NodeGoat c5cb68a code review"
+    }
+  ],
+  "false_positives": [
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-307",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 4,
+        "exploitability": 5,
+        "reproducibility": 4,
+        "score": 4.2
+      },
+      "end_line": 156,
+      "evidence": "The login handler attempts credential validation on every request and has no attempt counter, delay, or rate-limit control.",
+      "file": "app/routes/session.js",
+      "fix": "Apply a server-side login rate limit keyed to an account and a trusted client signal, with progressive delays and monitoring.",
+      "id": "SEC-0005",
+      "line": 91,
+      "mode": "context",
+      "owasp": "A07:2025",
+      "skill": "auth-session-check",
+      "title": "Login attempts have no rate limit",
+      "trace": [],
+      "why": "An unauthenticated attacker can repeatedly guess credentials and potentially take over retirement accounts."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-311",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 3,
+        "exploitability": 4,
+        "reproducibility": 5,
+        "score": 4.0
+      },
+      "end_line": 82,
+      "evidence": "SSN, date of birth, bank account, and routing fields are placed in $set and persisted directly without an encryption operation.",
+      "file": "app/data/profile-dao.js",
+      "fix": "Minimize retention and encrypt SSN and bank fields with managed, rotated keys before persistence; restrict and audit decryption.",
+      "id": "SEC-0009",
+      "line": 78,
+      "mode": "context",
+      "owasp": "A04:2025",
+      "skill": "crypto-check",
+      "title": "Sensitive profile data is written to MongoDB without application-layer encryption",
+      "trace": [
+        {
+          "file": "app/routes/profile.js",
+          "line": 42,
+          "note": "Profile fields originate in the request body.",
+          "step": "source"
+        },
+        {
+          "file": "app/data/profile-dao.js",
+          "line": 81,
+          "note": "The sensitive fields are written directly to MongoDB.",
+          "step": "sink"
+        }
+      ],
+      "why": "A database compromise exposes highly sensitive employee identity and banking information in plaintext."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-79",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 3,
+        "exploitability": 4,
+        "reproducibility": 5,
+        "score": 4.0
+      },
+      "end_line": 25,
+      "evidence": "The response body from the caller-selected remote URL is passed to res.write with a text/html content type.",
+      "file": "app/routes/research.js",
+      "fix": "Do not proxy arbitrary HTML; parse only expected structured data and output-encode it, or sanitize with a vetted HTML sanitizer.",
+      "id": "SEC-0010",
+      "line": 25,
+      "mode": "context",
+      "owasp": "A03:2025",
+      "skill": "xss-check",
+      "title": "Fetched attacker-controlled content is written as HTML",
+      "trace": [
+        {
+          "file": "app/routes/research.js",
+          "line": 15,
+          "note": "The caller selects the remote response source through the URL query parameter.",
+          "step": "source"
+        },
+        {
+          "file": "app/routes/research.js",
+          "line": 25,
+          "note": "The remote body is emitted into an HTML response without sanitization.",
+          "step": "sink"
+        }
+      ],
+      "why": "An attacker can host markup or script at the selected URL and cause it to execute in an authenticated user's browser."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-209",
+      "dread": {
+        "affected_users": 3,
+        "damage": 2,
+        "discoverability": 4,
+        "exploitability": 4,
+        "reproducibility": 5,
+        "score": 3.6
+      },
+      "end_line": 12,
+      "evidence": "The error middleware renders error-template with the original err object.",
+      "file": "app/routes/error.js",
+      "fix": "Log detailed errors only on the server and render a generic client error response without the error object.",
+      "id": "SEC-0013",
+      "line": 10,
+      "mode": "context",
+      "owasp": "A10:2025",
+      "skill": "error-logging-check",
+      "title": "Unhandled errors are passed to the error template",
+      "trace": [],
+      "why": "Database and internal error details, including stack information, can be exposed to a client when an error reaches this handler."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-798",
+      "dread": {
+        "affected_users": 2,
+        "damage": 3,
+        "discoverability": 3,
+        "exploitability": 4,
+        "reproducibility": 4,
+        "score": 3.2
+      },
+      "end_line": 6,
+      "evidence": "zapApiKey is assigned a literal API credential (redacted).",
+      "file": "config/env/development.js",
+      "fix": "Remove the committed credential, inject it at runtime, and rotate it in the affected ZAP service.",
+      "id": "SEC-0016",
+      "line": 6,
+      "mode": "context",
+      "owasp": "A07:2025",
+      "skill": "secrets-check",
+      "title": "Development ZAP API key is committed in configuration",
+      "trace": [],
+      "why": "A source reader can use the exposed development security-tool credential where that service is reachable."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-798",
+      "dread": {
+        "affected_users": 2,
+        "damage": 3,
+        "discoverability": 3,
+        "exploitability": 4,
+        "reproducibility": 4,
+        "score": 3.2
+      },
+      "end_line": 6,
+      "evidence": "zapApiKey is assigned a literal API credential (redacted).",
+      "file": "config/env/test.js",
+      "fix": "Remove the committed credential, inject it at runtime, and rotate it in the affected ZAP service.",
+      "id": "SEC-0017",
+      "line": 6,
+      "mode": "context",
+      "owasp": "A07:2025",
+      "skill": "secrets-check",
+      "title": "Test ZAP API key is committed in configuration",
+      "trace": [],
+      "why": "A source reader can use the exposed test security-tool credential where that service is reachable."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-384",
+      "dread": {
+        "affected_users": 2,
+        "damage": 4,
+        "discoverability": 3,
+        "exploitability": 2,
+        "reproducibility": 4,
+        "score": 3.0
+      },
+      "end_line": 155,
+      "evidence": "Successful login assigns userId to the existing session; unlike signup, this path does not call req.session.regenerate().",
+      "file": "app/routes/session.js",
+      "fix": "Regenerate the session identifier after successful login, then assign the authenticated user ID to the new session.",
+      "id": "SEC-0018",
+      "line": 154,
+      "mode": "context",
+      "owasp": "A07:2025",
+      "skill": "auth-session-check",
+      "title": "Login does not rotate the pre-authentication session",
+      "trace": [],
+      "why": "An attacker who can set or obtain a victim's pre-login session identifier can retain access after the victim authenticates."
+    }
+  ],
+  "id": "nodegoat-context-1",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 4
+        },
+        "auth-session": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 2,
+          "true_positives": 2
+        },
+        "crypto": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "dependency": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        },
+        "error-logging": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "injection": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "misconfiguration": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "secrets": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 2,
+          "true_positives": 1
+        },
+        "xss": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 0
+        }
+      },
+      "mode": {
+        "context": {
+          "duplicates": 1,
+          "false_negatives": 5,
+          "false_positives": 7,
+          "true_positives": 10
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 5,
+          "false_positives": 0,
+          "true_positives": 8
+        },
+        "true": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 4
+        },
+        "auth-session-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 2,
+          "true_positives": 2
+        },
+        "crypto-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "dependency-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        },
+        "error-logging-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "injection-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "misconfiguration-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "secrets-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 2,
+          "true_positives": 1
+        },
+        "xss-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 0
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 1,
+      "false_negatives": 5,
+      "false_positives": 7,
+      "true_positives": 10
+    },
+    "fixture_passed": false,
+    "matched_truth": [
+      [
+        "nodegoat",
+        "NG-BENEFITS-ADMIN"
+      ],
+      [
+        "nodegoat",
+        "NG-HARDCODED-SECRETS"
+      ],
+      [
+        "nodegoat",
+        "NG-IDOR-ALLOCATIONS"
+      ],
+      [
+        "nodegoat",
+        "NG-NO-CSRF"
+      ],
+      [
+        "nodegoat",
+        "NG-NOSQL-WHERE"
+      ],
+      [
+        "nodegoat",
+        "NG-OPEN-REDIRECT"
+      ],
+      [
+        "nodegoat",
+        "NG-PLAINTEXT-PASSWORD"
+      ],
+      [
+        "nodegoat",
+        "NG-SESSION-COOKIE"
+      ],
+      [
+        "nodegoat",
+        "NG-SSJS-EVAL"
+      ],
+      [
+        "nodegoat",
+        "NG-SSRF"
+      ]
+    ],
+    "rates": {
+      "f1": 0.625,
+      "precision": 0.5882352941176471,
+      "recall": 0.6666666666666666
+    },
+    "run_id": 1,
+    "truth_entries": [
+      [
+        "nodegoat",
+        "NG-BENEFITS-ADMIN"
+      ],
+      [
+        "nodegoat",
+        "NG-DEP-MARKED"
+      ],
+      [
+        "nodegoat",
+        "NG-HARDCODED-SECRETS"
+      ],
+      [
+        "nodegoat",
+        "NG-IDOR-ALLOCATIONS"
+      ],
+      [
+        "nodegoat",
+        "NG-LOG-INJECTION"
+      ],
+      [
+        "nodegoat",
+        "NG-NO-CSRF"
+      ],
+      [
+        "nodegoat",
+        "NG-NOSQL-WHERE"
+      ],
+      [
+        "nodegoat",
+        "NG-OPEN-REDIRECT"
+      ],
+      [
+        "nodegoat",
+        "NG-PLAINTEXT-PASSWORD"
+      ],
+      [
+        "nodegoat",
+        "NG-SESSION-COOKIE"
+      ],
+      [
+        "nodegoat",
+        "NG-SESSION-FIXATION"
+      ],
+      [
+        "nodegoat",
+        "NG-SSJS-EVAL"
+      ],
+      [
+        "nodegoat",
+        "NG-SSN-CLEARTEXT"
+      ],
+      [
+        "nodegoat",
+        "NG-SSRF"
+      ],
+      [
+        "nodegoat",
+        "NG-XSS-AUTOESCAPE"
+      ]
+    ]
+  },
+  "mode": "context",
+  "replay": false,
+  "run": 1,
+  "status": "ok",
+  "target": "nodegoat"
+}
