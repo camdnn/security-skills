@@ -1,0 +1,72 @@
+{
+  "duration_seconds": 206.1760140209999,
+  "false_negatives": [],
+  "false_positives": [],
+  "id": "xss-check-context-2",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "xss": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      },
+      "mode": {
+        "context": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      },
+      "skill": {
+        "xss-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 0,
+      "false_positives": 0,
+      "true_positives": 1
+    },
+    "fixture_passed": true,
+    "matched_truth": [
+      [
+        "xss-check",
+        "XSS-01"
+      ]
+    ],
+    "rates": {
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "run_id": 2,
+    "truth_entries": [
+      [
+        "xss-check",
+        "XSS-01"
+      ]
+    ]
+  },
+  "mode": "context",
+  "replay": false,
+  "run": 2,
+  "status": "ok",
+  "target": "xss-check"
+}

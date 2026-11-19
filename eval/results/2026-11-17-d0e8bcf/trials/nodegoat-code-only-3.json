@@ -1,0 +1,475 @@
+{
+  "duration_seconds": 478.0899110870014,
+  "false_negatives": [
+    {
+      "cwe": "CWE-311",
+      "description": "Social security numbers and dates of birth are stored unencrypted.",
+      "evidence": "user.ssn = ssn;",
+      "id": "NG-SSN-CLEARTEXT",
+      "locations": [
+        {
+          "end_line": 66,
+          "file": "app/data/profile-dao.js",
+          "start_line": 61
+        }
+      ],
+      "requires_context": false,
+      "source": "NodeGoat c5cb68a code review"
+    },
+    {
+      "cwe": "CWE-614",
+      "description": "The session cookie is configured without the secure flag and keeps the default connect.sid cookie name (express-session sets httpOnly by default).",
+      "evidence": "secret: cookieSecret,",
+      "id": "NG-SESSION-COOKIE",
+      "locations": [
+        {
+          "end_line": 102,
+          "file": "server.js",
+          "start_line": 78
+        }
+      ],
+      "requires_context": false,
+      "source": "NodeGoat c5cb68a code review"
+    },
+    {
+      "cwe": "CWE-352",
+      "description": "State-changing forms (profile, contributions, benefits, memos) have no CSRF protection.",
+      "evidence": "app.use(session({",
+      "id": "NG-NO-CSRF",
+      "locations": [
+        {
+          "end_line": 113,
+          "file": "server.js",
+          "start_line": 71
+        }
+      ],
+      "requires_context": false,
+      "source": "NodeGoat c5cb68a code review"
+    },
+    {
+      "cwe": "CWE-79",
+      "description": "Template autoescaping is turned off globally, so every interpolated user value renders as HTML.",
+      "evidence": "autoescape: false",
+      "id": "NG-XSS-AUTOESCAPE",
+      "locations": [
+        {
+          "end_line": 137,
+          "file": "server.js",
+          "start_line": 135
+        }
+      ],
+      "requires_context": false,
+      "source": "NodeGoat c5cb68a code review"
+    },
+    {
+      "cwe": "CWE-1104",
+      "description": "marked 0.3.5 has known sanitizer bypasses leading to XSS.",
+      "evidence": "\"marked\": \"0.3.5\"",
+      "id": "NG-DEP-MARKED",
+      "locations": [
+        {
+          "end_line": 17,
+          "file": "package.json",
+          "start_line": 17
+        }
+      ],
+      "requires_context": false,
+      "source": "NodeGoat c5cb68a code review"
+    }
+  ],
+  "false_positives": [
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-79",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 4,
+        "exploitability": 4,
+        "reproducibility": 5,
+        "score": 4.2
+      },
+      "end_line": 25,
+      "evidence": "The endpoint writes the fetched response body directly into an HTML response.",
+      "file": "app/routes/research.js",
+      "fix": "Do not proxy arbitrary HTML; return structured data and render it with escaped output, or sanitize with a vetted HTML sanitizer for a narrowly defined safe subset.",
+      "id": "SEC-0007",
+      "line": 25,
+      "mode": "code-only",
+      "owasp": "A03:2025",
+      "skill": "xss-check",
+      "title": "Research response writes attacker-controlled HTML without encoding",
+      "trace": [
+        {
+          "file": "app/routes/research.js",
+          "line": 15,
+          "note": "The requester chooses the fetched URL.",
+          "step": "source"
+        },
+        {
+          "file": "app/routes/research.js",
+          "line": 16,
+          "note": "The response becomes body in the needle callback.",
+          "step": "propagation"
+        },
+        {
+          "file": "app/routes/research.js",
+          "line": 25,
+          "note": "res.write emits body as HTML without encoding or sanitization.",
+          "step": "sink"
+        }
+      ],
+      "why": "By choosing a server they control through the request URL, an authenticated user can cause script to execute in the application's origin when the research page is opened."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-307",
+      "dread": {
+        "affected_users": 4,
+        "damage": 3,
+        "discoverability": 4,
+        "exploitability": 4,
+        "reproducibility": 5,
+        "score": 4.0
+      },
+      "end_line": 34,
+      "evidence": "POST /login reaches password verification with no attempt limiter or lockout middleware in the registered route chain.",
+      "file": "app/routes/index.js",
+      "fix": "Add a server-side login attempt limiter keyed to account and network signals, with progressive backoff and monitoring.",
+      "id": "SEC-0008",
+      "line": 34,
+      "mode": "code-only",
+      "owasp": "A07:2025",
+      "skill": "auth-session-check",
+      "title": "Login endpoint has no credential-attempt rate limit",
+      "trace": [],
+      "why": "Attackers can repeatedly submit password guesses against an account without a server-enforced limit."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-352",
+      "dread": {
+        "affected_users": 4,
+        "damage": 3,
+        "discoverability": 4,
+        "exploitability": 4,
+        "reproducibility": 4,
+        "score": 3.8
+      },
+      "end_line": 67,
+      "evidence": "POST profile, contributions, benefits, and memos routes rely on the session cookie; no CSRF middleware or route token validation is registered in server.js.",
+      "file": "app/routes/index.js",
+      "fix": "Enable and validate per-request CSRF tokens for browser form endpoints and set a deliberate SameSite cookie policy; keep origin checks as defense in depth.",
+      "id": "SEC-0010",
+      "line": 48,
+      "mode": "code-only",
+      "owasp": "A01:2025",
+      "skill": "auth-session-check",
+      "title": "Cookie-authenticated state changes lack a demonstrated CSRF defense",
+      "trace": [],
+      "why": "A malicious site can cause a logged-in browser to submit state-changing requests with its ambient session cookie."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-311",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 2,
+        "exploitability": 2,
+        "reproducibility": 5,
+        "score": 3.4
+      },
+      "end_line": 82,
+      "evidence": "The profile update writes ssn, dob, bankAcc, and bankRouting fields directly to the users collection with no encryption step.",
+      "file": "app/data/profile-dao.js",
+      "fix": "Minimize collection of this data and encrypt required sensitive fields using managed envelope encryption with authenticated encryption and protected key material.",
+      "id": "SEC-0011",
+      "line": 78,
+      "mode": "code-only",
+      "owasp": "A02:2025",
+      "skill": "crypto-check",
+      "title": "Sensitive profile data is written to storage without encryption",
+      "trace": [
+        {
+          "file": "app/routes/profile.js",
+          "line": 42,
+          "note": "Sensitive profile fields originate in req.body.",
+          "step": "source"
+        },
+        {
+          "file": "app/data/profile-dao.js",
+          "line": 78,
+          "note": "users.update persists the assembled fields.",
+          "step": "sink"
+        }
+      ],
+      "why": "A database or backup disclosure exposes users' government-ID, date-of-birth, and bank-account data in plaintext."
+    }
+  ],
+  "id": "nodegoat-code-only-3",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 4
+        },
+        "auth-session": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 2,
+          "true_positives": 2
+        },
+        "crypto": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "dependency": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        },
+        "error-logging": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "injection": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "misconfiguration": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        },
+        "secrets": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "xss": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 0
+        }
+      },
+      "mode": {
+        "code-only": {
+          "duplicates": 0,
+          "false_negatives": 5,
+          "false_positives": 4,
+          "true_positives": 10
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 5,
+          "false_positives": 0,
+          "true_positives": 8
+        },
+        "true": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 4
+        },
+        "auth-session-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 2,
+          "true_positives": 2
+        },
+        "crypto-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 0
+        },
+        "dependency-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        },
+        "error-logging-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "injection-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "misconfiguration-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        },
+        "secrets-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "xss-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 0
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 5,
+      "false_positives": 4,
+      "true_positives": 10
+    },
+    "fixture_passed": false,
+    "matched_truth": [
+      [
+        "nodegoat",
+        "NG-BENEFITS-ADMIN"
+      ],
+      [
+        "nodegoat",
+        "NG-HARDCODED-SECRETS"
+      ],
+      [
+        "nodegoat",
+        "NG-IDOR-ALLOCATIONS"
+      ],
+      [
+        "nodegoat",
+        "NG-LOG-INJECTION"
+      ],
+      [
+        "nodegoat",
+        "NG-NOSQL-WHERE"
+      ],
+      [
+        "nodegoat",
+        "NG-OPEN-REDIRECT"
+      ],
+      [
+        "nodegoat",
+        "NG-PLAINTEXT-PASSWORD"
+      ],
+      [
+        "nodegoat",
+        "NG-SESSION-FIXATION"
+      ],
+      [
+        "nodegoat",
+        "NG-SSJS-EVAL"
+      ],
+      [
+        "nodegoat",
+        "NG-SSRF"
+      ]
+    ],
+    "rates": {
+      "f1": 0.689655172413793,
+      "precision": 0.7142857142857143,
+      "recall": 0.6666666666666666
+    },
+    "run_id": 3,
+    "truth_entries": [
+      [
+        "nodegoat",
+        "NG-BENEFITS-ADMIN"
+      ],
+      [
+        "nodegoat",
+        "NG-DEP-MARKED"
+      ],
+      [
+        "nodegoat",
+        "NG-HARDCODED-SECRETS"
+      ],
+      [
+        "nodegoat",
+        "NG-IDOR-ALLOCATIONS"
+      ],
+      [
+        "nodegoat",
+        "NG-LOG-INJECTION"
+      ],
+      [
+        "nodegoat",
+        "NG-NO-CSRF"
+      ],
+      [
+        "nodegoat",
+        "NG-NOSQL-WHERE"
+      ],
+      [
+        "nodegoat",
+        "NG-OPEN-REDIRECT"
+      ],
+      [
+        "nodegoat",
+        "NG-PLAINTEXT-PASSWORD"
+      ],
+      [
+        "nodegoat",
+        "NG-SESSION-COOKIE"
+      ],
+      [
+        "nodegoat",
+        "NG-SESSION-FIXATION"
+      ],
+      [
+        "nodegoat",
+        "NG-SSJS-EVAL"
+      ],
+      [
+        "nodegoat",
+        "NG-SSN-CLEARTEXT"
+      ],
+      [
+        "nodegoat",
+        "NG-SSRF"
+      ],
+      [
+        "nodegoat",
+        "NG-XSS-AUTOESCAPE"
+      ]
+    ]
+  },
+  "mode": "code-only",
+  "replay": false,
+  "run": 3,
+  "status": "ok",
+  "target": "nodegoat"
+}

@@ -1,0 +1,735 @@
+{
+  "duration_seconds": 437.306454865,
+  "false_negatives": [
+    {
+      "cwe": "CWE-943",
+      "description": "Order tracking builds a MongoDB-style $where JavaScript expression from the id route parameter.",
+      "evidence": "$where: `this.orderId === '${id}'`",
+      "id": "JS-NOSQL-TRACK",
+      "locations": [
+        {
+          "end_line": 18,
+          "file": "routes/trackOrder.ts",
+          "start_line": 18
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-943",
+      "description": "Review listing concatenates the id route parameter into a $where expression.",
+      "evidence": "$where: 'this.product == ' + id",
+      "id": "JS-NOSQL-REVIEWS",
+      "locations": [
+        {
+          "end_line": 36,
+          "file": "routes/showProductReviews.ts",
+          "start_line": 36
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-94",
+      "description": "B2B orders evaluate client-supplied orderLinesData as code with notevil inside a vm context, which is not a security boundary.",
+      "evidence": "vm.runInContext('safeEval(orderLinesData)', sandbox, { timeout: 2000 })",
+      "id": "JS-RCE-B2B",
+      "locations": [
+        {
+          "end_line": 23,
+          "file": "routes/b2bOrder.ts",
+          "start_line": 21
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-94",
+      "description": "The profile page evaluates a #{...} expression taken from the user-controlled username.",
+      "evidence": "username = eval(code)",
+      "id": "JS-RCE-PROFILE",
+      "locations": [
+        {
+          "end_line": 65,
+          "file": "routes/userProfile.ts",
+          "start_line": 60
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-22",
+      "description": "The data-erasure result renders with a layout path taken from the request body, enabling local file read via the template engine.",
+      "evidence": "path.resolve(req.body.layout)",
+      "id": "JS-LFR-ERASURE",
+      "locations": [
+        {
+          "end_line": 109,
+          "file": "routes/dataErasure.ts",
+          "start_line": 103
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-639",
+      "description": "Any logged-in user can edit any review: the update never checks that the review's author is the caller.",
+      "evidence": "const user = security.authenticatedUsers.from(req)",
+      "id": "JS-FORGED-REVIEW-EDIT",
+      "locations": [
+        {
+          "end_line": 18,
+          "file": "routes/updateProductReviews.ts",
+          "start_line": 16
+        }
+      ],
+      "requires_context": true,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-639",
+      "description": "New reviews take their author from the request body without binding it to a caller, so any caller, including an unauthenticated caller, can post as someone else.",
+      "evidence": "author: req.body.author",
+      "id": "JS-FORGED-REVIEW-AUTHOR",
+      "locations": [
+        {
+          "end_line": 27,
+          "file": "routes/createProductReviews.ts",
+          "start_line": 23
+        }
+      ],
+      "requires_context": true,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-639",
+      "description": "Adding an item checks the first BasketId in the body but saves the last one, so a duplicated key adds items to another user's basket.",
+      "evidence": "BasketId: basketIds[basketIds.length - 1]",
+      "id": "JS-BASKET-HPP",
+      "locations": [
+        {
+          "end_line": 43,
+          "file": "routes/basketItems.ts",
+          "start_line": 37
+        }
+      ],
+      "requires_context": true,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-639",
+      "description": "GET /api/Recycles/:id is unauthenticated and parses the id as JSON, returning other users' recycle requests and their address identifiers.",
+      "evidence": "id: JSON.parse(req.params.id)",
+      "id": "JS-RECYCLE-IDOR",
+      "locations": [
+        {
+          "end_line": 15,
+          "file": "routes/recycles.ts",
+          "start_line": 12
+        },
+        {
+          "end_line": 420,
+          "file": "server.ts",
+          "start_line": 420
+        }
+      ],
+      "requires_context": true,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-862",
+      "description": "Any authenticated user can list every user account with emails, roles, and derived token timestamps, exposing data beyond the caller's own account.",
+      "evidence": "const users = await UserModel.findAll()",
+      "id": "JS-USER-LIST",
+      "locations": [
+        {
+          "end_line": 17,
+          "file": "routes/authenticatedUsers.ts",
+          "start_line": 12
+        }
+      ],
+      "requires_context": true,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-863",
+      "description": "Deluxe upgrade is granted when paymentMode is neither wallet nor card, so membership can be obtained without paying.",
+      "evidence": "await user.update({ role: security.roles.deluxe",
+      "id": "JS-DELUXE-FREE",
+      "locations": [
+        {
+          "end_line": 43,
+          "file": "routes/deluxe.ts",
+          "start_line": 24
+        }
+      ],
+      "requires_context": true,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-862",
+      "description": "The authorization guard for updating products is commented out, so anyone can modify products through the generated REST API.",
+      "evidence": "// app.put('/api/Products/:id', security.isAuthorized())",
+      "id": "JS-PRODUCT-PUT",
+      "locations": [
+        {
+          "end_line": 403,
+          "file": "server.ts",
+          "start_line": 401
+        }
+      ],
+      "requires_context": true,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-548",
+      "description": "Directory listings are served for /ftp, /encryptionkeys and /support/logs, exposing backups, keys and access logs.",
+      "evidence": "serveIndex(",
+      "id": "JS-DIR-LISTING",
+      "locations": [
+        {
+          "end_line": 294,
+          "file": "server.ts",
+          "start_line": 294
+        },
+        {
+          "end_line": 302,
+          "file": "server.ts",
+          "start_line": 302
+        },
+        {
+          "end_line": 306,
+          "file": "server.ts",
+          "start_line": 306
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-209",
+      "description": "The development errorhandler middleware returns stack traces to clients in every environment.",
+      "evidence": "app.use(errorhandler())",
+      "id": "JS-ERROR-DETAIL",
+      "locations": [
+        {
+          "end_line": 722,
+          "file": "server.ts",
+          "start_line": 722
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-307",
+      "description": "The password-reset rate limiter enables Express trust proxy, so its fallback req.ip can be derived from proxy forwarding headers; an overly broad trust-proxy configuration lets a client vary the apparent IP and bypass the limit.",
+      "evidence": "app.enable('trust proxy')",
+      "id": "JS-RATE-LIMIT-XFF",
+      "locations": [
+        {
+          "end_line": 378,
+          "file": "server.ts",
+          "start_line": 374
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    },
+    {
+      "cwe": "CWE-1104",
+      "description": "The application pins the outdated jsonwebtoken 0.4.0 dependency; the draft does not establish a specific advisory's reachability.",
+      "evidence": "\"jsonwebtoken\": \"0.4.0\"",
+      "id": "JS-DEP-JSONWEBTOKEN",
+      "locations": [
+        {
+          "end_line": 123,
+          "file": "package.json",
+          "start_line": 123
+        }
+      ],
+      "requires_context": false,
+      "source": "Juice Shop v20.4.0 code review (draft, needs human verification)"
+    }
+  ],
+  "false_positives": [
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-798",
+      "dread": {
+        "affected_users": 5,
+        "damage": 5,
+        "discoverability": 5,
+        "exploitability": 5,
+        "reproducibility": 5,
+        "score": 5.0
+      },
+      "end_line": 10,
+      "evidence": "A 12-word wallet mnemonic is assigned to mnemonic in the unauthenticated submitKey handler.",
+      "file": "routes/checkKeys.ts",
+      "fix": "Revoke and replace the wallet, remove the mnemonic from source, and inject any required secret at runtime.",
+      "id": "SEC-0002",
+      "line": 10,
+      "mode": "code-only",
+      "owasp": "A07:2025",
+      "skill": "secrets-check",
+      "title": "Ethereum wallet recovery phrase is embedded in a public handler",
+      "trace": [],
+      "why": "The recovery phrase derives the wallet private key and can be extracted from the source or deployed build."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-307",
+      "dread": {
+        "affected_users": 5,
+        "damage": 4,
+        "discoverability": 5,
+        "exploitability": 5,
+        "reproducibility": 5,
+        "score": 4.8
+      },
+      "end_line": 635,
+      "evidence": "POST /rest/user/login is registered without rate-limiting middleware, while rate limiting is only configured for reset-password and selected 2FA routes.",
+      "file": "server.ts",
+      "fix": "Apply a server-side login rate limit keyed to an account identifier and a trustworthy client address, with progressive delays or temporary lockout.",
+      "id": "SEC-0004",
+      "line": 635,
+      "mode": "code-only",
+      "owasp": "A07:2025",
+      "skill": "auth-session-check",
+      "title": "Login endpoint has no credential-attempt limit",
+      "trace": [],
+      "why": "An unauthenticated attacker can repeatedly submit passwords for an account without an application-enforced attempt limit."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-502",
+      "dread": {
+        "affected_users": 5,
+        "damage": 5,
+        "discoverability": 4,
+        "exploitability": 4,
+        "reproducibility": 4,
+        "score": 4.4
+      },
+      "end_line": 114,
+      "evidence": "yaml.load processes attacker-controlled upload data rather than a safe schema or safeLoad equivalent.",
+      "file": "routes/fileUpload.ts",
+      "fix": "Use a safe YAML schema for untrusted input and reject custom tags and executable types.",
+      "id": "SEC-0009",
+      "line": 114,
+      "mode": "code-only",
+      "owasp": "A08:2025",
+      "skill": "file-handling-check",
+      "title": "Uploaded YAML reaches an unsafe full-schema deserializer",
+      "trace": [
+        {
+          "file": "routes/fileUpload.ts",
+          "line": 110,
+          "note": "Uploaded YAML bytes are converted to data.",
+          "step": "source"
+        },
+        {
+          "file": "routes/fileUpload.ts",
+          "line": 114,
+          "note": "data is passed to yaml.load.",
+          "step": "sink"
+        }
+      ],
+      "why": "The full js-yaml loader accepts unsafe YAML types from a public upload endpoint, allowing attacker-controlled deserialization behavior."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-639",
+      "dread": {
+        "affected_users": 4,
+        "damage": 4,
+        "discoverability": 4,
+        "exploitability": 4,
+        "reproducibility": 5,
+        "score": 4.2
+      },
+      "end_line": 35,
+      "evidence": "Checkout loads a basket by req.params.id without checking its UserId against the authenticated requester.",
+      "file": "routes/order.ts",
+      "fix": "Authorize ownership while loading the basket and perform checkout and basket-item deletion within an ownership-scoped transaction.",
+      "id": "SEC-0012",
+      "line": 35,
+      "mode": "code-only",
+      "owasp": "A01:2025",
+      "skill": "access-control-check",
+      "title": "Checkout changes any basket selected by its ID",
+      "trace": [
+        {
+          "file": "routes/order.ts",
+          "line": 34,
+          "note": "req.params.id controls id.",
+          "step": "source"
+        },
+        {
+          "file": "routes/order.ts",
+          "line": 51,
+          "note": "The selected basket ID is used to delete BasketItems after checkout.",
+          "step": "sink"
+        }
+      ],
+      "why": "An authenticated attacker can check out another user's basket and clear its BasketItems."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-639",
+      "dread": {
+        "affected_users": 4,
+        "damage": 3,
+        "discoverability": 4,
+        "exploitability": 4,
+        "reproducibility": 5,
+        "score": 4.0
+      },
+      "end_line": 24,
+      "evidence": "The authenticated coupon handler finds and updates BasketModel using only params.id.",
+      "file": "routes/coupon.ts",
+      "fix": "Scope the basket lookup and update to the authenticated user's ID.",
+      "id": "SEC-0013",
+      "line": 18,
+      "mode": "code-only",
+      "owasp": "A01:2025",
+      "skill": "access-control-check",
+      "title": "Coupon endpoint modifies another user's basket by ID",
+      "trace": [
+        {
+          "file": "routes/coupon.ts",
+          "line": 13,
+          "note": "params.id controls the basket identifier.",
+          "step": "source"
+        },
+        {
+          "file": "routes/coupon.ts",
+          "line": 24,
+          "note": "The selected basket is updated without an ownership condition.",
+          "step": "sink"
+        }
+      ],
+      "why": "An authenticated user can change the coupon on another customer's basket by supplying its identifier."
+    }
+  ],
+  "id": "juice-shop-code-only-3",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 7,
+          "false_positives": 2,
+          "true_positives": 4
+        },
+        "auth-session": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 2
+        },
+        "dependency": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        },
+        "error-logging": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        },
+        "file-handling": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 1
+        },
+        "injection": {
+          "duplicates": 0,
+          "false_negatives": 4,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "misconfiguration": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "secrets": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 1
+        }
+      },
+      "mode": {
+        "code-only": {
+          "duplicates": 0,
+          "false_negatives": 16,
+          "false_positives": 5,
+          "true_positives": 12
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 9,
+          "false_positives": 0,
+          "true_positives": 10
+        },
+        "true": {
+          "duplicates": 0,
+          "false_negatives": 7,
+          "false_positives": 0,
+          "true_positives": 2
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 7,
+          "false_positives": 2,
+          "true_positives": 4
+        },
+        "auth-session-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 2
+        },
+        "dependency-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        },
+        "error-logging-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        },
+        "file-handling-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 1,
+          "true_positives": 1
+        },
+        "injection-check": {
+          "duplicates": 0,
+          "false_negatives": 4,
+          "false_positives": 0,
+          "true_positives": 3
+        },
+        "misconfiguration-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "secrets-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 1,
+          "true_positives": 1
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 16,
+      "false_positives": 5,
+      "true_positives": 12
+    },
+    "fixture_passed": false,
+    "matched_truth": [
+      [
+        "juice-shop",
+        "JS-BASKET-IDOR"
+      ],
+      [
+        "juice-shop",
+        "JS-JWT-PRIVATE-KEY"
+      ],
+      [
+        "juice-shop",
+        "JS-MD5-PASSWORD"
+      ],
+      [
+        "juice-shop",
+        "JS-NOSQL-UPDATE"
+      ],
+      [
+        "juice-shop",
+        "JS-PASSWORD-CHANGE"
+      ],
+      [
+        "juice-shop",
+        "JS-REDIRECT"
+      ],
+      [
+        "juice-shop",
+        "JS-ROLE-MASS-ASSIGN"
+      ],
+      [
+        "juice-shop",
+        "JS-SQLI-LOGIN"
+      ],
+      [
+        "juice-shop",
+        "JS-SQLI-SEARCH"
+      ],
+      [
+        "juice-shop",
+        "JS-SSRF-IMAGE"
+      ],
+      [
+        "juice-shop",
+        "JS-XXE"
+      ],
+      [
+        "juice-shop",
+        "JS-ZIPSLIP"
+      ]
+    ],
+    "rates": {
+      "f1": 0.5333333333333333,
+      "precision": 0.7058823529411765,
+      "recall": 0.42857142857142855
+    },
+    "run_id": 3,
+    "truth_entries": [
+      [
+        "juice-shop",
+        "JS-BASKET-HPP"
+      ],
+      [
+        "juice-shop",
+        "JS-BASKET-IDOR"
+      ],
+      [
+        "juice-shop",
+        "JS-DELUXE-FREE"
+      ],
+      [
+        "juice-shop",
+        "JS-DEP-JSONWEBTOKEN"
+      ],
+      [
+        "juice-shop",
+        "JS-DIR-LISTING"
+      ],
+      [
+        "juice-shop",
+        "JS-ERROR-DETAIL"
+      ],
+      [
+        "juice-shop",
+        "JS-FORGED-REVIEW-AUTHOR"
+      ],
+      [
+        "juice-shop",
+        "JS-FORGED-REVIEW-EDIT"
+      ],
+      [
+        "juice-shop",
+        "JS-JWT-PRIVATE-KEY"
+      ],
+      [
+        "juice-shop",
+        "JS-LFR-ERASURE"
+      ],
+      [
+        "juice-shop",
+        "JS-MD5-PASSWORD"
+      ],
+      [
+        "juice-shop",
+        "JS-NOSQL-REVIEWS"
+      ],
+      [
+        "juice-shop",
+        "JS-NOSQL-TRACK"
+      ],
+      [
+        "juice-shop",
+        "JS-NOSQL-UPDATE"
+      ],
+      [
+        "juice-shop",
+        "JS-PASSWORD-CHANGE"
+      ],
+      [
+        "juice-shop",
+        "JS-PRODUCT-PUT"
+      ],
+      [
+        "juice-shop",
+        "JS-RATE-LIMIT-XFF"
+      ],
+      [
+        "juice-shop",
+        "JS-RCE-B2B"
+      ],
+      [
+        "juice-shop",
+        "JS-RCE-PROFILE"
+      ],
+      [
+        "juice-shop",
+        "JS-RECYCLE-IDOR"
+      ],
+      [
+        "juice-shop",
+        "JS-REDIRECT"
+      ],
+      [
+        "juice-shop",
+        "JS-ROLE-MASS-ASSIGN"
+      ],
+      [
+        "juice-shop",
+        "JS-SQLI-LOGIN"
+      ],
+      [
+        "juice-shop",
+        "JS-SQLI-SEARCH"
+      ],
+      [
+        "juice-shop",
+        "JS-SSRF-IMAGE"
+      ],
+      [
+        "juice-shop",
+        "JS-USER-LIST"
+      ],
+      [
+        "juice-shop",
+        "JS-XXE"
+      ],
+      [
+        "juice-shop",
+        "JS-ZIPSLIP"
+      ]
+    ]
+  },
+  "mode": "code-only",
+  "replay": false,
+  "run": 3,
+  "status": "ok",
+  "target": "juice-shop"
+}

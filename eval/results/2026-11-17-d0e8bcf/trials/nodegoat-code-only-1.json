@@ -1,0 +1,395 @@
+{
+  "duration_seconds": 301.13905317199897,
+  "false_negatives": [
+    {
+      "cwe": "CWE-352",
+      "description": "State-changing forms (profile, contributions, benefits, memos) have no CSRF protection.",
+      "evidence": "app.use(session({",
+      "id": "NG-NO-CSRF",
+      "locations": [
+        {
+          "end_line": 113,
+          "file": "server.js",
+          "start_line": 71
+        }
+      ],
+      "requires_context": false,
+      "source": "NodeGoat c5cb68a code review"
+    },
+    {
+      "cwe": "CWE-79",
+      "description": "Template autoescaping is turned off globally, so every interpolated user value renders as HTML.",
+      "evidence": "autoescape: false",
+      "id": "NG-XSS-AUTOESCAPE",
+      "locations": [
+        {
+          "end_line": 137,
+          "file": "server.js",
+          "start_line": 135
+        }
+      ],
+      "requires_context": false,
+      "source": "NodeGoat c5cb68a code review"
+    },
+    {
+      "cwe": "CWE-384",
+      "description": "Login reuses the existing session ID instead of regenerating it (session fixation).",
+      "evidence": "req.session.userId = user._id;",
+      "id": "NG-SESSION-FIXATION",
+      "locations": [
+        {
+          "end_line": 116,
+          "file": "app/routes/session.js",
+          "start_line": 116
+        }
+      ],
+      "requires_context": false,
+      "source": "NodeGoat c5cb68a code review"
+    },
+    {
+      "cwe": "CWE-1104",
+      "description": "marked 0.3.5 has known sanitizer bypasses leading to XSS.",
+      "evidence": "\"marked\": \"0.3.5\"",
+      "id": "NG-DEP-MARKED",
+      "locations": [
+        {
+          "end_line": 17,
+          "file": "package.json",
+          "start_line": 17
+        }
+      ],
+      "requires_context": false,
+      "source": "NodeGoat c5cb68a code review"
+    }
+  ],
+  "false_positives": [
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-352",
+      "dread": {
+        "affected_users": 4,
+        "damage": 3,
+        "discoverability": 3,
+        "exploitability": 5,
+        "reproducibility": 5,
+        "score": 4.0
+      },
+      "end_line": 56,
+      "evidence": "Authenticated POST routes are registered without CSRF middleware, origin validation, or a SameSite cookie policy in the session configuration.",
+      "file": "app/routes/index.js",
+      "fix": "Enable CSRF tokens or robust Origin checking for state-changing browser routes and set an appropriate SameSite cookie policy.",
+      "id": "SEC-0005",
+      "line": 48,
+      "mode": "code-only",
+      "owasp": "A01:2025",
+      "skill": "auth-session-check",
+      "title": "Cookie-authenticated state changes lack a CSRF defense",
+      "trace": [
+        {
+          "file": "server.js",
+          "line": 78,
+          "note": "The application uses cookie-backed express-session authentication.",
+          "step": "authentication"
+        },
+        {
+          "file": "app/routes/index.js",
+          "line": 48,
+          "note": "POST /profile accepts a state-changing request after only isLoggedIn.",
+          "step": "sink"
+        }
+      ],
+      "why": "A malicious site can induce a signed-in browser to submit a profile, contribution, or benefits-changing request using its session cookie."
+    },
+    {
+      "confidence": "high",
+      "context_ref": null,
+      "cwe": "CWE-307",
+      "dread": {
+        "affected_users": 3,
+        "damage": 4,
+        "discoverability": 3,
+        "exploitability": 3,
+        "reproducibility": 5,
+        "score": 3.6
+      },
+      "end_line": 58,
+      "evidence": "The login handler invokes credential validation with no attempt counter, delay, lockout, or rate-limit middleware in the route chain.",
+      "file": "app/routes/session.js",
+      "fix": "Apply a server-side login rate limit keyed to account and IP, with progressive delays and monitoring.",
+      "id": "SEC-0012",
+      "line": 53,
+      "mode": "code-only",
+      "owasp": "A07:2025",
+      "skill": "auth-session-check",
+      "title": "Login attempts have no rate limit",
+      "trace": [],
+      "why": "An attacker can repeatedly submit password guesses against an account without an application-enforced limit."
+    }
+  ],
+  "id": "nodegoat-code-only-1",
+  "metrics": {
+    "breakdowns": {
+      "cwe_family": {
+        "access-control": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 4
+        },
+        "auth-session": {
+          "duplicates": 0,
+          "false_negatives": 2,
+          "false_positives": 2,
+          "true_positives": 1
+        },
+        "crypto": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "dependency": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        },
+        "error-logging": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "injection": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "misconfiguration": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "secrets": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "xss": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        }
+      },
+      "mode": {
+        "code-only": {
+          "duplicates": 0,
+          "false_negatives": 4,
+          "false_positives": 2,
+          "true_positives": 11
+        }
+      },
+      "requires_context": {
+        "false": {
+          "duplicates": 0,
+          "false_negatives": 4,
+          "false_positives": 0,
+          "true_positives": 9
+        },
+        "true": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        }
+      },
+      "skill": {
+        "access-control-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 4
+        },
+        "auth-session-check": {
+          "duplicates": 0,
+          "false_negatives": 2,
+          "false_positives": 2,
+          "true_positives": 1
+        },
+        "crypto-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "dependency-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        },
+        "error-logging-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "injection-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 2
+        },
+        "misconfiguration-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "secrets-check": {
+          "duplicates": 0,
+          "false_negatives": 0,
+          "false_positives": 0,
+          "true_positives": 1
+        },
+        "xss-check": {
+          "duplicates": 0,
+          "false_negatives": 1,
+          "false_positives": 0,
+          "true_positives": 0
+        }
+      }
+    },
+    "counts": {
+      "duplicates": 0,
+      "false_negatives": 4,
+      "false_positives": 2,
+      "true_positives": 11
+    },
+    "fixture_passed": false,
+    "matched_truth": [
+      [
+        "nodegoat",
+        "NG-BENEFITS-ADMIN"
+      ],
+      [
+        "nodegoat",
+        "NG-HARDCODED-SECRETS"
+      ],
+      [
+        "nodegoat",
+        "NG-IDOR-ALLOCATIONS"
+      ],
+      [
+        "nodegoat",
+        "NG-LOG-INJECTION"
+      ],
+      [
+        "nodegoat",
+        "NG-NOSQL-WHERE"
+      ],
+      [
+        "nodegoat",
+        "NG-OPEN-REDIRECT"
+      ],
+      [
+        "nodegoat",
+        "NG-PLAINTEXT-PASSWORD"
+      ],
+      [
+        "nodegoat",
+        "NG-SESSION-COOKIE"
+      ],
+      [
+        "nodegoat",
+        "NG-SSJS-EVAL"
+      ],
+      [
+        "nodegoat",
+        "NG-SSN-CLEARTEXT"
+      ],
+      [
+        "nodegoat",
+        "NG-SSRF"
+      ]
+    ],
+    "rates": {
+      "f1": 0.7857142857142856,
+      "precision": 0.8461538461538461,
+      "recall": 0.7333333333333333
+    },
+    "run_id": 1,
+    "truth_entries": [
+      [
+        "nodegoat",
+        "NG-BENEFITS-ADMIN"
+      ],
+      [
+        "nodegoat",
+        "NG-DEP-MARKED"
+      ],
+      [
+        "nodegoat",
+        "NG-HARDCODED-SECRETS"
+      ],
+      [
+        "nodegoat",
+        "NG-IDOR-ALLOCATIONS"
+      ],
+      [
+        "nodegoat",
+        "NG-LOG-INJECTION"
+      ],
+      [
+        "nodegoat",
+        "NG-NO-CSRF"
+      ],
+      [
+        "nodegoat",
+        "NG-NOSQL-WHERE"
+      ],
+      [
+        "nodegoat",
+        "NG-OPEN-REDIRECT"
+      ],
+      [
+        "nodegoat",
+        "NG-PLAINTEXT-PASSWORD"
+      ],
+      [
+        "nodegoat",
+        "NG-SESSION-COOKIE"
+      ],
+      [
+        "nodegoat",
+        "NG-SESSION-FIXATION"
+      ],
+      [
+        "nodegoat",
+        "NG-SSJS-EVAL"
+      ],
+      [
+        "nodegoat",
+        "NG-SSN-CLEARTEXT"
+      ],
+      [
+        "nodegoat",
+        "NG-SSRF"
+      ],
+      [
+        "nodegoat",
+        "NG-XSS-AUTOESCAPE"
+      ]
+    ]
+  },
+  "mode": "code-only",
+  "replay": false,
+  "run": 1,
+  "status": "ok",
+  "target": "nodegoat"
+}
