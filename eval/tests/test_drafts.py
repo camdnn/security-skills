@@ -51,8 +51,8 @@ def test_draft_entries_in_one_file_and_family_are_far_apart(draft: Path):
     assert clashes == []
 
 
-def test_juice_shop_draft_meets_the_q4_size():
-    truth = json.loads((ROOT / "eval/benchmarks/juice-shop/expected.draft.json").read_text())["truth"]
+def test_juice_shop_ground_truth_meets_the_q4_size():
+    truth = json.loads((ROOT / "eval/benchmarks/juice-shop/expected.json").read_text())["truth"]
 
     assert 25 <= len(truth) <= 30
     assert sum(entry["requires_context"] for entry in truth) >= 5
